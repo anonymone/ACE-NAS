@@ -39,6 +39,8 @@ class SkipContainer(nn.Module):
         Fx = self.stack_layers(x)
         return self.af(torch.add(Fx,x))
         
+# In this module init_gpu is a compromising method sending weights to GPU
+# I need to fix it in the future work.
 class MultiBranchsContainer(nn.Module):
     def __init__(self, branchs):
         super(MultiBranchsContainer,self).__init__()
@@ -58,13 +60,13 @@ class MultiBranchsContainer(nn.Module):
         return torch.cat(outputs,1)
 
 class FullConnectionLayer(nn.Module):
-    def __init__(self, in_features, out_features):
+    def __init__(self, in_features, out_features, dropout =False):
         super(FullConnectionLayer, self).__init__()
-        self.feature = nn.Sequential(
-            nn.Linear(in_features= in_features, out_features=out_features),
-            nn.Dropout(),
-            nn.ReLU(inplace=True)
-        )
+        if dropout:
+            model = [nn.Linear(in_features= in_features, out_features=out_features), nn.Dropout(), nn.ReLU(inplace=True)]
+        else:
+            model = [nn.Linear(in_features= in_features, out_features=out_features), nn.ReLU(inplace=True)]
+        self.feature = nn.Sequential(*model)
 
     def forward(self, x):
         return self.feature(x)
