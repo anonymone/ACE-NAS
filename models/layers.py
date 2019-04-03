@@ -32,17 +32,24 @@ class PoolingLayer(nn.Module):
 class SkipContainer(nn.Module):
     def __init__(self, stack_layers):
         super(SkipContainer, self).__init__()
-        self.stack_layers = stack_layers
-        self.af = F.relu
+        self.stack_layers = nn.Sequential(*stack_layers)
+        self.af = nn.ReLU(inplace=True)
     
     def forward(self,x ):
         Fx = self.stack_layers(x)
-        return self.af(Fx+x)
+        return self.af(torch.add(Fx,x))
         
 class MultiBranchsContainer(nn.Module):
-    def __init__(self):
+    def __init__(self, branchs):
         super(MultiBranchsContainer,self).__init__()
-        pass
+        for index, branch in zip(range(len(branchs)),branchs):
+            self.branchs['branch{0}'.format(index)] = nn.Sequential(*branch)
+    
+    def forward(self, x):
+        outputs = list()
+        for branch in self.branchs:
+            outputs.append(branch(x))
+        return torch.cat(outputs,1)
 
 class FullConnectionLayer(nn.Module):
     def __init__(self, in_features, out_features):
@@ -55,3 +62,4 @@ class FullConnectionLayer(nn.Module):
 
     def forward(self, x):
         return self.feature(x)
+
