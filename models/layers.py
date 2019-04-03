@@ -42,13 +42,19 @@ class SkipContainer(nn.Module):
 class MultiBranchsContainer(nn.Module):
     def __init__(self, branchs):
         super(MultiBranchsContainer,self).__init__()
-        for index, branch in zip(range(len(branchs)),branchs):
-            self.branchs['branch{0}'.format(index)] = nn.Sequential(*branch)
+        self.branch_num = len(branchs)
+        for index in range(self.branch_num):
+            self.__dict__['branch{0}'.format(index)] = nn.Sequential(*branchs[index])
+    
+    def init_gpu(self):
+        for index in range(self.branch_num):
+            self.__dict__['branch{0}'.format(index)].to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
     
     def forward(self, x):
+        self.init_gpu()
         outputs = list()
-        for branch in self.branchs:
-            outputs.append(branch(x))
+        for index in range(self.branch_num):
+            outputs += [self.__dict__['branch{0}'.format(index)](x)]
         return torch.cat(outputs,1)
 
 class FullConnectionLayer(nn.Module):
