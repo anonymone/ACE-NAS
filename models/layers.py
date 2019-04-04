@@ -46,17 +46,19 @@ class MultiBranchsContainer(nn.Module):
         super(MultiBranchsContainer,self).__init__()
         self.branch_num = len(branchs)
         for index in range(self.branch_num):
-            self.__dict__['branch{0}'.format(index)] = nn.Sequential(*branchs[index])
-    
-    def init_gpu(self):
-        for index in range(self.branch_num):
-            self.__dict__['branch{0}'.format(index)].to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+            # self.__dict__['branch{0}'.format(index)] = nn.Sequential(*branchs[index])
+            exec('self.branch{0} = nn.Sequential(*branchs[{0}])'.format(index))
+
+    # def init_gpu(self):
+    #     for index in range(self.branch_num):
+    #         self.__dict__['branch{0}'.format(index)].to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
     
     def forward(self, x):
-        self.init_gpu()
+        # self.init_gpu()
         outputs = list()
         for index in range(self.branch_num):
-            outputs += [self.__dict__['branch{0}'.format(index)](x)]
+            exec('outputs.append(self.branch{0}(x))'.format(index))
+        # for index in range(self.branch_num):
         return torch.cat(outputs,1)
 
 class FullConnectionLayer(nn.Module):
