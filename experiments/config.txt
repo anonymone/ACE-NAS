@@ -1,0 +1,8 @@
+[individual setting]
+codeLength = 32
+codeType = real
+codeMaxValue = 9 
+objectiveNum = 2
+
+[population setting]
+popSize = 30

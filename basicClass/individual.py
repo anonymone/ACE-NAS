@@ -5,20 +5,40 @@ class individual():
     '''
     This is a basic individual class of all solution.
     '''
-    def __init__(self, decSize, arg = None):
+    def __init__(self,config, arg = None):
         '''
         self.__dec is numpy type
         self.__fitness is numpy type
         '''
-        self.__dec = None
-        self.__fitness = None
+        self.dec = None
+        self.fitness = None
         if arg is not None:
             assert type(arg) == dict, 'arg is not dict type.'
             for key in arg:
                 self.__dict__[key] = arg[key]
     
-    def dec(self):
-        return self.__dec.copy()
+    def get_dec(self):
+        return self.dec.copy()
 
-    def fitness(self):
-        return self.__fitness.copy()
+    def get_fitness(self):
+        return self.fitness.copy()
+    
+    def set_dec(self, dec):
+        self.dec = dec.copy()
+    
+    def set_fitness(self,fitness):
+        self.fitness = fitness.copy()
+
+
+class SEA_individual(individual):
+    def __init__(self,config):
+        # load setting
+        super(SEA_individual,self).__init__(config=config) 
+        self.codeLength = int(config['codeLength'])
+        self.codeType = config['codeType']
+        self.codeMaxValue = int(config['codeMaxValue'])
+        self.fitnessSize = int(config['objectiveNum'])
+        #initiate decision variables
+        self.dec = np.random.random_integers(1,self.codeMaxValue,size=(1,self.codeLength))
+        self.fitness = np.zeros((1,self.fitnessSize))
+
