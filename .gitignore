@@ -1,6 +1,6 @@
 # files
 *.pyc
-*.ipynb
+*-checkpoint.ipynb
 
 # folder 
 /Dataset/
