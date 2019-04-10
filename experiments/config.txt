@@ -1,8 +1,10 @@
 [individual setting]
-codeLength = 32
+blockLength = 3
+codeLength = 8
+actionCodeSize = 1
 codeType = real
 codeMaxValue = 9 
 objectiveNum = 2
 
 [population setting]
-popSize = 30
+popSize = 1

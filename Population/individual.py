@@ -43,4 +43,5 @@ class SEA_individual(individual):
         # initiate decision variables
         self.dec = np.random.random_integers(
             1, self.codeMaxValue, size=(1, self.codeLength*self.blockLength))
+        self.dec[0,0] = 1
         self.fitness = np.zeros((1, self.fitnessSize))
