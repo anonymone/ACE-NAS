@@ -84,7 +84,8 @@ class decoder(stateBase):
                 self.fullConnectLayerSize - parameters_dict['kernel_size'] + 2*parameters_dict['padding']) / parameters_dict['stride']) + 1
         elif opType == self.INSTRUCT.ADD_POOL:
             self.fullConnectLayerSize = int(
-                (self.fullConnectLayerSize - 1 * parameters_dict['kernel_size'] - 1)/parameters_dict['stride']+1)
+                (self.fullConnectLayerSize + 2*parameters_dict['padding'] - 1*(parameters_dict['kernel_size']-1)-1)/parameters_dict['stride'] + 1
+                )
         else:
             pass
         return parameters_dict
