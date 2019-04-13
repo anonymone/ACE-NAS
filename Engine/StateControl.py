@@ -99,3 +99,12 @@ class decoder(stateBase):
             parameters = self.get_parameters(parameters, opType)
             model.append(operator(parameters))
         return nn.Sequential(*model)
+
+class evaluator(evalBase):
+    def __init__(self,config):
+        super(evaluator,self).__init__(config)
+        self.evaluateTool = self.train
+
+    def train(self, model):
+        pass
+        

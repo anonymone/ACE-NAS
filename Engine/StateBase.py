@@ -1,6 +1,10 @@
 '''
 License
 '''
+import threading
+import queue
+
+
 class action():
     def __init__(self):
         self.ADD_CONV = 1
@@ -8,6 +12,7 @@ class action():
         self.ADD_SKIP = 3
         self.ADD_BRANCH = 4
         self.END = 0
+
 
 class stateBase:
     '''
@@ -19,7 +24,7 @@ class stateBase:
 
     Arguments:
         Graph : State transition diagraph
-    
+
     Methods :
         next_state : recieving a state code and then going to corresponding state.
         re_set : reset the present state to the default state.
@@ -27,9 +32,42 @@ class stateBase:
 
     def __init__(self):
         self.present_state = None
-    
+
     def next_state(self, code=None):
         pass
-        
+
     def re_set(self):
         pass
+
+
+class evalBase:
+    def __init__(self, config):
+        self.individuals = queue.Queue(maxsize=30)
+        self.threadingNum = int(config['threadingNum'])
+        self.threadingMap = dict()
+        for number in range(self.threadingNum):
+            self.threadingMap[str(number)] = threading.Thread(
+                None, target=self.eval, name='Thread{0}'.format(number))
+        self.evaluateTool = sum
+
+    def insert(self, ind):
+        try:
+            self.individuals.put(ind)
+        except:
+            return False
+        return True
+
+    def eval(self):
+        while True:
+            if not self.individuals.empty():
+                ind = self.individuals.get()
+                if ind is None:
+                    return
+                fitness = self.evaluateTool(ind.values.dec())
+                self.individuals.task_done()
+            else:
+                continue
+
+    def stop(self):
+        for i in range(self.threadingNum):
+            self.individuals.put(None)

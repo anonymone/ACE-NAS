@@ -8,3 +8,11 @@ objectiveNum = 2
 
 [population setting]
 popSize = 1
+
+[EA setting]
+runtimes = 30
+mutateRate = 0.4
+crossOver = 0
+
+[trainning setting]
+threadingNum = 5
