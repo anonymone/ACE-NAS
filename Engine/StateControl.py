@@ -81,9 +81,12 @@ class decoder(stateBase):
                 parameters_dict[param] = nn.functional.relu
         if opType == self.INSTRUCT.ADD_CONV:
             self.fullConnectLayerSize = int((
-                self.fullConnectLayerSize - parameters_dict['kernel_size'] + 1 + 2*parameters_dict['padding']) / parameters_dict['stride'])
+                self.fullConnectLayerSize - parameters_dict['kernel_size'] + 2*parameters_dict['padding']) / parameters_dict['stride']) + 1
+        elif opType == self.INSTRUCT.ADD_POOL:
+            self.fullConnectLayerSize = int(
+                (self.fullConnectLayerSize - 1 * parameters_dict['kernel_size'] - 1)/parameters_dict['stride']+1)
         else:
-            self.fullConnectLayerSize = int(self.fullConnectLayerSize / (parameters_dict['kernel_size']))
+            pass
         return parameters_dict
 
     def get_model(self, code):
