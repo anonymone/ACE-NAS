@@ -4,6 +4,7 @@ License
 import torch
 import torchvision
 import torchvision.transforms as transforms
+import torch.optim as optim
 import torch.nn as nn
 import threading
 import queue
@@ -111,20 +112,39 @@ class evaluator(evalBase):
         self.decoder = decoder(config)
         self.batchSize = int(config['batchSize'])
         self.numberWorkers = int(config['numberWorks'])
+        self.dataPath = config['dataPath']
+        self.lr = float(config['learningRate'])
+        self.epoch = int(config['trainEpoch'])
 
     def train(self, dec):
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = self.decoder.get_model(dec)
+        model.to(device)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
 
-    def initDataset(self):
+        for epoch in range(self.epoch):
+            for i,data in enumerate(self.trainloader,0):
+                inputs, labels = data
+                inputs, labels =  inputs.to(device), labels.to(device)
+                optimizer.zero_grad()
+                # forward 
+                outputs = model(inputs)
+                loss = criterion(outputs,labels)
+                loss.backward()
+                optimizer.step()
+        
+
+    def initDataset(self, path = self.dataPath):
         self.transforms = transforms.Compose(
             [
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        trainset = torchvision.datasets.CIFAR10(root='../Dataset/cafir10/', train=True,
+        trainset = torchvision.datasets.CIFAR10(root=path, train=True,
                                         download=True, transform=transform)
         self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
                                           shuffle=True, num_workers=self.numberWorkers)
-        testset = torchvision.datasets.CIFAR10(root='../Dataset/cafir10/', train=False,
+        testset = torchvision.datasets.CIFAR10(root=path, train=False,
                                        download=True, transform=transform)
         self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
                                          shuffle=False, num_workers=self.numberWorkers)

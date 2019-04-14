@@ -15,6 +15,9 @@ mutateRate = 0.4
 crossOver = 0
 
 [trainning setting]
+trainEpoch = 20
 threadingNum = 5
 batchSize = 32
 numberWorkers = 4
+learningRate = 0.001
+dataPath = ../Dataset/cafir10/
