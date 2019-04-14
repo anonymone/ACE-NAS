@@ -16,3 +16,5 @@ crossOver = 0
 
 [trainning setting]
 threadingNum = 5
+batchSize = 32
+numberWorkers = 4

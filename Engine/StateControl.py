@@ -2,6 +2,8 @@
 License
 '''
 import torch
+import torchvision
+import torchvision.transforms as transforms
 import torch.nn as nn
 import threading
 import queue
@@ -84,8 +86,9 @@ class decoder(stateBase):
                 self.fullConnectLayerSize - parameters_dict['kernel_size'] + 2*parameters_dict['padding']) / parameters_dict['stride']) + 1
         elif opType == self.INSTRUCT.ADD_POOL:
             self.fullConnectLayerSize = int(
-                (self.fullConnectLayerSize + 2*parameters_dict['padding'] - 1*(parameters_dict['kernel_size']-1)-1)/parameters_dict['stride'] + 1
-                )
+                (self.fullConnectLayerSize + 2*parameters_dict['padding'] - 1*(
+                    parameters_dict['kernel_size']-1)-1)/parameters_dict['stride'] + 1
+            )
         else:
             pass
         return parameters_dict
@@ -100,11 +103,28 @@ class decoder(stateBase):
             model.append(operator(parameters))
         return nn.Sequential(*model)
 
-class evaluator(evalBase):
-    def __init__(self,config):
-        super(evaluator,self).__init__(config)
-        self.evaluateTool = self.train
 
-    def train(self, model):
-        pass
-        
+class evaluator(evalBase):
+    def __init__(self, config):
+        super(evaluator, self).__init__(config)
+        self.evaluateTool = self.train
+        self.decoder = decoder(config)
+        self.batchSize = int(config['batchSize'])
+        self.numberWorkers = int(config['numberWorks'])
+
+    def train(self, dec):
+        model = self.decoder.get_model(dec)
+
+    def initDataset(self):
+        self.transforms = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        trainset = torchvision.datasets.CIFAR10(root='../Dataset/cafir10/', train=True,
+                                        download=True, transform=transform)
+        self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
+                                          shuffle=True, num_workers=self.numberWorkers)
+        testset = torchvision.datasets.CIFAR10(root='../Dataset/cafir10/', train=False,
+                                       download=True, transform=transform)
+        self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
+                                         shuffle=False, num_workers=self.numberWorkers)

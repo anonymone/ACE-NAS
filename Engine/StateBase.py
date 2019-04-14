@@ -48,7 +48,7 @@ class evalBase:
         for number in range(self.threadingNum):
             self.threadingMap[str(number)] = threading.Thread(
                 None, target=self.eval, name='Thread{0}'.format(number))
-        self.evaluateTool = sum
+        self.evaluateTool = None
 
     def insert(self, ind):
         try:
@@ -63,7 +63,7 @@ class evalBase:
                 ind = self.individuals.get()
                 if ind is None:
                     return
-                fitness = self.evaluateTool(ind.values.dec())
+                fitness = self.evaluateTool(ind.dec())
                 self.individuals.task_done()
             else:
                 continue
