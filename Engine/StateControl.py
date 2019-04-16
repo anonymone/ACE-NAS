@@ -109,8 +109,8 @@ class decoder(stateBase):
 class evaluator(evalBase):
     def __init__(self, config):
         super(evaluator, self).__init__(config)
+        self.config = config
         self.evaluateTool = self.train
-        self.decoder = decoder(config)
         self.batchSize = int(config['trainning setting']['batchSize'])
         self.numberWorkers = int(config['trainning setting']['numberWorkers'])
         self.dataPath = config['trainning setting']['dataPath']
@@ -118,8 +118,9 @@ class evaluator(evalBase):
         self.epoch = int(config['trainning setting']['trainEpoch'])
 
     def train(self, dec):
+        Decode = decoder(self.config)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = self.decoder.get_model(dec)
+        model = Decode.get_model(dec)
         model.to(device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
@@ -168,4 +169,4 @@ class evaluator(evalBase):
             for number in self.threadingMap:
                 self.threadingMap[number].start()
         except:
-            print("Threading {0} starts failed.".format{number}) 
+            print("Threading {0} starts failed.".format(number)) 
