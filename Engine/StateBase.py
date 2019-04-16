@@ -62,8 +62,9 @@ class evalBase:
             if not self.individuals.empty():
                 ind = self.individuals.get()
                 if ind is None:
-                    return
+                    break
                 fitness = self.evaluateTool(ind.dec())
+                print("model fitness : {0}".format(fitness))
                 self.individuals.task_done()
             else:
                 continue

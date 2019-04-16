@@ -134,9 +134,21 @@ class evaluator(evalBase):
                 loss = criterion(outputs,labels)
                 loss.backward()
                 optimizer.step()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for data in self.testloader:
+                inputs, labels = data
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+        return correct/total
+        
         
 
-    def initDataset(self, path = None):
+    def initEngine(self, path = None):
         if path is None:
             path = self.dataPath
         self.transforms = transforms.Compose(
@@ -151,3 +163,9 @@ class evaluator(evalBase):
                                        download=True, transform=self.transforms)
         self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
                                          shuffle=False, num_workers=self.numberWorkers)
+        # start evaluator threading
+        try:
+            for number in self.threadingMap:
+                self.threadingMap[number].start()
+        except:
+            print("Threading {0} starts failed.".format{number}) 
