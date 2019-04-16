@@ -43,7 +43,7 @@ class stateBase:
 class evalBase:
     def __init__(self, config):
         self.individuals = queue.Queue(maxsize=30)
-        self.threadingNum = int(config['threadingNum'])
+        self.threadingNum = int(config['trainning setting']['threadingNum'])
         self.threadingMap = dict()
         for number in range(self.threadingNum):
             self.threadingMap[str(number)] = threading.Thread(

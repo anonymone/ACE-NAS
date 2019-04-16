@@ -33,8 +33,8 @@ class decoder(stateBase):
         super(decoder, self).__init__()
         self.present_state = None
         self.INSTRUCT = action()
-        self.actionSize = int(config['ActionCodeSize'])
-        self.codeLength = int(config['codeLength'])
+        self.actionSize = int(config['individual setting']['ActionCodeSize'])
+        self.codeLength = int(config['individual setting']['codeLength'])
         self.parameterSize = self.codeLength - self.actionSize
         # Runtime Flags
         self.FLAG_SKIP = False
@@ -102,6 +102,7 @@ class decoder(stateBase):
             (operator, opType) = self.get_operator(actionCode)
             parameters = self.get_parameters(parameters, opType)
             model.append(operator(parameters))
+        model.append(layers.linear(self.fullConnectLayerSize, self.previousOutSize))
         return nn.Sequential(*model)
 
 
@@ -110,11 +111,11 @@ class evaluator(evalBase):
         super(evaluator, self).__init__(config)
         self.evaluateTool = self.train
         self.decoder = decoder(config)
-        self.batchSize = int(config['batchSize'])
-        self.numberWorkers = int(config['numberWorks'])
-        self.dataPath = config['dataPath']
-        self.lr = float(config['learningRate'])
-        self.epoch = int(config['trainEpoch'])
+        self.batchSize = int(config['trainning setting']['batchSize'])
+        self.numberWorkers = int(config['trainning setting']['numberWorkers'])
+        self.dataPath = config['trainning setting']['dataPath']
+        self.lr = float(config['trainning setting']['learningRate'])
+        self.epoch = int(config['trainning setting']['trainEpoch'])
 
     def train(self, dec):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -135,16 +136,18 @@ class evaluator(evalBase):
                 optimizer.step()
         
 
-    def initDataset(self, path = self.dataPath):
+    def initDataset(self, path = None):
+        if path is None:
+            path = self.dataPath
         self.transforms = transforms.Compose(
             [
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         trainset = torchvision.datasets.CIFAR10(root=path, train=True,
-                                        download=True, transform=transform)
+                                        download=True, transform=self.transforms)
         self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
                                           shuffle=True, num_workers=self.numberWorkers)
         testset = torchvision.datasets.CIFAR10(root=path, train=False,
-                                       download=True, transform=transform)
+                                       download=True, transform=self.transforms)
         self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
                                          shuffle=False, num_workers=self.numberWorkers)

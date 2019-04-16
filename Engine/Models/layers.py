@@ -82,3 +82,20 @@ class FullConnectionLayer(nn.Module):
     def forward(self, x):
         return self.feature(x)
 
+# Just for testing usage.
+class linear(nn.Module):
+    def __init__(self,inSize,channelSize):
+        super(linear, self).__init__()
+        self.inSize = inSize
+        self.channelSize = channelSize
+        self.fc1 = nn.Linear(inSize*inSize*channelSize, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+    
+    def forward(self, x):
+        x = x.view(-1, self.inSize*self.inSize*self.channelSize)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
