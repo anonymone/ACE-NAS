@@ -45,9 +45,9 @@ class evalBase:
         self.individuals = multiprocessing.Queue(maxsize=30)
         self.threadingNum = int(config['trainning setting']['threadingNum'])
         self.threadingMap = dict()
-        for number in range(self.threadingNum):
-            self.threadingMap[str(number)] = threading.Thread(
-                None, target=self.eval, name='Thread{0}'.format(number))
+        # for number in range(self.threadingNum):
+        #     self.threadingMap[str(number)] = threading.Thread(
+        #         None, target=self.eval, name='Thread{0}'.format(number))
         self.evaluateTool = None
 
     def insert(self, ind):
