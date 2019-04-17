@@ -2,7 +2,7 @@
 License
 '''
 import threading
-import queue
+import multiprocessing
 
 
 class action():
@@ -42,7 +42,7 @@ class stateBase:
 
 class evalBase:
     def __init__(self, config):
-        self.individuals = queue.Queue(maxsize=30)
+        self.individuals = multiprocessing.Queue(maxsize=30)
         self.threadingNum = int(config['trainning setting']['threadingNum'])
         self.threadingMap = dict()
         for number in range(self.threadingNum):
@@ -59,15 +59,13 @@ class evalBase:
 
     def eval(self):
         while True:
-            if not self.individuals.empty():
-                ind = self.individuals.get()
-                if ind is None:
-                    break
-                fitness = self.evaluateTool(ind.get_dec())
-                print("model fitness : {0}".format(fitness))
-                self.individuals.task_done()
-            else:
-                continue
+            ind = self.individuals.get()
+            if ind is None:
+                break
+            print('Get ind {0}'.format(ind.get_dec()))                
+            fitness = self.evaluateTool(ind.get_dec())
+            print("model fitness : {0}".format(fitness))
+            # self.individuals.task_done()
 
     def stop(self):
         for i in range(self.threadingNum):

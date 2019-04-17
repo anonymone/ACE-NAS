@@ -98,7 +98,7 @@ class decoder(stateBase):
         code = self.groupCode(code)
         model = list()
         for (actionCode, parameters) in code:
-            print(actionCode, parameters)
+            # print(actionCode, parameters)
             (operator, opType) = self.get_operator(actionCode)
             parameters = self.get_parameters(parameters, opType)
             model.append(operator(parameters))
@@ -125,8 +125,22 @@ class evaluator(evalBase):
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
 
+        # load dataset
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        trainset = torchvision.datasets.CIFAR10(root=self.dataPath, train=True,
+                                        download=True, transform=transform)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
+                                          shuffle=True, num_workers=self.numberWorkers)
+        testset = torchvision.datasets.CIFAR10(root=self.dataPath, train=False,
+                                       download=True, transform=transform)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
+                                         shuffle=False, num_workers=self.numberWorkers)
+
         for epoch in range(self.epoch):
-            for i,data in enumerate(self.trainloader,0):
+            for i,data in enumerate(trainloader,0):
                 inputs, labels = data
                 inputs, labels =  inputs.to(device), labels.to(device)
                 optimizer.zero_grad()
@@ -138,7 +152,7 @@ class evaluator(evalBase):
         correct = 0
         total = 0
         with torch.no_grad():
-            for data in enumerate(self.testloader,0):
+            for i,data in enumerate(testloader,0):
                 inputs, labels = data
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = model(inputs)
@@ -150,20 +164,8 @@ class evaluator(evalBase):
         
 
     def initEngine(self, path = None):
-        if path is None:
-            path = self.dataPath
-        self.transforms = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        trainset = torchvision.datasets.CIFAR10(root=path, train=True,
-                                        download=True, transform=self.transforms)
-        self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
-                                          shuffle=True, num_workers=self.numberWorkers)
-        testset = torchvision.datasets.CIFAR10(root=path, train=False,
-                                       download=True, transform=self.transforms)
-        self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
-                                         shuffle=False, num_workers=self.numberWorkers)
+        if path is not None:
+            self.dataPath = path
         # start evaluator threading
         try:
             for number in self.threadingMap:
