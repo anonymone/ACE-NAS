@@ -138,7 +138,7 @@ class evaluator(evalBase):
         correct = 0
         total = 0
         with torch.no_grad():
-            for data in self.testloader:
+            for data in enumerate(self.testloader,0):
                 inputs, labels = data
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = model(inputs)
