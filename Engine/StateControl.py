@@ -128,9 +128,7 @@ class evaluator(evalBase):
         model.to(device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
-
-
-
+        # train
         for epoch in range(self.epoch):
             for i,data in enumerate(self.trainloader,0):
                 inputs, labels = data
@@ -143,6 +141,7 @@ class evaluator(evalBase):
                 optimizer.step()
         correct = 0
         total = 0
+        # accuracy
         with torch.no_grad():
             for i,data in enumerate(self.testloader,0):
                 inputs, labels = data
@@ -151,9 +150,19 @@ class evaluator(evalBase):
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
-        return correct/total
+        # cpmputational complexity
+        computComplexity = self.getModelComplexity(model)
+        return [correct/total, computComplexity]
         
-        
+    def getModelComplexity(self, model):
+        count = 0 
+        for param in model.parameters():
+            paramSize = param.size()
+            countEach = 1
+            for dis in paramSize:
+                countEach *= dis
+            count += countEach
+        return count
 
     def initEngine(self, path = None):
         if path is not None:

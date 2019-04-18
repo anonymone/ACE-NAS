@@ -60,13 +60,13 @@ class evalBase:
     def eval(self):
         while True:
             ind = self.individuals.get()
-            if ind is None:
+            if ind == 'None':
                 break
             print('Get ind {0}'.format(ind.get_dec()))                
             fitness = self.evaluateTool(ind.get_dec())
-            print("model fitness : {0}".format(fitness))
+            print("model fitness : {0} in {1}".format(fitness, threading.current_thread().getName()))
             # self.individuals.task_done()
 
     def stop(self):
         for i in range(self.threadingNum):
-            self.individuals.put(None)
+            self.individuals.put('None')
