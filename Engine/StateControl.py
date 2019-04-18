@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.nn as nn
 import threading
 import queue
+import numpy as np
 
 from StateBase import *
 from Models import layers
@@ -152,7 +153,7 @@ class evaluator(evalBase):
                 correct += (predicted == labels).sum().item()
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
-        return [correct/total, computComplexity]
+        return np.array([correct/total, computComplexity])
         
     def getModelComplexity(self, model):
         count = 0 
@@ -164,7 +165,7 @@ class evaluator(evalBase):
             count += countEach
         return count
 
-    def initEngine(self, path = None):
+    def initEngine(self, path = None, threadingAble = False):
         if path is not None:
             self.dataPath = path
                 # load dataset
@@ -182,8 +183,9 @@ class evaluator(evalBase):
                                          shuffle=False, num_workers=self.numberWorkers)
 
         # start evaluator threading
-        try:
-            for number in self.threadingMap:
-                self.threadingMap[number].start()
-        except:
-            print("Threading {0} starts failed.".format(number)) 
+        if threadingAble:
+            try:
+                for number in self.threadingMap:
+                    self.threadingMap[number].start()
+            except:
+                print("Threading {0} starts failed.".format(number)) 

@@ -7,7 +7,7 @@ codeMaxValue = 9
 objectiveNum = 2
 
 [population setting]
-popSize = 1
+popSize = 10
 
 [EA setting]
 runtimes = 30
@@ -15,8 +15,8 @@ mutateRate = 0.4
 crossOver = 0
 
 [trainning setting]
-trainEpoch = 20
-threadingNum = 5
+trainEpoch = 1
+threadingNum = 1
 batchSize = 32
 numberWorkers = 4
 learningRate = 0.001
