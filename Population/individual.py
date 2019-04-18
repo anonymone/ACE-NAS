@@ -45,3 +45,12 @@ class SEA_individual(individual):
             1, self.codeMaxValue, size=(1, self.codeLength*self.blockLength))
         self.dec[0,0] = 1
         self.fitness = np.zeros((1, self.fitnessSize))
+    
+    def set_fitness(self, fitness):
+        self.fitness = fitness.copy()
+
+    def isTrained(self):
+        if np.sum(self.fitness) == 0:
+            return False
+        else:
+            return True

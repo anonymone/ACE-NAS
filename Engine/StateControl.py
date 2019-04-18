@@ -153,7 +153,7 @@ class evaluator(evalBase):
                 correct += (predicted == labels).sum().item()
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
-        return np.array([correct/total, computComplexity])
+        return np.array([[correct/total, computComplexity]])
         
     def getModelComplexity(self, model):
         count = 0 
