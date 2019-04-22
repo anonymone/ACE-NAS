@@ -1,4 +1,4 @@
-class EABase():
+class EAbase():
     def __init__(self):
         pass
 
