@@ -13,6 +13,7 @@ popSize = 10
 runtimes = 30
 mutateRate = 0.4
 crossOver = 0
+codeType = real
 
 [trainning setting]
 trainEpoch = 1
