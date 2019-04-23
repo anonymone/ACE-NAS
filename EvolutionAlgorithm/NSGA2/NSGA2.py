@@ -30,10 +30,42 @@ class NSGA2(EAbase.EAbase):
         (sub3, sub4) = (ind2[0:cutPoint], ind2[cutPoint:])
         return np.vstack([np.hstack([sub1, sub4]), np.hstack([sub3, sub2])])
 
-    def crowdingDistance(self, pop):
-        pass
+    def isDominated(self, ind1, ind2, proType='min'):
+        if proType == 'min':
+            return np.any(ind1 < ind2) and not np.any(ind1 > ind2)
+        else:
+            return np.any(ind1 > ind2) and not np.any(ind1 < ind2)
 
     def fastNondomiatedSort(self, pop):
+        popLength, fitnessNum = pop[1]
+        popSize = pop[0].shape[0]
+        fitnessValue = pop[0][:, -fitnessNum:]
+        S = [list() for _ in range(popSize)]
+        n = np.zeros(shape=popSize, dtype=int)
+        F = list()
+        F.append([])
+        for p in range(popSize):
+            for q in range(popSize):
+                # if p == q:
+                #     continue
+                if self.isDominated(fitnessValue[p], fitnessValue[q]):
+                    S[p].append(q)
+                if self.isDominated(fitnessValue[q], fitnessValue[p]):
+                    n[p] = n[p] + 1
+            if n[p] == 0:
+                F[0].append(p)
+        i = 0
+        while len(F[i]) > 0:
+            F.append([])
+            for p in F[i]:
+                for q in S[p]:
+                    n[q] = n[q] - 1
+                    if n[q] == 0:
+                        F[i+1].append(q)
+            i = i + 1
+        return F
+            
+    def crowdingDistance(self, pop):
         pass
 
     def newPop(self, pop):
