@@ -156,7 +156,7 @@ class evaluator(evalBase):
         computComplexity = self.getModelComplexity(model)
         print("Fitness >>> acc:{0}, comp:{1} ".format(correct/total,computComplexity))
         logging.info("Fitness >>> acc:{0}, comp:{1} ".format(correct/total,computComplexity))
-        return np.array([[correct/total, computComplexity]])
+        return np.array([[1/(correct/total), computComplexity]])
         
     def getModelComplexity(self, model):
         count = 0 
