@@ -9,6 +9,7 @@ import torch.nn as nn
 import threading
 import queue
 import numpy as np
+import logging
 
 from StateBase import *
 from Models import layers
@@ -154,6 +155,7 @@ class evaluator(evalBase):
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
         print("Fitness >>> acc:{0}, comp:{1} ".format(correct/total,computComplexity))
+        logging.info("Fitness >>> acc:{0}, comp:{1} ".format(correct/total,computComplexity))
         return np.array([[correct/total, computComplexity]])
         
     def getModelComplexity(self, model):
