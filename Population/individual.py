@@ -32,7 +32,7 @@ class individual():
 
 
 class SEA_individual(individual):
-    def __init__(self, config):
+    def __init__(self, config, decIn = None):
         # load setting
         super(SEA_individual, self).__init__(config=config)
         self.codeLength = int(config['codeLength'])
@@ -41,9 +41,12 @@ class SEA_individual(individual):
         self.codeMaxValue = int(config['codeMaxValue'])
         self.fitnessSize = int(config['objectiveNum'])
         # initiate decision variables
-        self.dec = np.random.random_integers(
-            1, self.codeMaxValue, size=(1, self.codeLength*self.blockLength))
-        self.dec[0,0] = 1
+        if decIn is None:
+            self.dec = np.random.random_integers(
+                1, self.codeMaxValue, size=(1, self.codeLength*self.blockLength))
+            self.dec[0,0] = 1
+        else:
+            self.dec = decIn.copy().reshape((1,decIn.shape[0]))
         self.fitness = np.zeros((1, self.fitnessSize))
     
     def set_fitness(self, fitness):

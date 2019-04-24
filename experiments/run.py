@@ -20,30 +20,26 @@ from StateControl import evaluator
 from NSGA2 import NSGA2
 
 EA = NSGA2.NSGA2(config)
-
+Engine = evaluator(config)
 pop = population(config=config)
 
-population = pop.get_matrix()
+Engine.initEngine()
 
-newpop = EA.mutate(population)
+# evaluate
+for ind in pop.get_population():
+    fitness = Engine.train(ind.get_dec())
+    ind.set_fitness(fitness)
 
-a = newpop[0][6, :]
+for i in range(30):
+    population = pop.get_matrix()
+    newpopMatrix = EA.mutate(population)
+    newPop = np.vstack([population[0],newpopMatrix[0]])
+    newGeneration = EA.enviromentalSeleection(pop= (newPop,(newPop.shape[0],population[1][1])),popNum=30)
+    newPop = pop.matrix_to_Pop(newGeneration)
+    pop.add_population(newPop)
+    # evaluate
+    for ind in pop.get_population():
+        fitness = Engine.train(ind.get_dec())
+        ind.set_fitness(fitness)
 
-b = population[0][6, :]
-EA.crossOver(ind1=np.array([1, 2, 3, 4, 5, 6, 7, 8, 9]),
-             ind2=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1]))
-
-a = np.random.randint(9, size=(3, 2))
-a = np.array([[3, 8],
-       [7, 1],
-       [4, 3],
-       [1, 5],
-       [8, 4],
-       [1, 6],
-       [4, 0],
-       [7, 0],
-       [1, 3],
-       [8, 8]])
-F = EA.fastNondomiatedSort((a, (3, 2)))
-
-EA.isDominated(a[1], a[2])
+print(pop.get_population())

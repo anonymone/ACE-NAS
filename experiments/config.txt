@@ -7,7 +7,7 @@ codeMaxValue = 9
 objectiveNum = 2
 
 [population setting]
-popSize = 10
+popSize = 30
 
 [EA setting]
 runtimes = 30

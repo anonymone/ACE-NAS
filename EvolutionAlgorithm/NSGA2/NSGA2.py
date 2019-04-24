@@ -64,9 +64,41 @@ class NSGA2(EAbase.EAbase):
                         F[i+1].append(q)
             i = i + 1
         return F
-            
+
     def crowdingDistance(self, pop):
-        pass
+        popLength, fitnessNum = pop[1]
+        popSize = pop[0].shape[0]
+        fitnessValue = pop[0][:, -fitnessNum:]
+        Idistance = np.zeros(popSize)
+        for m in range(fitnessNum):
+            objVector = fitnessValue[:, m]
+            orderIndex = np.argsort(objVector)
+            subIndex = orderIndex[1:-1]
+            Idistance[orderIndex[0]] = Idistance[orderIndex[-1]] = np.inf
+            for i in range(len(subIndex)):
+                Idistance[subIndex[i]] = Idistance[subIndex[i]] + (
+                    objVector[orderIndex[i+1]] - objVector[orderIndex[i-1]])/(np.max(objVector)-np.min(objVector))
+        return  Idistance
+
+    def enviromentalSeleection(self, pop, popNum):
+        F = self.fastNondomiatedSort(pop)
+        count = 0
+        selectingIndex = []
+        for FNum, Fi in zip(range(len(F)),F):
+            count += len(Fi)
+            if count >= popNum:
+                break
+            selectingIndex.extend(Fi)
+            
+        if count != popNum:
+            subpop = pop[0][F[FNum]]
+            subpop = (subpop,pop[1])
+            crowdValue = self.crowdingDistance(subpop)
+            index = np.argsort(crowdValue)
+            index = index[0:(len(F[FNum])-(count-popNum))]
+            selectingIndex.extend(index)
+        newPop = pop[0][selectingIndex,:]
+        return (newPop,pop[1])
 
     def newPop(self, pop):
         pass
