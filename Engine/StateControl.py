@@ -10,7 +10,7 @@ import threading
 import queue
 import numpy as np
 import logging
-logging.basicConfig(filename='./logs/train.log',,level=logging.DEBUG)
+logging.basicConfig(filename='./logs/train.log',level=logging.DEBUG)
 
 from StateBase import *
 from Models import layers
