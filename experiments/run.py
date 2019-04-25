@@ -16,7 +16,7 @@ sys.path.append('../EvolutionAlgorithm/')
 config = configparser.ConfigParser()
 config.read('./config.txt')
 
-logging.basicConfig(filename='./logs/train.log',,level=logging.DEBUG)
+logging.basicConfig(filename='./logs/train.log',level=logging.DEBUG)
 
 from individual import individual
 from population import population
