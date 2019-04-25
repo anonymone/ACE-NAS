@@ -1,5 +1,5 @@
 [individual setting]
-blockLength = 5
+blockLength = 3
 codeLength = 8
 actionCodeSize = 1
 codeType = real

@@ -31,7 +31,8 @@ Engine.initEngine()
 
 # evaluate
 for ind in pop.get_population():
-    fitness = Engine.train(ind.get_dec())
+   # fitness = Engine.train(ind.get_dec())
+    fitness = [[1,3]]
     ind.set_fitness(fitness)
 
 for i in range(int(config['EA setting']['runTimes'])):
@@ -40,7 +41,7 @@ for i in range(int(config['EA setting']['runTimes'])):
     population = pop.get_matrix()
     newpopMatrix = EA.mutate(population)
     newPop = np.vstack([population[0],newpopMatrix[0]])
-    newGeneration = EA.enviromentalSeleection(pop= (newPop,(newPop.shape[0],population[1][1])),popNum=30)
+    newGeneration = EA.enviromentalSeleection(pop= (newPop,(newPop.shape[0],population[1][1])),popNum=int(config['population setting']['popSize']))
     newPop = pop.matrix_to_Pop(newGeneration)
     pop.add_population(newPop)
     # evaluate
@@ -48,5 +49,9 @@ for i in range(int(config['EA setting']['runTimes'])):
         if ind.isTrained():
                 logging.info("Ind is trained. {0}".format(ind.get_dec()))
                 continue
-        fitness = Engine.train(ind.get_dec())
-        ind.set_fitness(fitness)
+        try:
+            fitness = Engine.train(ind.get_dec())
+            ind.set_fitness(fitness)
+        except:
+            logging.info("Ind is invalid {0}".format(ind.get_dec()))
+            ind.set_fitness([[np.inf,np.inf]])

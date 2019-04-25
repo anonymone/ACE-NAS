@@ -70,8 +70,8 @@ class decoder(stateBase):
     def get_parameters(self, parameters, opType):
         para_dict = {
             'in_channels': int(parameters[0]),  # hold
-            'out_channels': int(parameters[1] * 120),
-            'kernel_size': int(parameters[2] % 5 + 1),
+            'out_channels': int((parameters[1]+1) * 30),
+            'kernel_size': int(parameters[2] % 5 + 2),
             'stride': int(parameters[3] % 2 + 1),
             'padding': int(parameters[4] % 2),
             'active_function': int(parameters[5]),  # hold
@@ -131,9 +131,12 @@ class evaluator(evalBase):
     def train(self, dec):
         Decode = decoder(self.config)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = Decode.get_model(dec)
-        print(model)
-        model.to(device)
+        try:
+            model = Decode.get_model(dec)
+            model.to(device)
+        except:
+            logging.info("Model is invalid. {0} ".format(dec))
+            return np.array([[np.inf,np.inf]])
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
         # train

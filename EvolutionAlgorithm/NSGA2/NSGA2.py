@@ -19,7 +19,7 @@ class NSGA2(EAbase.EAbase):
         (popLength, fitnessNum) = newPop[1]
         if mutateFunc is None:
             for ind in newPop[0]:
-                index = np.unique([random.randint(0, popLength-1)
+                index = np.unique([random.randint(0, len(ind)-1)
                                    for x in range(random.randint(1, int(popLength/2)))])
                 ind[index] = [self.mutateGenerate for x in range(len(index))]
         return newPop
