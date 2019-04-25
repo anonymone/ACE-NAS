@@ -10,13 +10,13 @@ objectiveNum = 2
 popSize = 30
 
 [EA setting]
-runtimes = 30
+runTimes = 30
 mutateRate = 0.4
 crossOver = 0
 codeType = real
 
 [trainning setting]
-trainEpoch = 1
+trainEpoch = 10
 threadingNum = 1
 batchSize = 32
 numberWorkers = 4

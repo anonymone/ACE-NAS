@@ -16,7 +16,7 @@ sys.path.append('../EvolutionAlgorithm/')
 config = configparser.ConfigParser()
 config.read('./config.txt')
 
-logging.basicConfig(filename='./logs/train.log')
+logging.basicConfig(filename='./logs/train.log',,level=logging.DEBUG)
 
 from individual import individual
 from population import population
@@ -34,7 +34,7 @@ for ind in pop.get_population():
     fitness = Engine.train(ind.get_dec())
     ind.set_fitness(fitness)
 
-for i in range(30):
+for i in range(int(config['EA setting']['runTimes'])):
     print("GENERATION {0}".format(i))
     logging.info("GENERATION {0}".format(i))
     population = pop.get_matrix()
