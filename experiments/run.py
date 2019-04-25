@@ -45,5 +45,8 @@ for i in range(int(config['EA setting']['runTimes'])):
     pop.add_population(newPop)
     # evaluate
     for ind in pop.get_population():
+        if ind.isTrained():
+                logging.info("Ind is trained. {0}".format(ind.get_dec()))
+                continue
         fitness = Engine.train(ind.get_dec())
         ind.set_fitness(fitness)

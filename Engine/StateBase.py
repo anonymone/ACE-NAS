@@ -6,6 +6,9 @@ import multiprocessing
 
 
 class action():
+    '''
+    Including all flags of specific action.
+    '''
     def __init__(self):
         self.ADD_CONV = 1
         self.ADD_POOL = 2
@@ -36,7 +39,7 @@ class stateBase:
     def next_state(self, code=None):
         pass
 
-    def re_set(self):
+    def get_model(self,code):
         pass
 
 

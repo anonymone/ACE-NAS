@@ -94,7 +94,7 @@ class NSGA2(EAbase.EAbase):
             subpop = pop[0][F[FNum]]
             subpop = (subpop,pop[1])
             crowdValue = self.crowdingDistance(subpop)
-            index = np.argsort(crowdValue)
+            index = np.argsort(-crowdValue)
             index = index[0:(len(F[FNum])-(count-popNum))]
             selectingIndex.extend(index)
         newPop = pop[0][selectingIndex,:]

@@ -19,7 +19,7 @@ class population():
 
     def add_population(self, newPop):
         if len(newPop) != self.popSize:
-            print('The new population size is invalid')
+            print('The new population size {0} is invalid'.format(len(newPop)))
         self.generation[str(len(self.generation))] = newPop
 
     def update_population(self, newPop, index=-1):

@@ -33,6 +33,10 @@ class decoder(stateBase):
     '''
 
     def __init__(self, config):
+        '''
+        parameters : 
+            
+        '''
         super(decoder, self).__init__()
         self.present_state = None
         self.INSTRUCT = action()
@@ -66,10 +70,10 @@ class decoder(stateBase):
     def get_parameters(self, parameters, opType):
         para_dict = {
             'in_channels': int(parameters[0]),  # hold
-            'out_channels': int(parameters[1] * 30),
-            'kernel_size': int(parameters[2] % 3 + 1),
-            'stride': int(parameters[3] % 1 + 1),
-            'padding': int(parameters[4] % 1),
+            'out_channels': int(parameters[1] * 120),
+            'kernel_size': int(parameters[2] % 5 + 1),
+            'stride': int(parameters[3] % 2 + 1),
+            'padding': int(parameters[4] % 2),
             'active_function': int(parameters[5]),  # hold
             'poolingLayerType': int(parameters[6])
         }
@@ -128,6 +132,7 @@ class evaluator(evalBase):
         Decode = decoder(self.config)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = Decode.get_model(dec)
+        print(model)
         model.to(device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
