@@ -19,7 +19,7 @@ class NSGA2(EAbase.EAbase):
         (popLength, fitnessNum) = newPop[1]
         if mutateFunc is None:
             for ind in newPop[0]:
-                index = np.unique([random.randint(0, len(ind)-1)
+                index = np.unique([random.randint(0, len(ind)-3)
                                    for x in range(random.randint(1, int(popLength/2)))])
                 ind[index] = [self.mutateGenerate for x in range(len(index))]
         return newPop
@@ -44,8 +44,8 @@ class NSGA2(EAbase.EAbase):
         n = np.zeros(shape=popSize, dtype=int)
         F = list()
         F.append([])
-        for p in range(popSize):
-            for q in range(popSize):
+        for p in range(popLength):
+            for q in range(popLength):
                 # if p == q:
                 #     continue
                 if self.isDominated(fitnessValue[p], fitnessValue[q]):
@@ -63,6 +63,8 @@ class NSGA2(EAbase.EAbase):
                     if n[q] == 0:
                         F[i+1].append(q)
             i = i + 1
+        if not F:
+            a =1
         return F
 
     def crowdingDistance(self, pop):
@@ -77,7 +79,7 @@ class NSGA2(EAbase.EAbase):
             Idistance[orderIndex[0]] = Idistance[orderIndex[-1]] = np.inf
             for i in range(len(subIndex)):
                 Idistance[subIndex[i]] = Idistance[subIndex[i]] + (
-                    objVector[orderIndex[i+1]] - objVector[orderIndex[i-1]])/(np.max(objVector)-np.min(objVector))
+                    objVector[orderIndex[i+1]] - objVector[orderIndex[i-1]])/(np.max(objVector)+0.1-np.min(objVector))
         return  Idistance
 
     def enviromentalSeleection(self, pop, popNum):
@@ -98,7 +100,7 @@ class NSGA2(EAbase.EAbase):
             index = index[0:(len(F[FNum])-(count-popNum))]
             selectingIndex.extend(index)
         newPop = pop[0][selectingIndex,:]
-        return (newPop,pop[1])
+        return (newPop,(len(newPop),pop[1][1]))
 
     def newPop(self, pop):
         pass

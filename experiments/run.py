@@ -8,15 +8,15 @@ import numpy as np
 import json
 import logging
 
-sys.path.append('../')
-sys.path.append('../Population/')
-sys.path.append('../Engine/')
-sys.path.append('../EvolutionAlgorithm/')
+sys.path.append('./')
+sys.path.append('./Population/')
+sys.path.append('./Engine/')
+sys.path.append('./EvolutionAlgorithm/')
 
 config = configparser.ConfigParser()
-config.read('./config.txt')
+config.read('./experiments/config.txt')
 
-logging.basicConfig(filename='./logs/train.log',level=logging.DEBUG)
+logging.basicConfig(filename='./experiments/logs/train.log',level=logging.DEBUG)
 
 from individual import individual
 from population import population
@@ -31,8 +31,7 @@ Engine.initEngine()
 
 # evaluate
 for ind in pop.get_population():
-   # fitness = Engine.train(ind.get_dec())
-    fitness = [[1,3]]
+    fitness = Engine.train(ind.get_dec(),Mode='None')
     ind.set_fitness(fitness)
 
 for i in range(int(config['EA setting']['runTimes'])):
@@ -40,18 +39,21 @@ for i in range(int(config['EA setting']['runTimes'])):
     logging.info("GENERATION {0}".format(i))
     population = pop.get_matrix()
     newpopMatrix = EA.mutate(population)
-    newPop = np.vstack([population[0],newpopMatrix[0]])
-    newGeneration = EA.enviromentalSeleection(pop= (newPop,(newPop.shape[0],population[1][1])),popNum=int(config['population setting']['popSize']))
-    newPop = pop.matrix_to_Pop(newGeneration)
-    pop.add_population(newPop)
+    newPop = pop.matrix_to_Pop(newpopMatrix)
+    newPop.extend(pop.get_population())
     # evaluate
-    for ind in pop.get_population():
+    for ind in newPop:
         if ind.isTrained():
-                logging.info("Ind is trained. {0}".format(ind.get_dec()))
-                continue
+            logging.info("Ind is trained. {0}".format(ind.get_dec()))
+            continue
         try:
-            fitness = Engine.train(ind.get_dec())
+            fitness = Engine.train(ind.get_dec(),Mode='None')
             ind.set_fitness(fitness)
         except:
             logging.info("Ind is invalid {0}".format(ind.get_dec()))
             ind.set_fitness([[np.inf,np.inf]])
+    newPop = pop.get_matrix(popInput=newPop)
+    newGeneration = EA.enviromentalSeleection(pop= newPop,popNum=int(config['population setting']['popSize']))
+    newGeneration = pop.matrix_to_Pop(newGeneration)
+    pop.add_population(newGeneration)
+    

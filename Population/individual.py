@@ -25,15 +25,24 @@ class individual():
         return self.fitness.copy()
 
     def set_dec(self, dec):
-        self.dec = dec.copy()
+        self.dec = dec.copy().reshape(1,-1)
 
     def set_fitness(self, fitness):
-        self.fitness = fitness.copy()
+        self.fitness = fitness.copy().reshape(1,-1)
 
 
 class SEA_individual(individual):
     def __init__(self, config, decIn = None):
         # load setting
+        '''
+        Parameters:
+            codeLength : The length of each block
+            blockLength : The total number of block
+            codeType ： The type of code. 'real' 'binary', etc
+            codeMaxValue : The boundary of the value of code.
+            fitnessSize : The number of objectives
+            dec : Decision vector with type numpy.array([[,]])
+        '''
         super(SEA_individual, self).__init__(config=config)
         self.codeLength = int(config['codeLength'])
         self.blockLength = int(config['blockLength'])
@@ -49,11 +58,15 @@ class SEA_individual(individual):
             self.dec = decIn.copy().reshape((1,decIn.shape[0]))
         self.fitness = np.zeros((1, self.fitnessSize))
     
-    def set_fitness(self, fitness):
-        self.fitness = fitness.copy()
+    # def set_fitness(self, fitness):
+    #     '''
+    #     fitness must be the type as follow:
+    #         np.array([[,]])
+    #     '''
+    #     self.fitness = fitness.copy().reshape(1,-1)
 
     def isTrained(self):
-        if np.sum(self.fitness) == 0:
+        if np.any(np.sum(self.fitness) == 0):
             return False
         else:
             return True

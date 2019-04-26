@@ -20,6 +20,8 @@ class population():
     def add_population(self, newPop):
         if len(newPop) != self.popSize:
             print('The new population size {0} is invalid'.format(len(newPop)))
+            if len(newPop) == 0:
+                return 
         self.generation[str(len(self.generation))] = newPop
 
     def update_population(self, newPop, index=-1):
@@ -32,12 +34,14 @@ class population():
         popSize = matrix[0].shape[0]
         newPop = list()
         for ind in matrix[0]:
-            newInd = individual.SEA_individual(self.config['individual setting'], decIn = np.array(ind[0:popLength]))
+            newInd = individual.SEA_individual(self.config['individual setting'], decIn = np.array(ind[0:len(ind)-fitnessNum]))
+            if not np.any(np.sum(ind[-fitnessNum:]) == 0):
+                newInd.set_fitness(ind[-fitnessNum:])
             newPop.append(newInd)
         return newPop
         
 
-    def get_matrix(self, index=-1):
+    def get_matrix(self, index=-1, popInput = None):
         '''
         structure define:
         (
@@ -47,7 +51,10 @@ class population():
         '''
         if index == -1:
             index = str(len(self.generation)-1)
-        pop = self.generation[index]
+        if popInput is None:
+            pop = self.generation[index]
+        else:
+            pop = popInput
         matrix = np.vstack(
             [np.hstack((ind.get_dec(), ind.get_fitness())) for ind in pop])
-        return (matrix, (self.popSize, self.fitnessSize))
+        return (matrix, (len(pop), self.fitnessSize))

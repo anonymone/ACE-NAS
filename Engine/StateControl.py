@@ -70,7 +70,7 @@ class decoder(stateBase):
     def get_parameters(self, parameters, opType):
         para_dict = {
             'in_channels': int(parameters[0]),  # hold
-            'out_channels': int((parameters[1]+1) * 30),
+            'out_channels': int(parameters[1] * 30),
             'kernel_size': int(parameters[2] % 5 + 2),
             'stride': int(parameters[3] % 2 + 1),
             'padding': int(parameters[4] % 2),
@@ -128,7 +128,10 @@ class evaluator(evalBase):
             self.threadingMap[str(number)] = threading.Thread(
                 None, target=self.eval, name='Thread{0}'.format(number))
 
-    def train(self, dec):
+    def train(self, dec, Mode=None):
+        # Debugs
+        if Mode == 'DEBUG':
+            return np.random.randint(1,9,size=(1,2))
         Decode = decoder(self.config)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         try:
