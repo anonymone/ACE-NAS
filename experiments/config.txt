@@ -8,6 +8,7 @@ objectiveNum = 2
 
 [population setting]
 popSize = 30
+savePath = ./logs/
 
 [EA setting]
 runTimes = 30

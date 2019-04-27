@@ -22,6 +22,7 @@ class NSGA2(EAbase.EAbase):
                 index = np.unique([random.randint(0, len(ind)-3)
                                    for x in range(random.randint(1, int(popLength/2)))])
                 ind[index] = [self.mutateGenerate for x in range(len(index))]
+                ind[-fitnessNum:] = 0
         return newPop
 
     def crossOver(self, ind1, ind2):

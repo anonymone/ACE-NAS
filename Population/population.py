@@ -1,5 +1,6 @@
 import individual
 import numpy as np
+import json
 
 
 class population():
@@ -58,3 +59,25 @@ class population():
         matrix = np.vstack(
             [np.hstack((ind.get_dec(), ind.get_fitness())) for ind in pop])
         return (matrix, (len(pop), self.fitnessSize))
+
+    def save(self, index=-1, popInput = None, fileName='None'):
+        Generation = dict()
+        if index == -1:
+            index = str(len(self.generation)-1)
+        if popInput is None:
+            pop = self.generation[index]
+        else:
+            pop = popInput
+        try:
+            Writer = open(self.config['population setting']['savePath']+fileName,mode='w')
+            for i in range(len(pop)):        
+                Generation['candidates{0}'.format(i)] = str(np.hstack((pop[i].get_dec(), pop[i].get_fitness())))
+            Generation['popSize'] = self.popSize
+            Generation['fitnessSize'] = self.fitnessSize
+            strings = json.dumps(Generation)
+            Writer.write(strings)
+            Writer.close()
+            return True
+        except:
+            return False
+

@@ -1,6 +1,8 @@
 # files
 *.pyc
 *-checkpoint.ipynb
+*.log
+
 
 # folder 
 /Dataset/

@@ -10,7 +10,10 @@ import threading
 import queue
 import numpy as np
 import logging
-logging.basicConfig(filename='./logs/train.log',level=logging.DEBUG)
+FORMAT = '%(asctime)-15s %(message)s'
+logging.basicConfig(filename='./logs/train.log',
+                    level=logging.DEBUG, format=FORMAT)
+
 
 from StateBase import *
 from Models import layers
@@ -71,8 +74,8 @@ class decoder(stateBase):
         para_dict = {
             'in_channels': int(parameters[0]),  # hold
             'out_channels': int(parameters[1] * 30),
-            'kernel_size': int(parameters[2] % 5 + 2),
-            'stride': int(parameters[3] % 2 + 1),
+            'kernel_size': int(parameters[2] % 3 + 1),
+            'stride': int(parameters[3] % 2),
             'padding': int(parameters[4] % 2),
             'active_function': int(parameters[5]),  # hold
             'poolingLayerType': int(parameters[6])
@@ -131,7 +134,7 @@ class evaluator(evalBase):
     def train(self, dec, Mode=None):
         # Debugs
         if Mode == 'DEBUG':
-            return np.random.randint(1,9,size=(1,2))
+            return np.random.randint(1,100,size=(1,2))
         Decode = decoder(self.config)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         try:
@@ -166,8 +169,6 @@ class evaluator(evalBase):
                 correct += (predicted == labels).sum().item()
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
-        print("Fitness >>> acc:{0}, comp:{1} ".format(correct/total,computComplexity))
-        logging.info("Fitness >>> acc:{0}, comp:{1} ".format(correct/total,computComplexity))
         return np.array([[1/(correct/total), computComplexity]])
         
     def getModelComplexity(self, model):
