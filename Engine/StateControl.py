@@ -74,8 +74,8 @@ class decoder(stateBase):
         para_dict = {
             'in_channels': int(parameters[0]),  # hold
             'out_channels': int(parameters[1] * 30),
-            'kernel_size': int(parameters[2] % 3 + 1),
-            'stride': int(parameters[3] % 2),
+            'kernel_size': int(parameters[2] % 3 + 2),
+            'stride': int(parameters[3] % 2 + 1),
             'padding': int(parameters[4] % 2),
             'active_function': int(parameters[5]),  # hold
             'poolingLayerType': int(parameters[6])
@@ -169,7 +169,7 @@ class evaluator(evalBase):
                 correct += (predicted == labels).sum().item()
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
-        return np.array([[1/(correct/total), computComplexity]])
+        return np.array([[1-(correct/total), computComplexity]])
         
     def getModelComplexity(self, model):
         count = 0 
