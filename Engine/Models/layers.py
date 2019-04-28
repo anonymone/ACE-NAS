@@ -88,16 +88,21 @@ class linear(nn.Module):
         super(linear, self).__init__()
         self.inSize = inSize
         self.channelSize = channelSize
-        self.fc1 = nn.Linear(inSize*inSize*channelSize, 240)
-        self.fc2 = nn.Linear(240, 120)
-        self.fc3 = nn.Linear(120, 84)
-        self.fc4 = nn.Linear(84, 10)
+        self.classifier = nn.Sequential(
+                nn.Dropout(),
+                nn.Linear(inSize*inSize*channelSize, 240),
+                nn.ReLU(inplace=True),
+                nn.Dropout(),
+                nn.Linear(240, 120),
+                nn.ReLU(inplace=True),
+                nn.Dropout(), 
+                nn.Linear(120, 84),
+                nn.ReLU(inplace=True),
+                nn.Linear(84, 10)
+        )
     
     def forward(self, x):
         x = x.view(-1, self.inSize*self.inSize*self.channelSize)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        x = self.fc4(x)
+        x = self.classifier(x)
         return x
 
