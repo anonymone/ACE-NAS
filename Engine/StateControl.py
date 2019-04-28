@@ -91,7 +91,7 @@ class decoder(stateBase):
             if param == 'active_function':
                 if self.FLAG_SKIP:
                     pass
-                parameters_dict[param] = nn.functional.relu
+                parameters_dict[param] = nn.ReLU(inplace=True)
         if opType == self.INSTRUCT.ADD_CONV:
             self.fullConnectLayerSize = int((
                 self.fullConnectLayerSize - parameters_dict['kernel_size'] + 2*parameters_dict['padding']) / parameters_dict['stride']) + 1
