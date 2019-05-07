@@ -82,24 +82,26 @@ class FullConnectionLayer(nn.Module):
     def forward(self, x):
         return self.feature(x)
 
-# Just for testing usage.
 class linear(nn.Module):
-    def __init__(self,inSize,channelSize):
+    
+    def __init__(self,inSize,channelSize,hideSize=[240,120,84,10]):
         super(linear, self).__init__()
         self.inSize = inSize
         self.channelSize = channelSize
-        self.classifier = nn.Sequential(
-                nn.Dropout(),
-                nn.Linear(inSize*inSize*channelSize, 240),
-                nn.ReLU(inplace=True),
-                nn.Dropout(),
-                nn.Linear(240, 120),
-                nn.ReLU(inplace=True),
-                nn.Dropout(), 
-                nn.Linear(120, 84),
-                nn.ReLU(inplace=True),
-                nn.Linear(84, 10)
-        )
+        # hideSize will be expanded from [x,y,z...] to [(inSize*inSize*channelSize, x), (x, y), (y, z)].
+        # first of each number is input size of hiden layer sencond is output size.
+        a = []
+        b = inSize*inSize*channelSize
+        for x in hideSize:
+            a.append((b,x))
+            b = x
+        # construct the linear list
+        hideSize = a
+        a = []
+        for inputsSize, outputSize in hideSize[:-1]:
+            a.extend([nn.Dropout(), nn.Linear(inputsSize,outputSize), nn.ReLU(inplace=True)])
+        a.extend(nn.Linear(hideSize[-1][0],hideSize[-1][1]))
+        self.classifier = nn.Sequential(*a)
     
     def forward(self, x):
         x = x.view(-1, self.inSize*self.inSize*self.channelSize)
