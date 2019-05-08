@@ -57,8 +57,8 @@ for i in range(int(config['EA setting']['runTimes'])):
         try:
             fitness = Engine.train(ind.get_dec(), Mode='')
             ind.set_fitness(fitness)
-            logging.info("Fitness >>> acc:{0}, comp:{1} ".format(
-                fitness[0,0], fitness[0,1]))
+            logging.info("Fitness >>> err:{0}, comp:{1} ".format(
+                round(fitness[0,0],3), round(fitness[0,1],3)))
             trainModelCount[0] = trainModelCount[0]+1
         except:
             logging.info("Ind is invalid {0}".format(ind.get_dec()))
