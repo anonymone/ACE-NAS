@@ -61,7 +61,6 @@ class MultiBranchsContainer(nn.Module):
     # def init_gpu(self):
     #     for index in range(self.branch_num):
     #         self.__dict__['branch{0}'.format(index)].to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-    
     def forward(self, x):
         # self.init_gpu()
         outputs = list()

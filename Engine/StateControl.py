@@ -6,6 +6,7 @@ import torchvision
 import torchvision.transforms as transforms
 import torch.optim as optim
 import torch.nn as nn
+import math
 import threading
 import queue
 import numpy as np
@@ -62,23 +63,35 @@ class decoder(stateBase):
         return code_cell
 
     def get_operator(self, actionCode):
-        actionCode = actionCode % 3
+        actionCode = actionCode % 4
         if actionCode[0] == self.INSTRUCT.ADD_CONV:
-            return (layers.ConvolutionLayer, 1)
-        if actionCode[0] == self.INSTRUCT.ADD_POOL:
-            return (layers.PoolingLayer, 2)
+            return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
+        elif actionCode[0] == self.INSTRUCT.ADD_POOL:
+            return (layers.PoolingLayer, self.INSTRUCT.ADD_POOL)
+        elif actionCode[0] == self.INSTRUCT.ADD_SKIP:
+            return (layers.SkipContainer, self.INSTRUCT.ADD_SKIP)
         else:
-            return (layers.ConvolutionLayer, 1)
+            return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
 
     def get_parameters(self, parameters, opType):
         if opType == self.INSTRUCT.ADD_LINEAR:
             para_dict = {
-                'layer_size': int(parameters[1]) % 4 + 1,  # range(1,4)
-                'out_size0': int(parameters[2]) % 9 + 1,
-                'out_size1': int(parameters[3]) % 9 + 1,
-                'out_size2': int(parameters[4]) % 9 + 1,
-                'out_size3': int(parameters[5]) % 9 + 1,
-                'out_size4': int(parameters[6]) % 9 + 1,
+                'layer_size': (int(parameters[1]) % 4 + 1),  # range(1,4)
+                'out_size0': (int(parameters[2]) % 9 + 1) * 400,
+                'out_size1': (int(parameters[3]) % 9 + 1) * 300,
+                'out_size2': (int(parameters[4]) % 9 + 1) * 200,
+                'out_size3': (int(parameters[5]) % 9 + 1) * 100,
+                'out_size4': (int(parameters[6]) % 9 + 1) * 100,
+            }
+        elif opType == self.INSTRUCT.ADD_SKIP:
+            kernelSize = [1,3,5]
+            para_dict = {
+                'layer_size': (int(parameters[1]) % 4 + 1),  # range(1,4)
+                'kernel_size0': kernelSize[int(parameters[2] %3)],
+                'kernel_size1': kernelSize[int(parameters[3] %3)],
+                'kernel_size2': kernelSize[int(parameters[4] %3)],
+                'kernel_size3': kernelSize[int(parameters[5] %3)],
+                'kernel_size4': kernelSize[int(parameters[6] %3)],
             }
         else:
             para_dict = {
@@ -105,6 +118,7 @@ class decoder(stateBase):
         if opType == self.INSTRUCT.ADD_CONV:
             self.fullConnectLayerSize = int((
                 self.fullConnectLayerSize - parameters_dict['kernel_size'] + 2*parameters_dict['padding']) / parameters_dict['stride']) + 1
+        
         elif opType == self.INSTRUCT.ADD_POOL:
             self.fullConnectLayerSize = int(
                 (self.fullConnectLayerSize + 2*parameters_dict['padding'] - 1*(
@@ -114,9 +128,23 @@ class decoder(stateBase):
         elif opType == self.INSTRUCT.ADD_LINEAR:
             param_dict = list()
             for x in range(parameters_dict['layer_size']):
-                param_dict.append(parameters_dict['out_size'+str(x)] * 100)
+                param_dict.append(parameters_dict['out_size'+str(x)])
             # 10 is 10 classes in cafir10
             param_dict.append(10)
+            parameters_dict = param_dict
+        # In Skip type, it return a list not DICTIONARY
+        elif opType == self.INSTRUCT.ADD_SKIP:
+            param_dict = list()
+            for x in range(parameters_dict['layer_size']):
+                param_dict.append(layers.ConvolutionLayer(parameters={
+                    'in_channels': self.previousOutSize,  # hold
+                    'out_channels': self.previousOutSize,
+                    'kernel_size': parameters_dict['kernel_size'+str(x)],
+                    'stride': 1,
+                    'padding': int((parameters_dict['kernel_size'+str(x)] - 1)/2),
+                    'active_function': nn.ReLU(inplace=True), # hold
+                    'poolingLayerType': 1
+                }))
             parameters_dict = param_dict
         else:
             pass
@@ -161,6 +189,7 @@ class evaluator(evalBase):
         try:
             model = Decode.get_model(dec)
             model.to(device)
+            print(model)
         except:
             logging.info("Model is invalid. {0} ".format(dec))
             return np.array([[np.inf, np.inf]])
