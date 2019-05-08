@@ -14,6 +14,7 @@ class action():
         self.ADD_POOL = 2
         self.ADD_SKIP = 3
         self.ADD_BRANCH = 4
+        self.ADD_LINEAR = 5
         self.END = 0
 
 

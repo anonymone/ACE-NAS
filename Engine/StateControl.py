@@ -71,15 +71,25 @@ class decoder(stateBase):
             return (layers.ConvolutionLayer, 1)
 
     def get_parameters(self, parameters, opType):
-        para_dict = {
-            'in_channels': int(parameters[0]),  # hold
-            'out_channels': int(parameters[1] * 30),
-            'kernel_size': int(parameters[2] % 3 + 2),
-            'stride': int(parameters[3] % 2 + 1),
-            'padding': int(parameters[4] % 2),
-            'active_function': int(parameters[5]),  # hold
-            'poolingLayerType': int(parameters[6])
-        }
+        if opType == self.INSTRUCT.ADD_LINEAR:
+            para_dict = {
+                'layer_size': int(parameters[1]) %4 + 1,  # range(1,4)
+                'out_size0': int(parameters[2]) %9 + 1,
+                'out_size1': int(parameters[3]) %9 + 1,
+                'out_size2': int(parameters[4]) %9 + 1,
+                'out_size3': int(parameters[5]) %9 + 1,
+                'out_size4': int(parameters[6]) %9 + 1,
+            }
+        else:
+            para_dict = {
+                'in_channels': int(parameters[0]),  # hold
+                'out_channels': int(parameters[1] * 30),
+                'kernel_size': int(parameters[2] % 3 + 2),
+                'stride': int(parameters[3] % 2 + 1),
+                'padding': int(parameters[4] % 2),
+                'active_function': int(parameters[5]),  # hold
+                'poolingLayerType': int(parameters[6])
+            }
         return self.check_parameters(para_dict, opType)
 
     def check_parameters(self, parameters_dict, opType):
@@ -100,6 +110,14 @@ class decoder(stateBase):
                 (self.fullConnectLayerSize + 2*parameters_dict['padding'] - 1*(
                     parameters_dict['kernel_size']-1)-1)/parameters_dict['stride'] + 1
             )
+        # In linear type, it returns a list not DICTIONARY
+        elif opType == self.INSTRUCT.ADD_LINEAR:
+            param_dict = list()
+            for x in range(parameters_dict['layer_size']):
+                param_dict.append(parameters_dict['out_size'+str(x)] * 100)
+            # 10 is 10 classes in cafir10
+            param_dict.append(10)
+            parameters_dict = param_dict
         else:
             pass
         return parameters_dict
@@ -107,12 +125,14 @@ class decoder(stateBase):
     def get_model(self, code):
         code = self.groupCode(code)
         model = list()
-        for (actionCode, parameters) in code:
+        for (actionCode, parameters) in code[:-1]:
             # print(actionCode, parameters)
             (operator, opType) = self.get_operator(actionCode)
             parameters = self.get_parameters(parameters, opType)
             model.append(operator(parameters))
-        model.append(layers.linear(self.fullConnectLayerSize, self.previousOutSize))
+        # init the classifier
+        parameters = self.get_parameters(code[-1][1], self.INSTRUCT.ADD_LINEAR)
+        model.append(layers.linear(self.fullConnectLayerSize, self.previousOutSize, parameters))
         return nn.Sequential(*model)
 
 

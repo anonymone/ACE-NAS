@@ -8,16 +8,16 @@ import numpy as np
 import json
 import logging
 
-sys.path.append('../')
-sys.path.append('../Population/')
-sys.path.append('../Engine/')
-sys.path.append('../EvolutionAlgorithm/')
+sys.path.append('./')
+sys.path.append('./Population/')
+sys.path.append('./Engine/')
+sys.path.append('./EvolutionAlgorithm/')
 
 config = configparser.ConfigParser()
-config.read('./config.txt')
+config.read('./Experiments/config.txt')
 
 FORMAT = '%(asctime)-15s %(message)s'
-logging.basicConfig(filename='./logs/train.log',
+logging.basicConfig(filename='./Experiments/logs/train.log',
                     level=logging.DEBUG, format=FORMAT)
 
 from individual import individual
@@ -34,7 +34,7 @@ Engine.initEngine()
 # evaluate
 logging.info("GENERATION init")
 for ind in pop.get_population():
-    fitness = Engine.train(ind.get_dec(), Mode='DEBUG')
+    fitness = Engine.train(ind.get_dec(), Mode='')
     ind.set_fitness(fitness)
     logging.info("Fitness >>> acc:{0}, comp:{1} ".format(
                 fitness[0,0], fitness[0,1]))
@@ -55,7 +55,7 @@ for i in range(int(config['EA setting']['runTimes'])):
             trainModelCount[1] = trainModelCount[1]+1
             continue
         try:
-            fitness = Engine.train(ind.get_dec(), Mode='DEBUG')
+            fitness = Engine.train(ind.get_dec(), Mode='')
             ind.set_fitness(fitness)
             logging.info("Fitness >>> acc:{0}, comp:{1} ".format(
                 fitness[0,0], fitness[0,1]))

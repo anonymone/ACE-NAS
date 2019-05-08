@@ -83,7 +83,6 @@ class FullConnectionLayer(nn.Module):
         return self.feature(x)
 
 class linear(nn.Module):
-    
     def __init__(self,inSize,channelSize,hideSize=[240,120,84,10]):
         super(linear, self).__init__()
         self.inSize = inSize
@@ -100,7 +99,8 @@ class linear(nn.Module):
         a = []
         for inputsSize, outputSize in hideSize[:-1]:
             a.extend([nn.Dropout(), nn.Linear(inputsSize,outputSize), nn.ReLU(inplace=True)])
-        a.extend(nn.Linear(hideSize[-1][0],hideSize[-1][1]))
+        
+        a.extend([nn.Linear(hideSize[-1][0],hideSize[-1][1])])
         self.classifier = nn.Sequential(*a)
     
     def forward(self, x):
