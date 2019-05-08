@@ -38,7 +38,7 @@ class decoder(stateBase):
     def __init__(self, config):
         '''
         parameters : 
-            
+
         '''
         super(decoder, self).__init__()
         self.present_state = None
@@ -73,12 +73,12 @@ class decoder(stateBase):
     def get_parameters(self, parameters, opType):
         if opType == self.INSTRUCT.ADD_LINEAR:
             para_dict = {
-                'layer_size': int(parameters[1]) %4 + 1,  # range(1,4)
-                'out_size0': int(parameters[2]) %9 + 1,
-                'out_size1': int(parameters[3]) %9 + 1,
-                'out_size2': int(parameters[4]) %9 + 1,
-                'out_size3': int(parameters[5]) %9 + 1,
-                'out_size4': int(parameters[6]) %9 + 1,
+                'layer_size': int(parameters[1]) % 4 + 1,  # range(1,4)
+                'out_size0': int(parameters[2]) % 9 + 1,
+                'out_size1': int(parameters[3]) % 9 + 1,
+                'out_size2': int(parameters[4]) % 9 + 1,
+                'out_size3': int(parameters[5]) % 9 + 1,
+                'out_size4': int(parameters[6]) % 9 + 1,
             }
         else:
             para_dict = {
@@ -132,7 +132,8 @@ class decoder(stateBase):
             model.append(operator(parameters))
         # init the classifier
         parameters = self.get_parameters(code[-1][1], self.INSTRUCT.ADD_LINEAR)
-        model.append(layers.linear(self.fullConnectLayerSize, self.previousOutSize, parameters))
+        model.append(layers.linear(self.fullConnectLayerSize,
+                                   self.previousOutSize, parameters))
         return nn.Sequential(*model)
 
 
@@ -154,7 +155,7 @@ class evaluator(evalBase):
     def train(self, dec, Mode=None):
         # Debugs
         if Mode == 'DEBUG':
-            return np.random.randint(1,100,size=(1,2))
+            return np.random.randint(1, 100, size=(1, 2))
         Decode = decoder(self.config)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         try:
@@ -162,25 +163,25 @@ class evaluator(evalBase):
             model.to(device)
         except:
             logging.info("Model is invalid. {0} ".format(dec))
-            return np.array([[np.inf,np.inf]])
+            return np.array([[np.inf, np.inf]])
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
         # train
         for epoch in range(self.epoch):
-            for i,data in enumerate(self.trainloader,0):
+            for i, data in enumerate(self.trainloader, 0):
                 inputs, labels = data
-                inputs, labels =  inputs.to(device), labels.to(device)
+                inputs, labels = inputs.to(device), labels.to(device)
                 optimizer.zero_grad()
-                # forward 
+                # forward
                 outputs = model(inputs)
-                loss = criterion(outputs,labels)
+                loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
         correct = 0
         total = 0
         # accuracy
         with torch.no_grad():
-            for i,data in enumerate(self.testloader,0):
+            for i, data in enumerate(self.testloader, 0):
                 inputs, labels = data
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = model(inputs)
@@ -189,10 +190,10 @@ class evaluator(evalBase):
                 correct += (predicted == labels).sum().item()
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
-        return np.array([[1-(correct/total), 1-(1/computComplexity)]])
-        
+        return np.array([[1-(correct/total), computComplexity*0.00000001]])
+
     def getModelComplexity(self, model):
-        count = 0 
+        count = 0
         for param in model.parameters():
             paramSize = param.size()
             countEach = 1
@@ -201,22 +202,22 @@ class evaluator(evalBase):
             count += countEach
         return count
 
-    def initEngine(self, path = None, threadingAble = False):
+    def initEngine(self, path=None, threadingAble=False):
         if path is not None:
             self.dataPath = path
-                # load dataset
+            # load dataset
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         trainset = torchvision.datasets.CIFAR10(root=self.dataPath, train=True,
-                                        download=True, transform=self.transform)
+                                                download=True, transform=self.transform)
         self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
-                                          shuffle=True, num_workers=self.numberWorkers)
+                                                       shuffle=True, num_workers=self.numberWorkers)
         testset = torchvision.datasets.CIFAR10(root=self.dataPath, train=False,
-                                       download=True, transform=self.transform)
+                                               download=True, transform=self.transform)
         self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
-                                         shuffle=False, num_workers=self.numberWorkers)
+                                                      shuffle=False, num_workers=self.numberWorkers)
 
         # start evaluator threading
         if threadingAble:
@@ -224,4 +225,4 @@ class evaluator(evalBase):
                 for number in self.threadingMap:
                     self.threadingMap[number].start()
             except:
-                print("Threading {0} starts failed.".format(number)) 
+                print("Threading {0} starts failed.".format(number))

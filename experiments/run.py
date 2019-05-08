@@ -36,8 +36,8 @@ logging.info("GENERATION init")
 for ind in pop.get_population():
     fitness = Engine.train(ind.get_dec(), Mode='')
     ind.set_fitness(fitness)
-    logging.info("Fitness >>> acc:{0}, comp:{1} ".format(
-                fitness[0,0], fitness[0,1]))
+    logging.info("Fitness >>> err:{0}, comp:{1} ".format(
+                round(fitness[0,0],3), round(fitness[0,1],3)))
 if not pop.save(fileName='Initation.dat'):
     logging.error('Population save Failed.')
 
