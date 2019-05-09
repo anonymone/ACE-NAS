@@ -1,5 +1,5 @@
 [individual setting]
-blockLength = 3
+blockLength = 6
 codeLength = 8
 actionCodeSize = 1
 codeType = real
@@ -7,8 +7,8 @@ codeMaxValue = 9
 objectiveNum = 2
 
 [population setting]
-popSize = 30
-savePath = ./logs/
+popSize = 40
+savePath = ./Experiments/logs/
 
 [EA setting]
 runTimes = 30
@@ -17,9 +17,9 @@ crossOver = 0
 codeType = real
 
 [trainning setting]
-trainEpoch = 10
+trainEpoch = 30
 threadingNum = 1
 batchSize = 32
 numberWorkers = 4
 learningRate = 0.001
-dataPath = ../Dataset/cafir10/
+dataPath = ./Dataset/cafir10/
