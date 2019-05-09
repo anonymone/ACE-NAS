@@ -69,6 +69,98 @@ class MultiBranchsContainer(nn.Module):
         # for index in range(self.branch_num):
         return torch.cat(outputs,1)
 
+class MultiBase1x1(nn.Module):
+    def __init__(self,inSize,outSize=64):
+        super(MultiBase1x1,self).__init__()
+        self.model = nn.Sequential(
+            ConvolutionLayer(parameters={
+                        'in_channels': inSize,
+                        'out_channels': outSize,
+                        'kernel_size': 1,
+                        'stride': 1,
+                        'padding': 0,
+                        'active_function':nn.ReLU(inplace=True), 
+                    })
+        )
+        self.outChannelSize = outSize
+
+    def forward(self, x):
+         return self.model(x)
+
+class MultiBase1x1_3x3(nn.Module):
+    def __init__(self,inSize,outSize=64):
+        super(MultiBase1x1_3x3,self).__init__()
+        self.model = nn.Sequential(
+            ConvolutionLayer(parameters={
+                        'in_channels': inSize,
+                        'out_channels': 48,
+                        'kernel_size': 1,
+                        'stride': 1,
+                        'padding': 0,
+                        'active_function':nn.ReLU(inplace=True), 
+                    }),
+            ConvolutionLayer(parameters={
+                        'in_channels': 48,
+                        'out_channels': outSize,
+                        'kernel_size': 3,
+                        'stride': 1,
+                        'padding': 1,
+                        'active_function':nn.ReLU(inplace=True), 
+                    })
+        )
+        self.outChannelSize = outSize
+    def forward(self,x):
+         return self.model(x)
+
+class MultiBase1x1_5x5(nn.Module):
+    def __init__(self,inSize,outSize=96):
+        super(MultiBase1x1_5x5,self).__init__()
+        self.model = nn.Sequential(
+            ConvolutionLayer(parameters={
+                        'in_channels': inSize,
+                        'out_channels': 64,
+                        'kernel_size': 1,
+                        'stride': 1,
+                        'padding': 0,
+                        'active_function':nn.ReLU(inplace=True), 
+                    }),
+            ConvolutionLayer(parameters={
+                        'in_channels': 64,
+                        'out_channels': outSize,
+                        'kernel_size': 5,
+                        'stride': 1,
+                        'padding': 2,
+                        'active_function':nn.ReLU(inplace=True), 
+                    })
+        )
+        self.outChannelSize = outSize
+    def forward(self,x):
+         return self.model(x)
+
+class MultiBasePool1x1_5x5(nn.Module):
+    def __init__(self,inSize,outSize=96):
+        super(MultiBasePool1x1_5x5,self).__init__()
+        self.model = nn.Sequential(
+            PoolingLayer(parameters={
+                        'kernel_size': 3,
+                        'stride': 1,
+                        'padding': 1,
+                        'active_function':nn.ReLU(inplace=True), 
+                        'poolingLayerType': 1
+                    }),
+            ConvolutionLayer(parameters={
+                        'in_channels': inSize,
+                        'out_channels': outSize,
+                        'kernel_size': 1,
+                        'stride': 1,
+                        'padding': 0,
+                        'active_function':nn.ReLU(inplace=True), 
+                    })
+        )
+        self.outChannelSize = outSize
+    def forward(self,x):
+         return self.model(x)
+
 class FullConnectionLayer(nn.Module):
     def __init__(self, in_features, out_features, dropout =False):
         super(FullConnectionLayer, self).__init__()

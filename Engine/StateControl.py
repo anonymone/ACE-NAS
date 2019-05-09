@@ -63,13 +63,15 @@ class decoder(stateBase):
         return code_cell
 
     def get_operator(self, actionCode):
-        actionCode = actionCode % 4
+        actionCode = actionCode % 4 + 1
         if actionCode[0] == self.INSTRUCT.ADD_CONV:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
         elif actionCode[0] == self.INSTRUCT.ADD_POOL:
             return (layers.PoolingLayer, self.INSTRUCT.ADD_POOL)
         elif actionCode[0] == self.INSTRUCT.ADD_SKIP:
             return (layers.SkipContainer, self.INSTRUCT.ADD_SKIP)
+        elif actionCode[0] == self.INSTRUCT.ADD_BRANCH:
+            return (layers.MultiBranchsContainer, self.INSTRUCT.ADD_BRANCH)
         else:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
 
@@ -81,7 +83,7 @@ class decoder(stateBase):
                 'out_size1': (int(parameters[3]) % 9 + 1) * 300,
                 'out_size2': (int(parameters[4]) % 9 + 1) * 200,
                 'out_size3': (int(parameters[5]) % 9 + 1) * 100,
-                'out_size4': (int(parameters[6]) % 9 + 1) * 100,
+                'out_size4': (int(parameters[6]) % 9 + 1) * 100
             }
         elif opType == self.INSTRUCT.ADD_SKIP:
             kernelSize = [1,3,5]
@@ -91,7 +93,16 @@ class decoder(stateBase):
                 'kernel_size1': kernelSize[int(parameters[3] %3)],
                 'kernel_size2': kernelSize[int(parameters[4] %3)],
                 'kernel_size3': kernelSize[int(parameters[5] %3)],
-                'kernel_size4': kernelSize[int(parameters[6] %3)],
+                'kernel_size4': kernelSize[int(parameters[6] %3)]
+            }
+        elif opType == self.INSTRUCT.ADD_BRANCH:
+            para_dict= {
+                'branch_size': (int(parameters[1]) % 3 + 2),  # range(2,4)
+                'type0': int(parameters[2] %4),
+                'type1': int(parameters[3] %4),
+                'type2': int(parameters[4] %4),
+                'type3': int(parameters[5] %4),
+                'type4': int(parameters[6] %4)
             }
         else:
             para_dict = {
@@ -142,10 +153,25 @@ class decoder(stateBase):
                     'kernel_size': parameters_dict['kernel_size'+str(x)],
                     'stride': 1,
                     'padding': int((parameters_dict['kernel_size'+str(x)] - 1)/2),
-                    'active_function': nn.ReLU(inplace=True), # hold
-                    'poolingLayerType': 1
+                    'active_function': nn.ReLU(inplace=True) # hold
                 }))
             parameters_dict = param_dict
+        elif opType == self.INSTRUCT.ADD_BRANCH:
+            param_dict = list()
+            modules = {
+                'branch0' : layers.MultiBase1x1,
+                'branch1' : layers.MultiBase1x1_3x3,
+                'branch2' : layers.MultiBase1x1_5x5,
+                'branch3' : layers.MultiBasePool1x1_5x5
+            }
+            count = 0
+            for x in range(parameters_dict['branch_size']):
+                y = parameters_dict['type'+str(x)]
+                model = modules['branch'+str(y)](inSize=self.previousOutSize)
+                param_dict.append([model])
+                count = count + model.outChannelSize
+            parameters_dict = param_dict
+            self.previousOutSize = count
         else:
             pass
         return parameters_dict
