@@ -34,10 +34,10 @@ Engine.initEngine()
 # evaluate
 logging.info("GENERATION init")
 for ind in pop.get_population():
-    fitness = Engine.train(ind.get_dec(), Mode='')
+    fitness, train_error = Engine.train(ind.get_dec(), Mode='')
     ind.set_fitness(fitness)
-    logging.info("Fitness >>> err:{0}, comp:{1} ".format(
-                round(fitness[0,0],3), round(fitness[0,1],3)))
+    logging.info("Fitness >>> err:{0}, comp:{1}, train_err:{2} ".format(
+                round(fitness[0,0],3), round(fitness[0,1],3), round(train_error,3)))
 if not pop.save(fileName='Initation.dat'):
     logging.error('Population save Failed.')
 
@@ -55,10 +55,10 @@ for i in range(int(config['EA setting']['runTimes'])):
             trainModelCount[1] = trainModelCount[1]+1
             continue
         try:
-            fitness = Engine.train(ind.get_dec(), Mode='')
+            fitness,train_error = Engine.train(ind.get_dec(), Mode='')
             ind.set_fitness(fitness)
-            logging.info("Fitness >>> err:{0}, comp:{1} ".format(
-                round(fitness[0,0],3), round(fitness[0,1],3)))
+            logging.info("Fitness >>> err:{0}, comp:{1}, train_err:{2} ".format(
+                round(fitness[0,0],3), round(fitness[0,1],3), round(train_error,3)))
             trainModelCount[0] = trainModelCount[0]+1
         except:
             logging.info("Ind is invalid {0}".format(ind.get_dec()))

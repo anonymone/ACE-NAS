@@ -63,7 +63,7 @@ class decoder(stateBase):
         return code_cell
 
     def get_operator(self, actionCode):
-        actionCode = actionCode % 4
+        actionCode = actionCode % 5
         if actionCode[0] == self.INSTRUCT.ADD_CONV:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
         elif actionCode[0] == self.INSTRUCT.ADD_POOL:
@@ -243,9 +243,20 @@ class evaluator(evalBase):
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
+        train_correct = 0
+        train_total = 0
+        # train accuracy
+        with torch.no_grad():
+            for i, data in enumerate(self.trainloader, 0):
+                inputs, labels = data
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                train_total += labels.size(0)
+                train_correct += (predicted == labels).sum().item()
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
-        return np.array([[1-(correct/total), computComplexity*0.00000001]])
+        return np.array([[1-(correct/total), computComplexity*0.00000001]]), 1-(train_correct/train_total)
 
     def getModelComplexity(self, model):
         count = 0
