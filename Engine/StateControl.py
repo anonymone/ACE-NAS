@@ -63,7 +63,7 @@ class decoder(stateBase):
         return code_cell
 
     def get_operator(self, actionCode):
-        actionCode = actionCode % 4 + 1
+        actionCode = actionCode % 4
         if actionCode[0] == self.INSTRUCT.ADD_CONV:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
         elif actionCode[0] == self.INSTRUCT.ADD_POOL:
