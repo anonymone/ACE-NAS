@@ -54,6 +54,7 @@ class MultiBranchsContainer(nn.Module):
     def __init__(self, branchs):
         super(MultiBranchsContainer,self).__init__()
         self.branch_num = len(branchs)
+        self.pool = nn.AvgPool2d(kernel_size=2,stride=1,padding=0)
         for index in range(self.branch_num):
             # self.__dict__['branch{0}'.format(index)] = nn.Sequential(*branchs[index])
             exec('self.branch{0} = nn.Sequential(*branchs[{0}])'.format(index))
@@ -67,7 +68,7 @@ class MultiBranchsContainer(nn.Module):
         for index in range(self.branch_num):
             exec('outputs.append(self.branch{0}(x))'.format(index))
         # for index in range(self.branch_num):
-        return torch.cat(outputs,1)
+        return self.pool(torch.cat(outputs,1))
 
 class MultiBase1x1(nn.Module):
     def __init__(self,inSize,outSize=64):

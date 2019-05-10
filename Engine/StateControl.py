@@ -86,23 +86,23 @@ class decoder(stateBase):
                 'out_size4': (int(parameters[6]) % 9 + 1) * 100
             }
         elif opType == self.INSTRUCT.ADD_SKIP:
-            kernelSize = [1,3,5]
+            kernelSize = [1, 3, 5]
             para_dict = {
                 'layer_size': (int(parameters[1]) % 4 + 1),  # range(1,4)
-                'kernel_size0': kernelSize[int(parameters[2] %3)],
-                'kernel_size1': kernelSize[int(parameters[3] %3)],
-                'kernel_size2': kernelSize[int(parameters[4] %3)],
-                'kernel_size3': kernelSize[int(parameters[5] %3)],
-                'kernel_size4': kernelSize[int(parameters[6] %3)]
+                'kernel_size0': kernelSize[int(parameters[2] % 3)],
+                'kernel_size1': kernelSize[int(parameters[3] % 3)],
+                'kernel_size2': kernelSize[int(parameters[4] % 3)],
+                'kernel_size3': kernelSize[int(parameters[5] % 3)],
+                'kernel_size4': kernelSize[int(parameters[6] % 3)]
             }
         elif opType == self.INSTRUCT.ADD_BRANCH:
-            para_dict= {
+            para_dict = {
                 'branch_size': (int(parameters[1]) % 3 + 2),  # range(2,4)
-                'type0': int(parameters[2] %4),
-                'type1': int(parameters[3] %4),
-                'type2': int(parameters[4] %4),
-                'type3': int(parameters[5] %4),
-                'type4': int(parameters[6] %4)
+                'type0': int(parameters[2] % 4),
+                'type1': int(parameters[3] % 4),
+                'type2': int(parameters[4] % 4),
+                'type3': int(parameters[5] % 4),
+                'type4': int(parameters[6] % 4)
             }
         else:
             para_dict = {
@@ -129,7 +129,7 @@ class decoder(stateBase):
         if opType == self.INSTRUCT.ADD_CONV:
             self.fullConnectLayerSize = int((
                 self.fullConnectLayerSize - parameters_dict['kernel_size'] + 2*parameters_dict['padding']) / parameters_dict['stride']) + 1
-        
+
         elif opType == self.INSTRUCT.ADD_POOL:
             self.fullConnectLayerSize = int(
                 (self.fullConnectLayerSize + 2*parameters_dict['padding'] - 1*(
@@ -153,16 +153,16 @@ class decoder(stateBase):
                     'kernel_size': parameters_dict['kernel_size'+str(x)],
                     'stride': 1,
                     'padding': int((parameters_dict['kernel_size'+str(x)] - 1)/2),
-                    'active_function': nn.ReLU(inplace=True) # hold
+                    'active_function': nn.ReLU(inplace=True)  # hold
                 }))
             parameters_dict = param_dict
         elif opType == self.INSTRUCT.ADD_BRANCH:
             param_dict = list()
             modules = {
-                'branch0' : layers.MultiBase1x1,
-                'branch1' : layers.MultiBase1x1_3x3,
-                'branch2' : layers.MultiBase1x1_5x5,
-                'branch3' : layers.MultiBasePool1x1_5x5
+                'branch0': layers.MultiBase1x1,
+                'branch1': layers.MultiBase1x1_3x3,
+                'branch2': layers.MultiBase1x1_5x5,
+                'branch3': layers.MultiBasePool1x1_5x5
             }
             count = 0
             for x in range(parameters_dict['branch_size']):
@@ -172,6 +172,8 @@ class decoder(stateBase):
                 count = count + model.outChannelSize
             parameters_dict = param_dict
             self.previousOutSize = count
+            self.fullConnectLayerSize = int(
+                (self.fullConnectLayerSize + 2*0 - 1*(2-1)-1)/1 + 1)
         else:
             pass
         return parameters_dict
