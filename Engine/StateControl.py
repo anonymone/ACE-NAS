@@ -174,7 +174,7 @@ class decoder(stateBase):
             self.previousOutSize = count
             # We add this because of the limitation of our DL server is not fierce.
             self.fullConnectLayerSize = int(
-                (self.fullConnectLayerSize + 2*0 - 1*(2-1)-1)/1 + 1)
+                (self.fullConnectLayerSize - 1*(2-1)-1)/1 + 1)
         else:
             pass
         return parameters_dict
@@ -221,7 +221,7 @@ class evaluator(evalBase):
             print(model)
         except:
             logging.info("Model is invalid. {0} ".format(dec))
-            return np.array([[np.inf, np.inf]])
+            return np.array([[np.inf, np.inf]]), np.inf
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
         # train
