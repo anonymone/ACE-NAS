@@ -172,6 +172,7 @@ class decoder(stateBase):
                 count = count + model.outChannelSize
             parameters_dict = param_dict
             self.previousOutSize = count
+            # We add this because of the limitation of our DL server is not fierce.
             self.fullConnectLayerSize = int(
                 (self.fullConnectLayerSize + 2*0 - 1*(2-1)-1)/1 + 1)
         else:
