@@ -63,15 +63,16 @@ class decoder(stateBase):
         return code_cell
 
     def get_operator(self, actionCode):
-        actionCode = actionCode % 5
+        if actionCode[0] == self.INSTRUCT.ADD_SKIP:
+            return (layers.SkipContainer, self.INSTRUCT.ADD_SKIP)
+        elif actionCode[0] == self.INSTRUCT.ADD_BRANCH:
+            return (layers.MultiBranchsContainer, self.INSTRUCT.ADD_BRANCH)
+        else:
+            actionCode = actionCode % 3
         if actionCode[0] == self.INSTRUCT.ADD_CONV:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
         elif actionCode[0] == self.INSTRUCT.ADD_POOL:
             return (layers.PoolingLayer, self.INSTRUCT.ADD_POOL)
-        elif actionCode[0] == self.INSTRUCT.ADD_SKIP:
-            return (layers.SkipContainer, self.INSTRUCT.ADD_SKIP)
-        elif actionCode[0] == self.INSTRUCT.ADD_BRANCH:
-            return (layers.MultiBranchsContainer, self.INSTRUCT.ADD_BRANCH)
         else:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
 
