@@ -1,5 +1,5 @@
 [individual setting]
-blockLength = 6
+blockLength = 2
 codeLength = 8
 actionCodeSize = 1
 codeType = real
@@ -17,9 +17,9 @@ crossOver = 0
 codeType = real
 
 [trainning setting]
-trainEpoch = 30
+trainEpoch = 1
 threadingNum = 1
 batchSize = 32
-numberWorkers = 4
+numberWorkers = 0
 learningRate = 0.001
 dataPath = ./Dataset/cafir10/

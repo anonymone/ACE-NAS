@@ -63,16 +63,15 @@ class decoder(stateBase):
         return code_cell
 
     def get_operator(self, actionCode):
-        if actionCode[0] == self.INSTRUCT.ADD_SKIP:
-            return (layers.SkipContainer, self.INSTRUCT.ADD_SKIP)
-        elif actionCode[0] == self.INSTRUCT.ADD_BRANCH:
-            return (layers.MultiBranchsContainer, self.INSTRUCT.ADD_BRANCH)
-        else:
-            actionCode = actionCode % 3
+        actionCode = actionCode % 5
         if actionCode[0] == self.INSTRUCT.ADD_CONV:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
         elif actionCode[0] == self.INSTRUCT.ADD_POOL:
             return (layers.PoolingLayer, self.INSTRUCT.ADD_POOL)
+        elif actionCode[0] == self.INSTRUCT.ADD_SKIP:
+            return (layers.SkipContainer, self.INSTRUCT.ADD_SKIP)
+        elif actionCode[0] == self.INSTRUCT.ADD_BRANCH:
+            return (layers.MultiBranchsContainer, self.INSTRUCT.ADD_BRANCH)
         else:
             return (layers.ConvolutionLayer, self.INSTRUCT.ADD_CONV)
 
@@ -80,7 +79,7 @@ class decoder(stateBase):
         if opType == self.INSTRUCT.ADD_LINEAR:
             para_dict = {
                 'layer_size': (int(parameters[1]) % 4 + 1),  # range(1,4)
-                'out_size0': (int(parameters[2]) % 9 + 1) * 400,
+                'out_size0': (int(parameters[2]) % 9 + 1) * 300,
                 'out_size1': (int(parameters[3]) % 9 + 1) * 300,
                 'out_size2': (int(parameters[4]) % 9 + 1) * 200,
                 'out_size3': (int(parameters[5]) % 9 + 1) * 100,
@@ -226,19 +225,24 @@ class evaluator(evalBase):
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(model.parameters(), lr=self.lr, momentum=0.9)
         # train
-        for epoch in range(self.epoch):
-            for i, data in enumerate(self.trainloader, 0):
-                inputs, labels = data
-                inputs, labels = inputs.to(device), labels.to(device)
-                optimizer.zero_grad()
-                # forward
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
-                loss.backward()
-                optimizer.step()
+        try:
+            for epoch in range(self.epoch):
+                for i, data in enumerate(self.trainloader, 0):
+                    inputs, labels = data
+                    inputs, labels = inputs.to(device), labels.to(device)
+                    optimizer.zero_grad()
+                    # forward
+                    outputs = model(inputs)
+                    loss = criterion(outputs, labels)
+                    loss.backward()
+                    optimizer.step()
+        except:
+            logging.error(
+                "Model crash down When it's trainning. Dec: {0}. May it is too large for this device to calculate. Complexity metric:{1}".format(dec, self.getModelComplexity(model)))
+            return np.array([[np.inf, np.inf]]), np.inf
+        # test accuracy
         correct = 0
         total = 0
-        # test accuracy
         with torch.no_grad():
             for i, data in enumerate(self.testloader, 0):
                 inputs, labels = data
@@ -247,9 +251,9 @@ class evaluator(evalBase):
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
+        # train accuracy
         train_correct = 0
         train_total = 0
-        # train accuracy
         with torch.no_grad():
             for i, data in enumerate(self.trainloader, 0):
                 inputs, labels = data
@@ -261,7 +265,7 @@ class evaluator(evalBase):
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
         torch.cuda.empty_cache()
-        return np.array([[1-(correct/total), computComplexity*0.00000001]]), 1-(train_correct/train_total)
+        return np.array([[1-(correct/total), computComplexity]]), 1-(train_correct/train_total)
 
     def getModelComplexity(self, model):
         count = 0
@@ -271,7 +275,7 @@ class evaluator(evalBase):
             for dis in paramSize:
                 countEach *= dis
             count += countEach
-        return count
+        return count*0.00000001
 
     def initEngine(self, path=None, threadingAble=False):
         if path is not None:
