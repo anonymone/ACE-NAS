@@ -62,7 +62,7 @@ for i in range(int(config['EA setting']['runTimes'])):
             trainModelCount[0] = trainModelCount[0]+1
         except:
             logging.info("Ind is invalid {0}".format(ind.get_dec()))
-            ind.set_fitness([[np.inf, np.inf]])
+            ind.set_fitness(np.array([[np.inf, np.inf]]))
             trainModelCount[2] = trainModelCount[2]+1
     logging.info("Trainning count : trained:{0}, pass:{1}, invalid:{2}".format(
         trainModelCount[0], trainModelCount[1], trainModelCount[2]))

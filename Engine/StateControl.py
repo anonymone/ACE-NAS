@@ -237,7 +237,7 @@ class evaluator(evalBase):
                 optimizer.step()
         correct = 0
         total = 0
-        # accuracy
+        # test accuracy
         with torch.no_grad():
             for i, data in enumerate(self.testloader, 0):
                 inputs, labels = data
@@ -259,6 +259,7 @@ class evaluator(evalBase):
                 train_correct += (predicted == labels).sum().item()
         # cpmputational complexity
         computComplexity = self.getModelComplexity(model)
+        torch.cuda.empty_cache()
         return np.array([[1-(correct/total), computComplexity*0.00000001]]), 1-(train_correct/train_total)
 
     def getModelComplexity(self, model):
