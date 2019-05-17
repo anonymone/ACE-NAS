@@ -3,6 +3,8 @@
 *-checkpoint.ipynb
 *.log
 *.dat
+*.bak
 
 # folder 
 /Dataset/
+/Experiments/logs/
