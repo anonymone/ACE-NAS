@@ -244,7 +244,7 @@ class evaluator(evalBase):
         correct = 0
         total = 0
         with torch.no_grad():
-            for i, data in enumerate(self.testloader, 0):
+            for i, data in enumerate(self.validloader, 0):
                 inputs, labels = data
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = model(inputs)
@@ -285,12 +285,19 @@ class evaluator(evalBase):
             [
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        # random split valid dataset
         trainset = torchvision.datasets.CIFAR10(root=self.dataPath, train=True,
                                                 download=True, transform=self.transform)
-        self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
-                                                       shuffle=True, num_workers=self.numberWorkers)
         testset = torchvision.datasets.CIFAR10(root=self.dataPath, train=False,
                                                download=True, transform=self.transform)
+        index = [x for x in range(len(trainset))]
+        validset = torch.utils.data.SubsetRandomSampler([index[0:int((len(trainset))*0.2)]])
+        trainset = torch.utils.data.SubsetRandomSampler(index[int(len(trainset)*0.2):])
+        
+        self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
+                                                       shuffle=True, num_workers=self.numberWorkers)
+        self.validloader = torch.utils.data.DataLoader(validset, batch_size=self.batchSize,
+                                                      shuffle=False, num_workers=self.numberWorkers)
         self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
                                                       shuffle=False, num_workers=self.numberWorkers)
 

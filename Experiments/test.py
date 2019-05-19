@@ -78,7 +78,7 @@ for epoch in range(200):
 correct = 0
 total = 0
 with torch.no_grad():
-    for i, data in enumerate(self.testloader, 0):
+    for i, data in enumerate(testloader, 0):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
         outputs = model(inputs)
