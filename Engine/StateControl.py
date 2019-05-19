@@ -284,20 +284,20 @@ class evaluator(evalBase):
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                transforms.Normalize([0.49139968, 0.48215827, 0.44653124], [0.24703233, 0.24348505, 0.26158768])])
         # random split valid dataset
         trainset = torchvision.datasets.CIFAR10(root=self.dataPath, train=True,
                                                 download=True, transform=self.transform)
         testset = torchvision.datasets.CIFAR10(root=self.dataPath, train=False,
                                                download=True, transform=self.transform)
         index = [x for x in range(len(trainset))]
-        validset = torch.utils.data.SubsetRandomSampler([index[0:int((len(trainset))*0.2)]])
-        trainset = torch.utils.data.SubsetRandomSampler(index[int(len(trainset)*0.2):])
+        validset = torch.utils.data.Subset(trainset,index[0:10000])
+        trainset = torch.utils.data.Subset(trainset,index[10000:])
         
         self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batchSize,
                                                        shuffle=True, num_workers=self.numberWorkers)
         self.validloader = torch.utils.data.DataLoader(validset, batch_size=self.batchSize,
-                                                      shuffle=False, num_workers=self.numberWorkers)
+                                                      shuffle=True, num_workers=self.numberWorkers)
         self.testloader = torch.utils.data.DataLoader(testset, batch_size=self.batchSize,
                                                       shuffle=False, num_workers=self.numberWorkers)
 
