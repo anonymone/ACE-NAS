@@ -1,8 +1,8 @@
 import configparser
 import sys
-sys.path.append('../')
-sys.path.append('../Population/')
-sys.path.append('../Engine/')
+sys.path.append('./')
+sys.path.append('./Population/')
+sys.path.append('./Engine/')
 
 config = configparser.ConfigParser()
 config.read('./Experiments/config.txt')
@@ -18,7 +18,7 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 import torch.nn as nn
 
-path = "./logs/Generation27.dat"
+path = "./Experiments/logs/Generation27.dat"
 candidation = "24"
 
 file = open(path)
@@ -56,15 +56,32 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=96,
                                                       shuffle=False, num_workers=4)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.025, momentum=0.9)  
+optimizer = optim.SGD(model.parameters(), lr=0.0005, momentum=0.9)  
 
 # train
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model.to(device)
 
-for epoch in range(200):
-    for i, data in enumerate(trainloader, 0):
+for epoch in range(350):
+    if epoch %19 == 0:
+        loader = testloader
+    else:
+        loader = trainloader
+    if epoch in [100,200,300]:
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for i, data in enumerate(testloader, 0):
+                inputs, labels = data
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+        print('ERROR is : {0}'.format(1-(correct/total)))
+    
+    for i, data in enumerate(loader, 0):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
@@ -73,6 +90,8 @@ for epoch in range(200):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
+    print("Epoch {0}, loss:{1}".format(epoch, loss))
+        
 
 # test accuracy
 correct = 0
@@ -86,4 +105,4 @@ with torch.no_grad():
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-printr('ERROR is : {0}'.format(1-(correct/total)))
+print('ERROR is : {0}'.format(1-(correct/total)))
