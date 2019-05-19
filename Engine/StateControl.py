@@ -7,6 +7,7 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 import torch.nn as nn
 import math
+import random
 import threading
 import queue
 import numpy as np
@@ -291,6 +292,7 @@ class evaluator(evalBase):
         testset = torchvision.datasets.CIFAR10(root=self.dataPath, train=False,
                                                download=True, transform=self.transform)
         index = [x for x in range(len(trainset))]
+        random.shuffle(index)
         validset = torch.utils.data.Subset(trainset,index[0:10000])
         trainset = torch.utils.data.Subset(trainset,index[10000:])
         
