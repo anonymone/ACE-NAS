@@ -276,7 +276,7 @@ class evaluator(evalBase):
             for dis in paramSize:
                 countEach *= dis
             count += countEach
-        return count*0.00000001
+        return count*0.000001
 
     def initEngine(self, path=None, threadingAble=False):
         if path is not None:
