@@ -207,7 +207,7 @@ class AvePooling_linear(nn.Module):
         self.inSize = inSize
         self.channelSize = channelSize
         self.adaptivePooling = nn.AdaptiveMaxPool2d((1,1))
-        self.fc = nn.Linear(self.channelSize, hideSize[-1])
+        self.classifier = nn.Linear(self.channelSize, hideSize[-1])
 
     def forward(self, x):
         x = self.adaptivePooling(x)
