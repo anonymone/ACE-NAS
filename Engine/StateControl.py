@@ -190,7 +190,7 @@ class decoder(stateBase):
             model.append(operator(parameters))
         # init the classifier
         parameters = self.get_parameters(code[-1][1], self.INSTRUCT.ADD_LINEAR)
-        model.append(layers.linear(self.fullConnectLayerSize,
+        model.append(layers.AvePooling_linear(self.fullConnectLayerSize,
                                    self.previousOutSize, parameters))
         return nn.Sequential(*model)
 

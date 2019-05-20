@@ -14,7 +14,8 @@ def readJson(file_path):
 
 def tableParser(path):
     data = []
-    for i in range(28):
+    data.append(pandas.read_csv(filepath_or_buffer= path+"initation.dat.csv"))
+    for i in range(30):
         data.append(pandas.read_csv(filepath_or_buffer= path+"Generation"+str(i)+".dat.csv"))
     data = pandas.concat(data)
     error = data["Error"]

@@ -201,3 +201,16 @@ class linear(nn.Module):
         x = self.classifier(x)
         return x
 
+class AvePooling_linear(nn.Module):
+    def __init__(self,inSize,channelSize,hideSize=[240,120,84,10]):
+        super(AvePooling_linear, self).__init__()
+        self.inSize = inSize
+        self.channelSize = channelSize
+        self.adaptivePooling = nn.AdaptiveMaxPool2d((1,1))
+        self.fc = nn.Linear(self.channelSize, hideSize[-1])
+
+    def forward(self, x):
+        x = self.adaptivePooling(x)
+        x = x.view(-1, self.channelSize)
+        x = self.classifier(x)
+        return x
