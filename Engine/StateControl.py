@@ -277,20 +277,32 @@ class evaluator(evalBase):
                 countEach *= dis
             count += countEach
         return count*0.000001
-
+        
     def initEngine(self, path=None, threadingAble=False):
         if path is not None:
             self.dataPath = path
-            # load dataset
-        self.transform = transforms.Compose(
+        # load dataset
+        # Data loading code
+        normalize = transforms.Normalize(mean=[x/255.0 for x in [125.3, 123.0, 113.9]],
+                                        std=[x/255.0 for x in [63.0, 62.1, 66.7]])
+
+        self.transform_train = transforms.Compose(
+            [
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                normalize,
+            ])
+        self.transform_test = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize([0.49139968, 0.48215827, 0.44653124], [0.24703233, 0.24348505, 0.26158768])])
+                normalize,
+            ])
         # random split valid dataset
         trainset = torchvision.datasets.CIFAR10(root=self.dataPath, train=True,
-                                                download=True, transform=self.transform)
+                                                download=True, transform=self.transform_train)
         testset = torchvision.datasets.CIFAR10(root=self.dataPath, train=False,
-                                               download=True, transform=self.transform)
+                                               download=True, transform=self.transform_test)
         index = [x for x in range(len(trainset))]
         random.shuffle(index)
         validset = torch.utils.data.Subset(trainset,index[0:10000])
