@@ -51,10 +51,10 @@ class SEENetworkGenerator(nn.Module):
         super(SEENetworkGenerator, self).__init__()
     
     @staticmethod
-    def decoder(self):
+    def decoder(self, code):
         pass
     
-    def __groupCode(self, code):
+    def getModle(self):
         pass
     
     def forward(self,x):
