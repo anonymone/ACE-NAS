@@ -31,7 +31,7 @@ class ConvNode(nn.Module):
 class PoolNode(nn.Module):
     '''
     Basic Pooling layer.
-    This maybe useless
+    This maybe is useless
     '''
     def __init__(self, kernelSize=2, stride=1):
         '''
@@ -49,7 +49,7 @@ class PoolNode(nn.Module):
 class SEENetworkGenerator(nn.Module):
     def __init__(self, code, repeat=None):
         super(SEENetworkGenerator, self).__init__()
-    
+        
     @staticmethod
     def decoder(self, code):
         pass
