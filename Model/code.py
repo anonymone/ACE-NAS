@@ -1,6 +1,7 @@
 import numpy as np
 import pandas
 from pandas import DataFrame
+import random
 
 
 class code():
@@ -34,14 +35,16 @@ class code():
         self.dec = dec.copy().reshape(-1)
 
     def setFitness(self, fitness):
-        assert type(dec) == np.ndarray, 'fitness is not a ndarray.'
+        if type(fitness) == list:
+            fitness = np.array(fitness)
+        assert type(fitness) == np.ndarray, 'fitness is not a ndarray.'
         self.shape[1] = fitness.size
         self.fitness = fitness.copy().reshape(-1)
 
     def toString(self):
-        return 'Code: {0} \n Fitness: {1}'.format(self.dec, self.fitness)
+        return 'Code: {0} \nFitness: {1}'.format(self.dec, self.fitness)
 
-    def toVextor(self):
+    def toVector(self):
         return np.hstack((self.dec, self.fitness))
 
 
@@ -59,13 +62,23 @@ class population:
         self.popSize = self.popSize + len(IndList)
 
     def pop(self):
+        assert self.popSize > 0, 'Population has no individual.'
+        self.popSize = self.popSize - 1
         return self.individuals.pop()
 
     def push(self, ind):
-        assert self.individuals.__len__ > 0, 'Population has no individual.'
-        return self.individuals.insert(0, ind)
+        if type(ind) == list:
+            self.individuals.extend(IndList)
+            self.popSize = self.popSize + len(IndList)
+        else:
+            try:
+                self.individuals.insert(0, ind)
+                self.popSize = self.popSize + 1
+            except:
+                raise Exception('Individual insert is failed!')
 
-    def save(self, savePath='./data'):
+
+    def save(self, savePath='./data', fileFormat='csv'):
         tabel = {
             'Dec': list(),
             'Fitness': list()
@@ -74,35 +87,58 @@ class population:
             tabel['Dec'].append(ind.getDec())
             tabel['Fitness'].append(ind.getFitness())
         tabel = DataFrame(tabel)
-        tabel.to_json(savePath)
+        if fileFormat == 'csv':
+            tabel.to_csv(savePath)
+        elif fileFormat == 'json':
+            tabel.to_json(savePath)
+        else:
+            raise Exception('Error file format is specified!')
 
 
 # SEE class
 class SEEIndividual(code):
-    def __init__(self,  fitnessSize, blockLength=3, valueBoundary=(1, 9), arg=None):
+    def __init__(self, decSize, objSize, blockLength=3, valueBoundary=(1, 9), arg=None):
         super(SEEIndividual, self).__init__(arg=arg)
         self.blockLength = blockLength
         self.boundary = valueBoundary
-        self.dec = 
+        self.dec = np.array([random.randint(*valueBoundary)
+                             for _ in range(decSize*blockLength)])
+        self.fitness = np.zeros(objSize)
+        self.shape = [decSize, objSize]
+
+    def toString(self):
+        dec = self.dec.reshape((-1,self.blockLength))
+        str_dec = ''
+        for i in dec:
+            str_dec = str_dec + str(i).replace('[','').replace(']','').replace(' ','') + '-'
+        return 'Code: {0} \nFitness: {1}'.format(str_dec[0:-1], self.fitness)
 
     def isTraind(self):
         return np.any(np.sum(self.getFitness()) != 0)
 
 
 class SEEPopulation(population):
-    def __init__(self, objSize, decSize):
-        super(SEEPopulation, self).__init__(objSize=objSize, decSize=decSize)
-
-    def init(self, popSize=30, blockLength=3, valueBoundary=(1, 9)):
-        inds = [SEEIndividual(fitnessSize, blockLength, valueBoundary)
-                for _ in range(popSize)]
-        self.addIndividuals(inds)
+    def __init__(self, popSize, decSize, objSize, blockLength=3, valueBoundary=(1, 9)):
+        super(SEEPopulation, self).__init__(objSize=objSize, decSize=decSize,)
+        self.individuals = [SEEIndividual(decSize=self.decSize, objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
+                            for _ in range(popSize)]
+        self.popSize = popSize
 
     def toMatrix(self):
         matrix = np.vstack(
-            [np.hstack((ind.get_dec(), ind.get_fitness())) for ind in self.individuals])
+            [np.hstack((ind.getDec(), ind.getFitness())) for ind in self.individuals])
         return matrix
 
 
 if __name__ == "__main__":
-    pop = SEEPopulation(objSize=2, decSize=10)
+    pop = SEEPopulation(popSize=30, objSize=2, decSize=10)
+    ind = pop.pop()
+    ind.setFitness([1,2])
+    pop.push(ind)
+    ind = pop.pop()
+    ind.setFitness([3,4])
+    pop.push(ind)
+    # print(pop.toMatrix())
+    print(ind.toString())
+    # print(ind.toVector())
+    pop.save('./hi.csv')
