@@ -97,8 +97,14 @@ class SEENetworkGenerator(nn.Module):
         while actioncode_iterator.__length_hint__() != 0:
             # build graph
             From, Action, To = actioncode_iterator.__next__()
+            # Normalize the code 可能存在闭环的现象
             To = To % len(nodeGraph)
             From = From % (To+1)
+            # Check the diagram for loops
+            if SEENetworkGenerator.isLoop(nodeGraph,(From,To)):
+                To,From = From,To
+            
+            Action = self.actionIns.ActionNormlize(Action)
             if Action == self.actionIns.ADD_EDGE:
                 if To == From:
                     continue
@@ -130,6 +136,42 @@ class SEENetworkGenerator(nn.Module):
             else:
                 raise Exception('Unknown action code : {0}'.format(Action))
         return nodeGraph,node
+    
+    @staticmethod
+    def isLoop(graph, newEdge):
+        a,b = newEdge
+        graph = graph.copy()
+        # find root
+        if a == b:
+            return False
+        # if a not in graph[b]:
+        graph[b].append(a)
+        for i in graph:
+            F = False
+            for j in graph.values():
+                F =  i in j
+                if F:
+                    break
+            if not F:
+                break
+        if F:
+            return True
+        del graph[i]
+        while len(graph) != 0:
+            for i in graph:
+                F = False
+                for j in graph.values():
+                    F =  i in j
+                    if F:
+                        break
+                if not F:
+                    break
+            if F:
+                return True
+            del graph[i]
+        return False
+            
+
 
     def forward(self, x):
         return x
@@ -141,12 +183,20 @@ if __name__ == "__main__":
     from individual import SEEIndividual
     ind = SEEIndividual(3,2)
     ind.setDec([[0,5,1],
-                [1,0,5],
-                [1,1,3],[1,3,1],
-                [1,1,3],[1,3,1],
+                [0,0,4],
+                [0,1,2],[1,3,1],
+                [0,1,2],[1,3,1],
+                [5,1,3],[1,3,1],
+                [6,0,4],
                 [6,1,4],[1,3,1],
-                [7,0,5],
-                [7,1,5],[1,3,1],
-                [8,1,0],[1,3,1]])
+                [7,1,0],[1,3,1]])
     a = SEENetworkGenerator(ind.getDec(),3,32)
+    # test isLoop
+    # a = {
+    #     0 :[],
+    #     1 :[0],
+    #     2 :[1,0],
+    #     3 :[2] 
+    # }
+    # print(SEENetworkGenerator.isLoop(a,(2,0)))
     print('hello')
