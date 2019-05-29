@@ -17,6 +17,7 @@ class code():
         '''
         self.dec = None
         self.fitness = None
+        self.blockLength = 1
         self.shape = [0, 0]
         if arg is not None:
             assert type(arg) == dict, 'arg is not dict type.'
@@ -34,20 +35,27 @@ class code():
         used to change the value of Dec.
         Param: dec, numpy.ndarray, sise(-1)
         '''
-        assert type(dec) == np.ndarray, 'dec is not a ndarray.'
+        try:
+            dec = np.array(dec)
+        except:
+            raise Exception('dec is not a ndarray.')
         self.shape[0] = dec.size
-        self.dec = dec.copy().reshape(-1)
+        if self.blockLength == 1:
+            self.dec = dec.copy().reshape(-1)
+        else:
+            self.dec = dec.copy().reshape(self.blockLength,-1)
 
     def setFitness(self, fitness):
         '''
         used to change the value of fitness.
         Param: fitness, numpy.ndarray, sise(-1)
         '''
-        if type(fitness) == list:
+        try:
             fitness = np.array(fitness)
-        assert type(fitness) == np.ndarray, 'fitness is not a ndarray.'
+        except:
+            raise Exception('fitness is not a ndarray.')
         self.shape[1] = fitness.size
-        self.fitness = fitness.copy().reshape(-1)
+        self.fitness = fitness.copy().reshape(self.blockLength,-1)
 
     def toString(self):
         '''
@@ -121,12 +129,12 @@ class population:
 
 # SEE class
 class SEEIndividual(code):
-    def __init__(self, decSize, objSize, blockLength=3, valueBoundary=(1, 9), arg=None):
+    def __init__(self, decSize, objSize, blockLength=3, valueBoundary=(0, 9), arg=None):
         super(SEEIndividual, self).__init__(arg=arg)
         self.blockLength = blockLength
         self.boundary = valueBoundary
-        self.dec = np.array([random.randint(*valueBoundary)
-                             for _ in range(decSize*blockLength)])
+        self.dec = np.array([np.random.randint(*valueBoundary,blockLength)
+                             for _ in range(decSize)])
         self.fitness = np.zeros(objSize)
         self.shape = [decSize, objSize]
 
@@ -146,7 +154,7 @@ class SEEIndividual(code):
 
 
 class SEEPopulation(population):
-    def __init__(self, popSize, decSize, objSize, blockLength=3, valueBoundary=(1, 9)):
+    def __init__(self, popSize, decSize, objSize, blockLength=3, valueBoundary=(0, 9)):
         super(SEEPopulation, self).__init__(objSize=objSize, decSize=decSize,)
         self.individuals = [SEEIndividual(decSize=self.decSize, objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
                             for _ in range(popSize)]
