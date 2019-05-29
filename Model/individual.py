@@ -43,7 +43,7 @@ class code():
         if self.blockLength == 1:
             self.dec = dec.copy().reshape(-1)
         else:
-            self.dec = dec.copy().reshape(self.blockLength,-1)
+            self.dec = dec.copy().reshape(-1,self.blockLength)
 
     def setFitness(self, fitness):
         '''
@@ -55,7 +55,7 @@ class code():
         except:
             raise Exception('fitness is not a ndarray.')
         self.shape[1] = fitness.size
-        self.fitness = fitness.copy().reshape(self.blockLength,-1)
+        self.fitness = fitness.copy().reshape(-1)
 
     def toString(self):
         '''

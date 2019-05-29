@@ -105,10 +105,13 @@ class SEENetworkGenerator(nn.Module):
                 if From not in nodeGraph[To]:
                     nodeGraph[To].append(From)
             elif Action == self.actionIns.ADD_NODE:
+                newNode = len(nodeGraph)
                 if To == From:
-                    nodeGraph[To].append(len(nodeGraph))
-                    nodeGraph[len(nodeGraph)] = [From]
-                    nodeGraph[To].remove(From)
+                    for nodeId in nodeGraph:
+                        if To in nodeGraph[nodeId]:
+                            nodeGraph[nodeId].append(newNode)
+                            nodeGraph[nodeId].remove(To)
+                    nodeGraph[newNode] = [From]
                 else:
                     nodeGraph[To].append(len(nodeGraph))
                     nodeGraph[len(nodeGraph)] = [From]
@@ -137,6 +140,13 @@ if __name__ == "__main__":
     sys.path.append('./Model')
     from individual import SEEIndividual
     ind = SEEIndividual(3,2)
-    ind.setDec([[0,4,1],[1,1,3],[1,3,1]])
+    ind.setDec([[0,5,1],
+                [1,0,5],
+                [1,1,3],[1,3,1],
+                [1,1,3],[1,3,1],
+                [6,1,4],[1,3,1],
+                [7,0,5],
+                [7,1,5],[1,3,1],
+                [8,1,0],[1,3,1]])
     a = SEENetworkGenerator(ind.getDec(),3,32)
     print('hello')
