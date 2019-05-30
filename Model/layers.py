@@ -50,13 +50,12 @@ class PoolNode(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-
-class SEENetworkGenerator(nn.Module):
+class SEEPhase(nn.Module):
     def __init__(self, code, inChannel, outChannel, repeat=None):
-        super(SEENetworkGenerator, self).__init__()
+        super(SEEPhase, self).__init__()
         self.nodeParam = None
         self.actionIns = Action()
-        self.nodeGraph,self.nodeParam = self.decoder(code)
+        self.nodeGraph, self.nodeParam = self.decoder(code)
         self.nodeGenerator = ConvNode
         node = []
         assert len(self.nodeParam) == len(self.nodeGraph), 'nodeParam length {0} and nodeGraph length {1} is not match.'.format(
@@ -72,9 +71,9 @@ class SEENetworkGenerator(nn.Module):
                 node.append(self.nodeGenerator(
                     inChannel, outChannel, Kernel, Stride))
                 continue
-            node.append(self.nodeGenerator(outChannel*len(self.nodeGraph[i]),outChannel,Kernel,Stride))
+            node.append(self.nodeGenerator(
+                outChannel*len(self.nodeGraph[i]), outChannel, Kernel, Stride))
         self.nodeList = nn.ModuleList(node)
-            
 
     def decoder(self, code):
         node = []
@@ -97,14 +96,14 @@ class SEENetworkGenerator(nn.Module):
         while actioncode_iterator.__length_hint__() != 0:
             # build graph
             From, Action, To = actioncode_iterator.__next__()
-            # Normalize the code 
+            # Normalize the code
             To = To % len(nodeGraph)
             From = From % (To+1)
             # Check the graph for loops
-            isloop, _ = SEENetworkGenerator.isLoop(nodeGraph,(From,To))
+            isloop, _ = SEEPhase.isLoop(nodeGraph, (From, To))
             if isloop:
-                To,From = From,To
-            
+                To, From = From, To
+
             Action = self.actionIns.ActionNormlize(Action)
             if Action == self.actionIns.ADD_EDGE:
                 if To == From:
@@ -136,14 +135,14 @@ class SEENetworkGenerator(nn.Module):
                 node.append((Type, Kernel, Stride))
             else:
                 raise Exception('Unknown action code : {0}'.format(Action))
-        return nodeGraph,node
-    
+        return nodeGraph, node
+
     @staticmethod
     def isLoop(graph, newEdge=None):
         graph = deepcopy(graph)
         topologicalStructure = []
         if newEdge is not None:
-            a,b = newEdge
+            a, b = newEdge
             # if a == b:
             #     return False,None
             if a not in graph[b]:
@@ -152,13 +151,13 @@ class SEENetworkGenerator(nn.Module):
         for i in graph:
             F = False
             for j in graph.values():
-                F =  i in j
+                F = i in j
                 if F:
                     break
             if not F:
                 break
         if F:
-            return True,None
+            return True, None
         else:
             topologicalStructure.append(i)
         del graph[i]
@@ -166,43 +165,56 @@ class SEENetworkGenerator(nn.Module):
             for i in graph:
                 F = False
                 for j in graph.values():
-                    F =  i in j
+                    F = i in j
                     if F:
                         break
                 if not F:
                     break
             if F:
-                return True,None
+                return True, None
             else:
                 topologicalStructure.append(i)
             del graph[i]
         topologicalStructure.reverse()
-        return False,topologicalStructure
+        return False, topologicalStructure
 
     def forward(self, x):
-        _, topoList = SEENetworkGenerator.isLoop(self.nodeGraph)
-        outputs = [self.nodeList[topoList[0]](x)] + [None for _ in range(len(self.nodeGraph)-1)]
+        _, topoList = SEEPhase.isLoop(self.nodeGraph)
+        outputs = [self.nodeList[topoList[0]](
+            x)] + [None for _ in range(len(self.nodeGraph)-1)]
         for i in topoList[1:-1]:
-              outputs[i] = self.nodeList[i](torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1))
+            outputs[i] = self.nodeList[i](
+                torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1))
 
         return self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
+
+
+class SEENetworkGenerator(nn.Module):
+    def __init__(self, codeList, channelsList):
+        super(SEENetworkGenerator, self).__init__()
+        phases = []
+        for code, (inChannel, outChannel) in zip(codeList, channelsList):
+            phases.append(SEEPhase(code, inChannel, outChannel))
 
 
 if __name__ == "__main__":
     import sys
     sys.path.append('./Model')
     from individual import SEEIndividual
-    ind = SEEIndividual(3,2)
-    ind.setDec([[0,5,1],
-                [0,0,4],
-                [0,1,2],[1,3,1],
-                [0,1,2],[1,3,1],
-                [5,1,3],[1,3,1],
-                [6,0,4],
-                [6,1,4],[1,3,1],
-                [7,1,0],[1,3,1]])
-    model = SEENetworkGenerator(ind.getDec(),3,32)
-    data = torch.randn(16,3,32,32)
+    ind = SEEIndividual(3, 2)
+    ind.setDec([[0, 5, 1],
+                [0, 0, 4],
+                [0, 1, 2], [1, 3, 1],
+                [5, 5, 2],
+                [0, 0, 4],
+                [4, 1, 5], [1, 3, 1],
+                [0, 1, 2], [1, 3, 1],
+                [5, 1, 3], [1, 3, 1],
+                [6, 0, 4],
+                [6, 1, 4], [1, 3, 1],
+                [7, 1, 0], [1, 3, 1]])
+    model = SEEPhase(ind.getDec(), 3, 32)
+    data = torch.randn(16, 3, 32, 32)
     out = model(torch.autograd.Variable(data))
     print(out)
     # test isLoop
@@ -213,5 +225,4 @@ if __name__ == "__main__":
     #     3 :[2,4],
     #     4 :[0,1,2]
     # }
-    # print(SEENetworkGenerator.isLoop(a))
-    print('hello')
+    # print(SEEPhase.isLoop(a))
