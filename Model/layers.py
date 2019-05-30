@@ -51,9 +51,14 @@ class PoolNode(nn.Module):
         return self.model(x)
 
 class SEEPhase(nn.Module):
+    '''
+    :Param nodeParam, list, recive the parameters of each node from decoder
+    :Param actionIns, class, action tag of each action
+    :Param nodeGraph, dict, the topological information of network
+    :Param nodeGenerator, to generate specific node.
+    '''
     def __init__(self, code, inChannel, outChannel, repeat=None):
         super(SEEPhase, self).__init__()
-        self.nodeParam = None
         self.actionIns = Action()
         self.nodeGraph, self.nodeParam = self.decoder(code)
         self.nodeGenerator = ConvNode
@@ -76,6 +81,9 @@ class SEEPhase(nn.Module):
         self.nodeList = nn.ModuleList(node)
 
     def decoder(self, code):
+        '''
+        transform the code into specific network.
+        '''
         node = []
         nodeGraph = dict()
         backbone, actionCode = code[0], code[1:]
@@ -139,6 +147,9 @@ class SEEPhase(nn.Module):
 
     @staticmethod
     def isLoop(graph, newEdge=None):
+        '''
+        to check if graph is including loops and return topological sort. if not.
+        '''
         graph = deepcopy(graph)
         topologicalStructure = []
         if newEdge is not None:
@@ -190,12 +201,50 @@ class SEEPhase(nn.Module):
 
 
 class SEENetworkGenerator(nn.Module):
-    def __init__(self, codeList, channelsList):
+    def __init__(self, codeList, channelsList, out_features, data_shape):
         super(SEENetworkGenerator, self).__init__()
         phases = []
         for code, (inChannel, outChannel) in zip(codeList, channelsList):
             phases.append(SEEPhase(code, inChannel, outChannel))
+        self.model = nn.Sequential(*self.buildLayers(phases))
 
+        #
+        # After the evolved part of the network, we would like to do global average pooling and a linear layer.
+        # However, we don't know the output size so we do some forward passes and observe the output sizes.
+        # This code is refer NSGA-NET https://github.com/ianwhale/nsga-net
+        out = self.model(torch.autograd.Variable(torch.zeros(1, channelsList[0][0], *data_shape)))
+        shape = out.data.shape
+        self.gap = nn.AvgPool2d(kernel_size=(shape[-2], shape[-1]), stride=1)
+        shape = self.gap(out).data.shape
+        self.linear = nn.Linear(shape[1] * shape[2] * shape[3], out_features)
+        # We accumulated some unwanted gradient information data with those forward passes.
+        self.model.zero_grad()
+
+        def forward(self, x):
+        """
+        Forward propagation.
+        :param x: Variable, input to network.
+        :return: Variable.
+        """
+        x = self.gap(self.model(x))
+        x = x.view(x.size(0), -1)
+        return self.linear(x), None
+
+        def buildLayers(self, phases):
+            """
+            Build up the layers with transitions.
+            :param phases: list of phases
+            :return: list of layers (the model).
+            """
+            layers = []
+            last_phase = phases.pop()
+            for phase, repeat in zip(phases, self._repeats):
+                for _ in range(repeat):
+                    layers.append(phase)
+                layers.append(nn.MaxPool2d(kernel_size=2, stride=2))  # TODO: Generalize this, or consider a new genome.
+
+            layers.append(last_phase)
+            return layers
 
 if __name__ == "__main__":
     import sys
