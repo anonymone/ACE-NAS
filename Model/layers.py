@@ -181,9 +181,9 @@ class SEENetworkGenerator(nn.Module):
 
     def forward(self, x):
         _, topoList = SEENetworkGenerator.isLoop(self.nodeGraph)
-        outputs = [self.nodeList[topoList[0]](x)]
+        outputs = [self.nodeList[topoList[0]](x)] + [None for _ in range(len(self.nodeGraph)-1)]
         for i in topoList[1:-1]:
-            outputs.append(self.nodeList[i](torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1)))
+              outputs[i] = self.nodeList[i](torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1))
 
         return self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
 
