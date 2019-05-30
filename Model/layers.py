@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from copy import copy
+from copy import deepcopy
 from collections import OrderedDict
 
 from actionInstruction import Action
@@ -97,11 +97,12 @@ class SEENetworkGenerator(nn.Module):
         while actioncode_iterator.__length_hint__() != 0:
             # build graph
             From, Action, To = actioncode_iterator.__next__()
-            # Normalize the code 可能存在闭环的现象
+            # Normalize the code 
             To = To % len(nodeGraph)
             From = From % (To+1)
-            # Check the diagram for loops
-            if SEENetworkGenerator.isLoop(nodeGraph,(From,To)):
+            # Check the graph for loops
+            isloop, _ = SEENetworkGenerator.isLoop(nodeGraph,(From,To))
+            if isloop:
                 To,From = From,To
             
             Action = self.actionIns.ActionNormlize(Action)
@@ -138,14 +139,16 @@ class SEENetworkGenerator(nn.Module):
         return nodeGraph,node
     
     @staticmethod
-    def isLoop(graph, newEdge):
-        a,b = newEdge
-        graph = graph.copy()
+    def isLoop(graph, newEdge=None):
+        graph = deepcopy(graph)
+        topologicalStructure = []
+        if newEdge is not None:
+            a,b = newEdge
+            # if a == b:
+            #     return False,None
+            if a not in graph[b]:
+                graph[b].append(a)
         # find root
-        if a == b:
-            return False
-        # if a not in graph[b]:
-        graph[b].append(a)
         for i in graph:
             F = False
             for j in graph.values():
@@ -155,7 +158,9 @@ class SEENetworkGenerator(nn.Module):
             if not F:
                 break
         if F:
-            return True
+            return True,None
+        else:
+            topologicalStructure.append(i)
         del graph[i]
         while len(graph) != 0:
             for i in graph:
@@ -167,14 +172,20 @@ class SEENetworkGenerator(nn.Module):
                 if not F:
                     break
             if F:
-                return True
+                return True,None
+            else:
+                topologicalStructure.append(i)
             del graph[i]
-        return False
-            
-
+        topologicalStructure.reverse()
+        return False,topologicalStructure
 
     def forward(self, x):
-        return x
+        _, topoList = SEENetworkGenerator.isLoop(self.nodeGraph)
+        outputs = [self.nodeList[topoList[0]](x)]
+        for i in topoList[1:-1]:
+            outputs.append(self.nodeList[i](torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1)))
+
+        return self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
 
 
 if __name__ == "__main__":
@@ -190,13 +201,17 @@ if __name__ == "__main__":
                 [6,0,4],
                 [6,1,4],[1,3,1],
                 [7,1,0],[1,3,1]])
-    a = SEENetworkGenerator(ind.getDec(),3,32)
+    model = SEENetworkGenerator(ind.getDec(),3,32)
+    data = torch.randn(16,3,32,32)
+    out = model(torch.autograd.Variable(data))
+    print(out)
     # test isLoop
     # a = {
     #     0 :[],
     #     1 :[0],
     #     2 :[1,0],
-    #     3 :[2] 
+    #     3 :[2,4],
+    #     4 :[0,1,2]
     # }
-    # print(SEENetworkGenerator.isLoop(a,(2,0)))
+    # print(SEENetworkGenerator.isLoop(a))
     print('hello')
