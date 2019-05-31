@@ -43,7 +43,7 @@ class code():
         if self.blockLength == 1:
             self.dec = dec.copy().reshape(-1)
         else:
-            self.dec = dec.copy().reshape(-1,self.blockLength)
+            self.dec = dec.copy().reshape(-1, self.blockLength)
 
     def setFitness(self, fitness):
         '''
@@ -129,21 +129,29 @@ class population:
 
 # SEE class
 class SEEIndividual(code):
-    def __init__(self, decSize, objSize, blockLength=3, valueBoundary=(0, 9), arg=None):
+    def __init__(self, decSize, objSize, blockLength=(3, 13, 3), valueBoundary=(0, 9), arg=None):
+        '''
+        :Param blockLength, tuple, (phase, block length, unit length) unit is the smallest part of the operating code.
+        :Param boundary, tuple, the Max and Min value of code.
+        :Param dec, numpy.array, the decision vector.
+        :Param fitness , numpy.array, fitness vector.
+        :shape the size of decsion vector and objectice vector.
+        '''
         super(SEEIndividual, self).__init__(arg=arg)
         self.blockLength = blockLength
         self.boundary = valueBoundary
-        self.dec = np.array([np.random.randint(*valueBoundary,blockLength)
-                             for _ in range(decSize)])
+        self.dec = np.random.randint(*valueBoundary, blockLength)
         self.fitness = np.zeros(objSize)
         self.shape = [decSize, objSize]
 
     def toString(self):
-        dec = self.dec.reshape((-1, self.blockLength))
+        dec = self.dec.reshape(self.blockLength)
         str_dec = ''
-        for i in dec:
-            str_dec = str_dec + \
-                str(i).replace('[', '').replace(']', '').replace(' ', '') + '-'
+        for phase in dec:
+            str_dec = str_dec + 'Phase:'
+            for i in phase:
+                str_dec = str_dec + \
+                    str(i).replace('[', '').replace(']', '').replace(' ', '') + '-'
         return 'Code: {0} \nFitness: {1}'.format(str_dec[0:-1], self.fitness)
 
     def isTraind(self):
@@ -154,7 +162,7 @@ class SEEIndividual(code):
 
 
 class SEEPopulation(population):
-    def __init__(self, popSize, decSize, objSize, blockLength=3, valueBoundary=(0, 9)):
+    def __init__(self, popSize, decSize, objSize, blockLength=(3,12,3), valueBoundary=(0, 9)):
         super(SEEPopulation, self).__init__(objSize=objSize, decSize=decSize,)
         self.individuals = [SEEIndividual(decSize=self.decSize, objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
                             for _ in range(popSize)]
