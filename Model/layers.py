@@ -201,17 +201,16 @@ class SEEPhase(nn.Module):
 
 
 class SEENetworkGenerator(nn.Module):
-    def __init__(self, codeList, channelsList, out_features, data_shape):
+    def __init__(self, codeList, channelsList, out_features, data_shape, repeats=None):
         super(SEENetworkGenerator, self).__init__()
         phases = []
         for code, (inChannel, outChannel) in zip(codeList, channelsList):
             phases.append(SEEPhase(code, inChannel, outChannel))
-        self.model = nn.Sequential(*self.buildLayers(phases))
+        self.model = nn.Sequential(*phases)
 
-        #
         # After the evolved part of the network, we would like to do global average pooling and a linear layer.
         # However, we don't know the output size so we do some forward passes and observe the output sizes.
-        # This code is refer NSGA-NET https://github.com/ianwhale/nsga-net
+        # This code refers from  NSGA-NET https://github.com/ianwhale/nsga-net
         out = self.model(torch.autograd.Variable(torch.zeros(1, channelsList[0][0], *data_shape)))
         shape = out.data.shape
         self.gap = nn.AvgPool2d(kernel_size=(shape[-2], shape[-1]), stride=1)
@@ -220,31 +219,15 @@ class SEENetworkGenerator(nn.Module):
         # We accumulated some unwanted gradient information data with those forward passes.
         self.model.zero_grad()
 
-        def forward(self, x):
-        """
+    def forward(self, x):
+        '''
         Forward propagation.
         :param x: Variable, input to network.
         :return: Variable.
-        """
+        '''
         x = self.gap(self.model(x))
         x = x.view(x.size(0), -1)
-        return self.linear(x), None
-
-        def buildLayers(self, phases):
-            """
-            Build up the layers with transitions.
-            :param phases: list of phases
-            :return: list of layers (the model).
-            """
-            layers = []
-            last_phase = phases.pop()
-            for phase, repeat in zip(phases, self._repeats):
-                for _ in range(repeat):
-                    layers.append(phase)
-                layers.append(nn.MaxPool2d(kernel_size=2, stride=2))  # TODO: Generalize this, or consider a new genome.
-
-            layers.append(last_phase)
-            return layers
+        return self.linear(x)
 
 if __name__ == "__main__":
     import sys
@@ -262,10 +245,10 @@ if __name__ == "__main__":
                 [6, 0, 4],
                 [6, 1, 4], [1, 3, 1],
                 [7, 1, 0], [1, 3, 1]])
-    model = SEEPhase(ind.getDec(), 3, 32)
+    model = SEENetworkGenerator([ind.getDec()], [[3,1]],10, (32,32))
     data = torch.randn(16, 3, 32, 32)
     out = model(torch.autograd.Variable(data))
-    print(out)
+    print((out,out.shape))
     # test isLoop
     # a = {
     #     0 :[],
