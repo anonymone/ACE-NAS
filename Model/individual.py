@@ -141,6 +141,9 @@ class SEEIndividual(code):
         self.blockLength = blockLength
         self.boundary = valueBoundary
         self.dec = np.random.randint(*valueBoundary, blockLength)
+        self.dec[0,0,1] = np.random.randint(3,9)
+        for i in range(blockLength[0]):
+            self.dec[i,0,1] = np.random.randint(3,9)
         self.fitness = np.zeros(objSize)
         self.shape = [decSize, objSize]
 

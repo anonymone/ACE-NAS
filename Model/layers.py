@@ -130,7 +130,10 @@ class SEEPhase(nn.Module):
                     nodeGraph[To].append(len(nodeGraph))
                     nodeGraph[len(nodeGraph)] = [From]
                 # build real nodeList
-                Type, Kernel, Stride = actioncode_iterator.__next__()
+                try:
+                    Type, Kernel, Stride = actioncode_iterator.__next__()
+                except:
+                    Type, Kernel, Stride = From, Action, To
                 Type = Type % 2
                 if Kernel % 2 == 0:
                     Kernel = 3
@@ -227,7 +230,7 @@ class SEENetworkGenerator(nn.Module):
         '''
         x = self.gap(self.model(x))
         x = x.view(x.size(0), -1)
-        return self.linear(x)
+        return self.linear(x),None
 
 if __name__ == "__main__":
     import sys
