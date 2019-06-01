@@ -147,7 +147,7 @@ class SEEIndividual(code):
         self.fitness = np.zeros(objSize)
         self.shape = [decSize, objSize]
 
-    def toString(self):
+    def toString(self,showFitness=False):
         dec = self.dec.reshape(self.blockLength)
         str_dec = ''
         for phase in dec:
@@ -155,7 +155,11 @@ class SEEIndividual(code):
             for i in phase:
                 str_dec = str_dec + \
                     str(i).replace('[', '').replace(']', '').replace(' ', '') + '-'
-        return 'Code: {0} \nFitness: {1}'.format(str_dec[0:-1], self.fitness)
+        if showFitness:
+            fitnessString = 'Fitness: {0}'.format(self.fitness)
+        else:
+            fitnessString=''
+        return 'Code: {0} \n'.format(str_dec[0:-1]) + fitnessString
 
     def isTraind(self):
         '''
