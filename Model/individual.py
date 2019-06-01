@@ -159,7 +159,7 @@ class SEEIndividual(code):
             fitnessString = 'Fitness: {0}'.format(self.fitness)
         else:
             fitnessString=''
-        return 'Code: {0} \n'.format(str_dec[0:-1]) + fitnessString
+        return 'Code: {0}'.format(str_dec[0:-1]) + fitnessString
 
     def isTraind(self):
         '''

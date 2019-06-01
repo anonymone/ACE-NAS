@@ -148,8 +148,8 @@ def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0
     # save to file
     # os.remove(os.path.join(save_pth, 'log.txt'))
     with open(os.path.join(save_pth, 'log.txt'), "w") as file:
-        file.write("Genome = {}\n".format(genome))
-        file.write("Architecture = {}\n".format(genotype))
+        # file.write("Genome = {}\n".format(genome))
+        file.write("Architecture = {}\n".format(code.toString()))
         file.write("param size = {}MB\n".format(n_params))
         file.write("flops = {}MB\n".format(n_flops))
         file.write("valid_acc = {}\n".format(valid_acc))
@@ -223,6 +223,6 @@ def infer(valid_queue, net, criterion):
 if __name__ == "__main__":
     SEE_V3 = individual.SEEIndividual(31,2)
     start = time.time()
-    print(main(code=SEE_V3, epochs=20, save='SEE_V3', seed=1, initChannel=16,
+    print(main(code=SEE_V3, epochs=1, save='SEE_V3', seed=1, initChannel=16,
                auxiliary=False, cutout=False, dropPathProb=0.0))
     print('Time elapsed = {} mins'.format((time.time() - start)/60))
