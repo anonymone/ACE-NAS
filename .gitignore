@@ -6,5 +6,8 @@
 *.bak
 
 # folder 
-/Dataset/
+/Dataset/*-py
+/Dataset/*.gz
+/Dataset/*/*-py
+/Dataset/*/*.gz
 /Experiments/logs/
