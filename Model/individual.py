@@ -72,12 +72,17 @@ class code():
 
 
 class population:
-    def __init__(self, objSize, decSize, mutation, evaluation, method, callback=None, crossover=None, crossoverRate=0.2):
+    def __init__(self, objSize, decSize, mutation, evaluation, callback=None, crossover=None, crossoverRate=0.2):
         '''
         Param: objSize, int, the number of objective.
         Param: decSize, int, the number of decision unit. unit is the smallest part of the code.
         Param: popSize, int, the number of individuals.
         Param: individuals, list, storing all individuals. 
+        Param: mutate, callback func, mutating function.
+        Param: crossoverRate, float, range(0,1), the cross over rate of population.
+        Param: eval, callback func, evaluating function.
+        Param: callback, callback func, to do something specific thing.
+        Param: crossover, callback func, the cross over method.
         '''
         self.objSize = objSize
         self.decSize = decSize
@@ -86,7 +91,6 @@ class population:
         self.mutate = mutation
         self.crossoverRate = crossoverRate
         self.eval = evaluation
-        self.method = method
         self.callback = callback
         self.crossover = crossover
     
@@ -121,7 +125,7 @@ class population:
 
     def remove(self, index):
         '''
-        pop a individual in the tail of self.individuals.
+        remove individuals in index.
         '''
         assert self.popSize > 0, 'Population has no individual.'
         for i in index:
@@ -210,7 +214,7 @@ class SEEIndividual(code):
 
 class SEEPopulation(population):
     def __init__(self, popSize, decSize, objSize, blockLength=(3,12,3), valueBoundary=(0, 9)):
-        super(SEEPopulation, self).__init__(objSize=objSize, decSize=decSize,)
+        super(SEEPopulation, self).__init__(objSize=objSize, decSize=decSize,mutation=None,evaluation=None, method=None)
         self.individuals = [SEEIndividual(decSize=self.decSize, objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
                             for _ in range(popSize)]
         self.popSize = popSize
@@ -231,10 +235,9 @@ class SEEPopulation(population):
 
 if __name__ == "__main__":
     pop = SEEPopulation(popSize=30, objSize=2, decSize=10)
-    ind = pop.get()
+    ind = pop.individuals[0]
     ind.setFitness([1, 2])
     pop.add(ind)
-    ind = pop.get()
     ind.setFitness([3, 4])
     pop.add([ind, ind])
     # print(pop.toMatrix())

@@ -1,5 +1,6 @@
+import sys
+sys.path.insert(0,'./EvolutionAlgorithm')
 import EAbase
-from Engine import StateControl
 
 import random
 import copy
@@ -7,29 +8,8 @@ import numpy as np
 
 
 class NSGA2(EAbase.EAbase):
-    def __init__(self, config):
+    def __init__(self):
         super(NSGA2, self).__init__()
-        self.mutateRate = float(config['EA setting']['mutateRate'])
-        self.isCrossOver = bool(config['EA setting']['crossOver'])
-        self.mutateType = config['EA setting']['codeType']
-        self.mutateGenerate = np.random.randint(1, 9)
-
-    def mutate(self, pop, mutateFunc=None):
-        newPop = copy.deepcopy(pop)
-        (popLength, fitnessNum) = newPop[1]
-        if mutateFunc is None:
-            for ind in newPop[0]:
-                index = np.unique([random.randint(0, len(ind)-3)
-                                   for x in range(random.randint(1, int(popLength/2)))])
-                ind[index] = [self.mutateGenerate for x in range(len(index))]
-                ind[-fitnessNum:] = 0
-        return newPop
-
-    def crossOver(self, ind1, ind2):
-        cutPoint = np.random.randint(2, ind1.shape[0]-2)
-        (sub1, sub2) = (ind1[0:cutPoint], ind1[cutPoint:])
-        (sub3, sub4) = (ind2[0:cutPoint], ind2[cutPoint:])
-        return np.vstack([np.hstack([sub1, sub4]), np.hstack([sub3, sub2])])
 
     def isDominated(self, ind1, ind2, proType='min'):
         if proType == 'min':
@@ -38,15 +18,14 @@ class NSGA2(EAbase.EAbase):
             return np.any(ind1 > ind2) and not np.any(ind1 < ind2)
 
     def fastNondomiatedSort(self, pop):
-        popLength, fitnessNum = pop[1]
-        popSize = pop[0].shape[0]
-        fitnessValue = pop[0][:, -fitnessNum:]
+        popSize, fitnessNum = pop[:,1:].shape
+        fitnessValue = pop[:, 1:]
         S = [list() for _ in range(popSize)]
         n = np.zeros(shape=popSize, dtype=int)
         F = list()
         F.append([])
-        for p in range(popLength):
-            for q in range(popLength):
+        for p in range(popSize):
+            for q in range(popSize):
                 # if p == q:
                 #     continue
                 if self.isDominated(fitnessValue[p], fitnessValue[q]):
@@ -69,9 +48,8 @@ class NSGA2(EAbase.EAbase):
         return F
 
     def crowdingDistance(self, pop):
-        popLength, fitnessNum = pop[1]
-        popSize = pop[0].shape[0]
-        fitnessValue = pop[0][:, -fitnessNum:]
+        popSize, fitnessNum = pop[:,1:].shape
+        fitnessValue = pop[:, 1:]
         Idistance = np.zeros(popSize)
         for m in range(fitnessNum):
             objVector = fitnessValue[:, m]
@@ -90,18 +68,33 @@ class NSGA2(EAbase.EAbase):
         for FNum, Fi in zip(range(len(F)),F):
             count += len(Fi)
             if count >= popNum:
+                count -= len(Fi)
                 break
             selectingIndex.extend(Fi)
             
         if count != popNum:
-            subpop = pop[0][F[FNum]]
-            subpop = (subpop,pop[1])
+            subpop = pop[Fi]
             crowdValue = self.crowdingDistance(subpop)
             index = np.argsort(-crowdValue)
             index = index[0:(len(F[FNum])-(count-popNum))]
             selectingIndex.extend(index)
-        newPop = pop[0][selectingIndex,:]
-        return (newPop,(len(newPop),pop[1][1]))
+        return selectingIndex
 
-    def newPop(self, pop):
-        pass
+
+if __name__ == "__main__":
+    engin = NSGA2()
+    popSize = 100
+    pop = np.hstack(((np.array([x for x in range(popSize)]).reshape(-1,1), np.random.randint(0,9,size=(popSize,2)))))
+    # pop = np.array([[0, 2, 7],
+    #                 [1, 7, 0],
+    #                 [2, 5, 8],
+    #                 [3, 1, 4],
+    #                 [4, 4, 4],
+    #                 [5, 8, 2],
+    #                 [6, 0, 8],
+    #                 [7, 6, 6],
+    #                 [8, 6, 5],
+    #                 [9, 2, 4]])
+    print(pop)
+    elistist = engin.enviromentalSeleection(pop,50)
+    print(elistist)
