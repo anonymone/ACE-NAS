@@ -72,7 +72,7 @@ class code():
 
 
 class population:
-    def __init__(self, objSize, decSize, mutation, evaluation, callback=None, crossover=None, crossoverRate=0.2):
+    def __init__(self, objSize, decSize, mutation, evaluation, callback=None, crossover=None, arg=None):
         '''
         Param: objSize, int, the number of objective.
         Param: decSize, int, the number of decision unit. unit is the smallest part of the code.
@@ -89,15 +89,16 @@ class population:
         self.popSize = 0
         self.individuals = list()
         self.mutate = mutation
-        self.crossoverRate = crossoverRate
+        self.crossoverRate = arg.crossoverRate
         self.eval = evaluation
         self.callback = callback
         self.crossover = crossover
-    
+        self.arg = arg
+
     def evaluation(self):
         assert self.eval == None, 'evaluating method is not defined.'
-        for indId, ind in zip(range(self.popSize),self.individuals):
-            fitness = self.eval(ind.getDec())
+        for indId, ind in zip(range(self.popSize), self.individuals):
+            fitness = self.eval(ind.getDec(),arg)
             self.individuals[indId].setFitness(fitness)
 
     def newPop(self, index=None):
@@ -108,9 +109,10 @@ class population:
             subPop = copy.deepcopy(self.individuals)
         for indID, ind in zip(range(len(subPop)), subPop):
             code = self.mutate(ind.getDec())
-            if self.crossover is not None and random.random()< self.crossoverRate:
-                ind1,ind2 = self.individuals[random.randint(0,self.popSize)],self.individuals[random.randint(0,self.popSize)]
-                fitness1, fitness2 = ind1.getFitness(),ind2.getFitness()
+            if self.crossover is not None and random.random() < self.crossoverRate:
+                ind1, ind2 = self.individuals[random.randint(
+                    0, self.popSize)], self.individuals[random.randint(0, self.popSize)]
+                fitness1, fitness2 = ind1.getFitness(), ind2.getFitness()
                 winTimes1 = np.sum(fitness1 < fitness2)
                 winTimes2 = len(fitness1) - winTimes1
                 if winTimes1 > winTimes1:
@@ -119,9 +121,9 @@ class population:
                     betterCode = ind2.getDec()
                 code = self.crossover(code, betterCode)
             subPop[indID].setDec(code)
-            subPop[indID].setFitness([0 for _ in range(subPop[indID].shape[1])])
+            subPop[indID].setFitness(
+                [0 for _ in range(subPop[indID].shape[1])])
         self.add(subPop)
-            
 
     def remove(self, index):
         '''
@@ -132,7 +134,8 @@ class population:
             try:
                 del self.individuals[i]
             except:
-                raise Exception('delete the {0}(st/rd/th) individual in population with size {1} failed.'.format(i,self.popSize))
+                raise Exception(
+                    'delete the {0}(st/rd/th) individual in population with size {1} failed.'.format(i, self.popSize))
             self.popSize = self.popSize - 1
 
     def add(self, ind):
@@ -185,24 +188,25 @@ class SEEIndividual(code):
         self.blockLength = blockLength
         self.boundary = valueBoundary
         self.dec = np.random.randint(*valueBoundary, blockLength)
-        self.dec[0,0,1] = np.random.randint(3,9)
+        self.dec[0, 0, 1] = np.random.randint(3, 9)
         for i in range(blockLength[0]):
-            self.dec[i,0,1] = np.random.randint(3,9)
+            self.dec[i, 0, 1] = np.random.randint(3, 9)
         self.fitness = np.zeros(objSize)
         self.shape = [decSize, objSize]
 
-    def toString(self,showFitness=False):
+    def toString(self, showFitness=False):
         dec = self.dec.reshape(self.blockLength)
         str_dec = ''
         for phase in dec:
             str_dec = str_dec + 'Phase:'
             for i in phase:
                 str_dec = str_dec + \
-                    str(i).replace('[', '').replace(']', '').replace(' ', '') + '-'
+                    str(i).replace('[', '').replace(
+                        ']', '').replace(' ', '') + '-'
         if showFitness:
             fitnessString = 'Fitness: {0}'.format(self.fitness)
         else:
-            fitnessString=''
+            fitnessString = ''
         return 'Code: {0}'.format(str_dec[0:-1]) + fitnessString
 
     def isTraind(self):
@@ -213,8 +217,9 @@ class SEEIndividual(code):
 
 
 class SEEPopulation(population):
-    def __init__(self, popSize, decSize, objSize, blockLength=(3,12,3), valueBoundary=(0, 9)):
-        super(SEEPopulation, self).__init__(objSize=objSize, decSize=decSize,mutation=None,evaluation=None, method=None)
+    def __init__(self, popSize, decSize, objSize, blockLength=(3, 12, 3), valueBoundary=(0, 9), mutation=None, evaluation=None,arg=None):
+        super(SEEPopulation, self).__init__(objSize=objSize,
+                                            decSize=decSize, mutation=mutation, evaluation=evaluation,arg=arg)
         self.individuals = [SEEIndividual(decSize=self.decSize, objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
                             for _ in range(popSize)]
         self.popSize = popSize
@@ -225,10 +230,10 @@ class SEEPopulation(population):
         '''
         if needDec:
             matrix = np.vstack(
-                [np.hstack(([ind_id],ind.getDec().flatten(), ind.getFitness())) for ind_id, ind in zip(range(self.popSize),self.individuals)])
+                [np.hstack(([ind_id], ind.getDec().flatten(), ind.getFitness())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
         else:
             matrix = np.vstack(
-                [np.hstack(([ind_id], ind.getFitness())) for ind_id, ind in zip(range(self.popSize),self.individuals)])
+                [np.hstack(([ind_id], ind.getFitness())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
 
         return matrix
 

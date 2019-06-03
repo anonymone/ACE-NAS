@@ -22,8 +22,18 @@ from misc.flops_counter import add_flops_counting_methods
 
 device = 'cuda'
 
-
-def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0, initChannel=24, modelLayers=11, auxiliary=False, cutout=False, dropPathProb=0.0):
+# def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0, initChannel=24, modelLayers=11, auxiliary=False, cutout=False, dropPathProb=0.0):
+def main(code, arg):
+    # init parameters
+    epoch = arg.trainSearch_epoch
+    save=arg.trainSearch_save
+    exprRoot=arg.trainSearch_exprRoot
+    seed=0
+    gpu=0
+    initChannel= arg.trainSearch_initChannel
+    auxiliary = arg.trainSearch_auxiliary
+    cutout = arg.trainSearch_cutout
+    dropPathProb = arg.trainSearch_dropPathProb
     # ---- train logger ----------------- #
     save_pth = os.path.join(exprRoot, '{}'.format(save))
     utils.create_exp_dir(save_pth)
@@ -36,7 +46,7 @@ def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0
     learning_rate = 0.025
     momentum = 0.9
     weight_decay = 3e-4
-    data_root = './Dataset'
+    data_root = arg.dataRoot
     batch_size = 128
     cutout_length = 16
     auxiliary_weight = 0.4
@@ -57,7 +67,7 @@ def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0
         code.getDec(), channels, CIFAR_CLASSES, (32, 32))
 
     # logging.info("Genome = %s", genome)
-    logging.info("Architecture = %s",code.toString() )
+    logging.info("Architecture = %s", code.toString())
 
     torch.cuda.set_device(gpu)
     cudnn.benchmark = True
@@ -163,6 +173,8 @@ def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0
     }
 
 # Training
+
+
 def train(train_queue, net, criterion, optimizer, params):
     net.train()
     train_loss = 0
@@ -195,6 +207,7 @@ def train(train_queue, net, criterion, optimizer, params):
 
     return 100.*correct/total, train_loss/total
 
+
 def infer(valid_queue, net, criterion):
     net.eval()
     test_loss = 0
@@ -220,8 +233,9 @@ def infer(valid_queue, net, criterion):
 
     return acc, test_loss/total
 
+
 if __name__ == "__main__":
-    SEE_V3 = individual.SEEIndividual(31,2)
+    SEE_V3 = individual.SEEIndividual(31, 2)
     start = time.time()
     print(main(code=SEE_V3, epochs=1, save='SEE_V3', seed=1, initChannel=16,
                auxiliary=False, cutout=False, dropPathProb=0.0))
