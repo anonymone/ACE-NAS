@@ -2,6 +2,7 @@ import numpy as np
 import pandas
 from pandas import DataFrame
 import random
+import copy
 
 
 class code():
@@ -15,8 +16,8 @@ class code():
         Param: self.fitness, numpy type, size (-1).
         Param: shape, list, length of [dec, fitness].
         '''
-        self.dec = None
-        self.fitness = None
+        self.dec = np.array([])
+        self.fitness = np.array([])
         self.blockLength = 1
         self.shape = [0, 0]
         if arg is not None:
@@ -71,7 +72,7 @@ class code():
 
 
 class population:
-    def __init__(self, objSize, decSize):
+    def __init__(self, objSize, decSize, mutation, evaluation, method, callback=None, crossover=None, crossoverRate=0.2):
         '''
         Param: objSize, int, the number of objective.
         Param: decSize, int, the number of decision unit. unit is the smallest part of the code.
@@ -82,16 +83,55 @@ class population:
         self.decSize = decSize
         self.popSize = 0
         self.individuals = list()
+        self.mutate = mutation
+        self.crossoverRate = crossoverRate
+        self.eval = evaluation
+        self.method = method
+        self.callback = callback
+        self.crossover = crossover
+    
+    def evaluation(self):
+        assert self.eval == None, 'evaluating method is not defined.'
+        for indId, ind in zip(range(self.popSize),self.individuals):
+            fitness = self.eval(ind.getDec())
+            self.individuals[indId].setFitness(fitness)
 
-    def pop(self):
+    def newPop(self, index=None):
+        assert self.mutate == None, 'mutating method is not defined.'
+        if index is not None:
+            subPop = copy.deepcopy(self.individuals[index])
+        else:
+            subPop = copy.deepcopy(self.individuals)
+        for indID, ind in zip(range(len(subPop)), subPop):
+            code = self.mutate(ind.getDec())
+            if self.crossover is not None and random.random()< self.crossoverRate:
+                ind1,ind2 = self.individuals[random.randint(0,self.popSize)],self.individuals[random.randint(0,self.popSize)]
+                fitness1, fitness2 = ind1.getFitness(),ind2.getFitness()
+                winTimes1 = np.sum(fitness1 < fitness2)
+                winTimes2 = len(fitness1) - winTimes1
+                if winTimes1 > winTimes1:
+                    betterCode = ind1.getDec()
+                else:
+                    betterCode = ind2.getDec()
+                code = self.crossover(code, betterCode)
+            subPop[indID].setDec(code)
+            subPop[indID].setFitness([0 for _ in range(subPop[indID].shape[1])])
+        self.add(subPop)
+            
+
+    def remove(self, index):
         '''
         pop a individual in the tail of self.individuals.
         '''
         assert self.popSize > 0, 'Population has no individual.'
-        self.popSize = self.popSize - 1
-        return self.individuals.pop()
+        for i in index:
+            try:
+                del self.individuals[i]
+            except:
+                raise Exception('delete the {0}(st/rd/th) individual in population with size {1} failed.'.format(i,self.popSize))
+            self.popSize = self.popSize - 1
 
-    def push(self, ind):
+    def add(self, ind):
         '''
         insert the ind befor the existing individuals in self.individuals.
         Param: individual class or a list of individual class.
@@ -175,24 +215,30 @@ class SEEPopulation(population):
                             for _ in range(popSize)]
         self.popSize = popSize
 
-    def toMatrix(self):
+    def toMatrix(self, needDec=False):
         '''
         return a table containing dec and fitness, numpy.ndarray.
         '''
-        matrix = np.vstack(
-            [np.hstack((ind.getDec(), ind.getFitness())) for ind in self.individuals])
+        if needDec:
+            matrix = np.vstack(
+                [np.hstack(([ind_id],ind.getDec().flatten(), ind.getFitness())) for ind_id, ind in zip(range(self.popSize),self.individuals)])
+        else:
+            matrix = np.vstack(
+                [np.hstack(([ind_id], ind.getFitness())) for ind_id, ind in zip(range(self.popSize),self.individuals)])
+
         return matrix
 
 
 if __name__ == "__main__":
     pop = SEEPopulation(popSize=30, objSize=2, decSize=10)
-    ind = pop.pop()
+    ind = pop.get()
     ind.setFitness([1, 2])
-    pop.push(ind)
-    ind = pop.pop()
+    pop.add(ind)
+    ind = pop.get()
     ind.setFitness([3, 4])
-    pop.push([ind, ind])
+    pop.add([ind, ind])
     # print(pop.toMatrix())
     print(ind.toString())
     # print(ind.toVector())
+    print(pop.toMatrix())
     pop.save('./hi.csv')
