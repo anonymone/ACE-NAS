@@ -75,9 +75,10 @@ class NSGA2(EAbase.EAbase):
         if count != popNum:
             subpop = pop[Fi]
             crowdValue = self.crowdingDistance(subpop)
-            index = np.argsort(-crowdValue)
-            index = index[0:(len(F[FNum])-(count-popNum))]
+            index = np.argsort(-crowdValue).tolist()
+            index = index[0:(popNum-count)]
             selectingIndex.extend(index)
+            selectingIndex.sort()
         return selectingIndex
 
 
