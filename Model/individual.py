@@ -2,7 +2,8 @@ import numpy as np
 import pandas
 from pandas import DataFrame
 import random
-import copy
+from copy import deepcopy
+import argparse
 
 
 class code():
@@ -10,7 +11,7 @@ class code():
     This is a basic individual class of all solution.
     '''
 
-    def __init__(self, arg=None):
+    def __init__(self, args=None):
         '''
         Param: self.dec, numpy type, size (-1).
         Param: self.fitness, numpy type, size (-1).
@@ -20,10 +21,10 @@ class code():
         self.fitness = np.array([])
         self.blockLength = 1
         self.shape = [0, 0]
-        if arg is not None:
-            assert type(arg) == dict, 'arg is not dict type.'
-            for key in arg:
-                self.__dict__[key] = arg[key]
+        if args is not None:
+            assert type(args) == dict, 'args is not dict type.'
+            for key in args:
+                self.__dict__[key] = args[key]
 
     def getDec(self):
         return self.dec.copy()
@@ -44,7 +45,7 @@ class code():
         if self.blockLength == 1:
             self.dec = dec.copy().reshape(-1)
         else:
-            self.dec = dec.copy().reshape(-1, self.blockLength)
+            self.dec = dec.copy().reshape(self.blockLength)
 
     def setFitness(self, fitness):
         '''
@@ -72,10 +73,9 @@ class code():
 
 
 class population:
-    def __init__(self, objSize, decSize, mutation, evaluation, callback=None, crossover=None, arg=None):
+    def __init__(self, objSize, mutation, evaluation, callback=None, crossover=None, crossoverRate=0.2, args=None):
         '''
         Param: objSize, int, the number of objective.
-        Param: decSize, int, the number of decision unit. unit is the smallest part of the code.
         Param: popSize, int, the number of individuals.
         Param: individuals, list, storing all individuals. 
         Param: mutate, callback func, mutating function.
@@ -85,33 +85,37 @@ class population:
         Param: crossover, callback func, the cross over method.
         '''
         self.objSize = objSize
-        self.decSize = decSize
         self.popSize = 0
         self.individuals = list()
         self.mutate = mutation
-        self.crossoverRate = arg.crossoverRate
+        self.crossoverRate = crossoverRate
         self.eval = evaluation
         self.callback = callback
         self.crossover = crossover
-        self.arg = arg
+        self.args = args
 
     def evaluation(self):
-        assert self.eval == None, 'evaluating method is not defined.'
+        if self.args.evalMode == 'DEBUG':
+            for indId, ind in zip(range(self.popSize), self.individuals):
+                self.individuals[indId].setFitness(np.random.random((1,2)))
+            return None
+        assert self.eval != None, 'evaluating method is not defined.'
         for indId, ind in zip(range(self.popSize), self.individuals):
-            fitness = self.eval(ind.getDec(),arg)
+            fitness = self.eval(ind.getDec(), args)
             self.individuals[indId].setFitness(fitness)
+        return None
 
     def newPop(self, index=None):
-        assert self.mutate == None, 'mutating method is not defined.'
+        assert self.mutate != None, 'mutating method is not defined.'
         if index is not None:
-            subPop = copy.deepcopy(self.individuals[index])
+            subPop = deepcopy(self.individuals[index])
         else:
-            subPop = copy.deepcopy(self.individuals)
+            subPop = deepcopy(self.individuals)
         for indID, ind in zip(range(len(subPop)), subPop):
             code = self.mutate(ind.getDec())
             if self.crossover is not None and random.random() < self.crossoverRate:
                 ind1, ind2 = self.individuals[random.randint(
-                    0, self.popSize)], self.individuals[random.randint(0, self.popSize)]
+                    0, self.popSize-1)], self.individuals[random.randint(0, self.popSize-1)]
                 fitness1, fitness2 = ind1.getFitness(), ind2.getFitness()
                 winTimes1 = np.sum(fitness1 < fitness2)
                 winTimes2 = len(fitness1) - winTimes1
@@ -119,7 +123,9 @@ class population:
                     betterCode = ind1.getDec()
                 else:
                     betterCode = ind2.getDec()
-                code = self.crossover(code, betterCode)
+                newCode1,newCode2 = self.crossover(ind.getDec(), betterCode)
+                newInd = [subPop[indID].copy(newCode1), subPop[indID].copy(newCode1)]
+                self.add(newInd)
             subPop[indID].setDec(code)
             subPop[indID].setFitness(
                 [0 for _ in range(subPop[indID].shape[1])])
@@ -163,20 +169,20 @@ class population:
             'Fitness': list()
         }
         for ind in self.individuals:
-            tabel['Dec'].append(ind.getDec())
+            tabel['Dec'].append(ind.getDec().reshape(-1))
             tabel['Fitness'].append(ind.getFitness())
         tabel = DataFrame(tabel)
         if fileFormat == 'csv':
-            tabel.to_csv(savePath)
+            tabel.to_csv(savePath+'.csv')
         elif fileFormat == 'json':
-            tabel.to_json(savePath)
+            tabel.to_json(savePath+'.json')
         else:
             raise Exception('Error file format is specified!')
 
 
 # SEE class
 class SEEIndividual(code):
-    def __init__(self, decSize, objSize, blockLength=(3, 13, 3), valueBoundary=(0, 9), arg=None):
+    def __init__(self, objSize, blockLength=(3, 13, 3), valueBoundary=(0, 9), args=None):
         '''
         :Param blockLength, tuple, (phase, block length, unit length) unit is the smallest part of the operating code.
         :Param boundary, tuple, the Max and Min value of code.
@@ -184,7 +190,7 @@ class SEEIndividual(code):
         :Param fitness , numpy.array, fitness vector.
         :shape the size of decsion vector and objectice vector.
         '''
-        super(SEEIndividual, self).__init__(arg=arg)
+        super(SEEIndividual, self).__init__(args=args)
         self.blockLength = blockLength
         self.boundary = valueBoundary
         self.dec = np.random.randint(*valueBoundary, blockLength)
@@ -192,7 +198,14 @@ class SEEIndividual(code):
         for i in range(blockLength[0]):
             self.dec[i, 0, 1] = np.random.randint(3, 9)
         self.fitness = np.zeros(objSize)
+        decSize = blockLength[0]*blockLength[1]*blockLength[2]
         self.shape = [decSize, objSize]
+    
+    def copy(self, dec=None):
+        if dec is not None:
+            return SEEIndividual(self.shape[1], self.blockLength, self.boundary,None)
+        else:
+            return SEEIndividual(self.objSize, self.blockLength, self.valueBoundary,self.args)
 
     def toString(self, showFitness=False):
         dec = self.dec.reshape(self.blockLength)
@@ -217,10 +230,10 @@ class SEEIndividual(code):
 
 
 class SEEPopulation(population):
-    def __init__(self, popSize, decSize, objSize, blockLength=(3, 12, 3), valueBoundary=(0, 9), mutation=None, evaluation=None,arg=None):
-        super(SEEPopulation, self).__init__(objSize=objSize,
-                                            decSize=decSize, mutation=mutation, evaluation=evaluation,arg=arg)
-        self.individuals = [SEEIndividual(decSize=self.decSize, objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
+    def __init__(self, popSize, objSize, blockLength=(3, 12, 3), valueBoundary=(0, 9), mutation=None, crossover=None, evaluation=None, args=None):
+        super(SEEPopulation, self).__init__(objSize=objSize, crossover=crossover,
+                                            mutation=mutation, evaluation=evaluation, crossoverRate=args.crossoverRate, args=args)
+        self.individuals = [SEEIndividual(objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
                             for _ in range(popSize)]
         self.popSize = popSize
 
@@ -239,7 +252,12 @@ class SEEPopulation(population):
 
 
 if __name__ == "__main__":
-    pop = SEEPopulation(popSize=30, objSize=2, decSize=10)
+    parser = argparse.ArgumentParser(
+        "Multi-objetive Genetic Algorithm for SEENAS")
+    parser.add_argument('--crossoverRate', type=float,
+                        default=0.2, help='The propability rate of crossover.')
+    args = parser.parse_args()
+    pop = SEEPopulation(popSize=30, objSize=2, args=args)
     ind = pop.individuals[0]
     ind.setFitness([1, 2])
     pop.add(ind)

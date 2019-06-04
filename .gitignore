@@ -4,6 +4,8 @@
 *.log
 *.dat
 *.bak
+*.csv
+*.txt
 
 # folder 
 /Dataset/*-py
