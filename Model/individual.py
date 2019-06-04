@@ -97,11 +97,15 @@ class population:
     def evaluation(self):
         if self.args.evalMode == 'DEBUG':
             for indId, ind in zip(range(self.popSize), self.individuals):
+                if self.individuals[indId].isTraind():
+                    continue
                 self.individuals[indId].setFitness(np.random.random((1,2)))
             return None
         assert self.eval != None, 'evaluating method is not defined.'
         for indId, ind in zip(range(self.popSize), self.individuals):
-            fitness = self.eval(ind.getDec(), args)
+            if self.individuals[indId].isTraind():
+                continue
+            fitness = self.eval(ind, self.args)
             self.individuals[indId].setFitness(fitness)
         return None
 
@@ -136,6 +140,8 @@ class population:
         remove individuals in index.
         '''
         assert self.popSize > 0, 'Population has no individual.'
+        # make sure that del is start from tail of list.
+        index.sort(reverse=True)
         for i in index:
             try:
                 del self.individuals[i]

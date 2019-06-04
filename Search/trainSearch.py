@@ -25,7 +25,7 @@ device = 'cuda'
 # def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0, initChannel=24, modelLayers=11, auxiliary=False, cutout=False, dropPathProb=0.0):
 def main(code, arg):
     # init parameters
-    epoch = arg.trainSearch_epoch
+    epochs = arg.trainSearch_epoch
     save=arg.trainSearch_save
     exprRoot=arg.trainSearch_exprRoot
     seed=0
