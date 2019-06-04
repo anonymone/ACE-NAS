@@ -4,6 +4,7 @@ from pandas import DataFrame
 import random
 from copy import deepcopy
 import argparse
+import uuid
 
 
 class code():
@@ -206,6 +207,7 @@ class SEEIndividual(code):
         self.fitness = np.zeros(objSize)
         decSize = blockLength[0]*blockLength[1]*blockLength[2]
         self.shape = [decSize, objSize]
+        self.ID = uuid.uuid1()
     
     def copy(self, dec=None):
         if dec is not None:

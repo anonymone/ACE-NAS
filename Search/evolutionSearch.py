@@ -28,8 +28,8 @@ parser.add_argument('--valueBoundary', type=tuple, default=(0,9),help='Decision 
 parser.add_argument('--crossoverRate', type=float, default=0.2,help='The propability rate of crossover.')
 # train search method setting.
 parser.add_argument('--trainSearch_epoch', type=int, default=25,help='# of epochs to train during architecture search')
-parser.add_argument('--trainSearch_save', type=str, default='SEE_#Generation_#id', help='the filename including each model.')
-parser.add_argument('--trainSearch_exprRoot', type=str, default='./Experiments', help='the root path of experiments.')
+parser.add_argument('--trainSearch_save', type=str, default='SEE_#id', help='the filename including each model.')
+parser.add_argument('--trainSearch_exprRoot', type=str, default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int, default=24, help='# of filters for first cell')
 parser.add_argument('--trainSearch_auxiliary', type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')

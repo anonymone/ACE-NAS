@@ -35,7 +35,8 @@ def main(code, arg):
     cutout = arg.trainSearch_cutout
     dropPathProb = arg.trainSearch_dropPathProb
     # ---- train logger ----------------- #
-    save_pth = os.path.join(exprRoot, '{}'.format(save))
+    utils.create_exp_dir(exprRoot)
+    save_pth = os.path.join(exprRoot, '{}'.format(save.replace('#id',str(code.ID))))
     utils.create_exp_dir(save_pth)
     log_format = '%(asctime)s %(message)s'
     logging.basicConfig(stream=sys.stdout, level=logging.INFO,
@@ -158,7 +159,7 @@ def main(code, arg):
     # save to file
     # os.remove(os.path.join(save_pth, 'log.txt'))
     with open(os.path.join(save_pth, 'log.txt'), "w") as file:
-        # file.write("Genome = {}\n".format(genome))
+        file.write("ID = {}\n".format(code.ID))
         file.write("Architecture = {}\n".format(code.toString()))
         file.write("param size = {}MB\n".format(n_params))
         file.write("flops = {}MB\n".format(n_flops))
