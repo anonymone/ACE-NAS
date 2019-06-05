@@ -64,7 +64,7 @@ population.evaluation()
 population.save(os.path.join(args.save,'Generation-{0}'.format('init')))
 
 for generation in range(args.generation):
-    logging.info("===============Generatiion {0}=================".format(generation))
+    logging.info("=======================Generatiion {0}=======================".format(generation))
     population.newPop()
     population.evaluation()
     popValue = population.toMatrix()

@@ -68,7 +68,7 @@ def main(code, arg):
         code.getDec(), channels, CIFAR_CLASSES, (32, 32))
 
     # logging.info("Genome = %s", genome)
-    logging.info("Architecture = %s", code.toString())
+    logging.info("Architecture ID = %s", code.ID)
 
     torch.cuda.set_device(gpu)
     cudnn.benchmark = True

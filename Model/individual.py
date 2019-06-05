@@ -130,10 +130,15 @@ class population:
                     betterCode = ind2.getDec()
                 newCode1,newCode2 = self.crossover(ind.getDec(), betterCode)
                 newInd = [subPop[indID].copy(newCode1), subPop[indID].copy(newCode1)]
+                # Update ID
+                for i in newInd:
+                    i.ID = uuid.uuid1()
                 self.add(newInd)
             subPop[indID].setDec(code)
             subPop[indID].setFitness(
                 [0 for _ in range(subPop[indID].shape[1])])
+            # Update ID
+            subPop[indID].ID = uuid.uuid1()
         self.add(subPop)
 
     def remove(self, index):
