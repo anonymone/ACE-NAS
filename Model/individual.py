@@ -262,6 +262,15 @@ class SEEPopulation(population):
                 [np.hstack(([ind_id], ind.getFitness())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
 
         return matrix
+    
+    def save(self, savePath='./data', fileFormat='csv'):
+        tabel = DataFrame(self.toMatrix(needDec=True))
+        if fileFormat=='csv':
+            tabel.to_csv(savePath+'.csv')
+        elif fileFormat == 'json':
+            tabel.to_json(savePath+'.json')
+        else:
+            raise Exception('Error file format is specified!')
 
 
 if __name__ == "__main__":
@@ -272,12 +281,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     pop = SEEPopulation(popSize=30, objSize=2, args=args)
     ind = pop.individuals[0]
-    ind.setFitness([1, 2])
+    ind.setFitness([1.4314, 2.342])
     pop.add(ind)
-    ind.setFitness([3, 4])
+    ind.setFitness([3.34, 4.4231])
     pop.add([ind, ind])
     # print(pop.toMatrix())
-    print(ind.toString())
-    # print(ind.toVector())
-    print(pop.toMatrix())
-    pop.save('./hi.csv')
+    # print(ind.toString())
+    # # print(ind.toVector())
+    # print(pop.toMatrix())
+    pop.save('./Experiments/hi')
