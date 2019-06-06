@@ -32,7 +32,7 @@ parser.add_argument('--trainSearch_save', type=str, default='SEE_#id', help='the
 parser.add_argument('--trainSearch_exprRoot', type=str, default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int, default=24, help='# of filters for first cell')
 parser.add_argument('--trainSearch_auxiliary', type=bool, default=False, help='')
-parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
+parser.add_argument('--trainSearch_cutout', type=bool, default=True, help='')
 parser.add_argument('--trainSearch_dropPathProb', type=bool, default=False, help='')
 parser.add_argument('--dataRoot', type=str, default='./Dataset', help='The root path of dataset.')
 # testing setting

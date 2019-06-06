@@ -23,7 +23,7 @@ from misc.flops_counter import add_flops_counting_methods
 device = 'cuda'
 
 # def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0, initChannel=24, modelLayers=11, auxiliary=False, cutout=False, dropPathProb=0.0):
-def main(code, arg):
+def main(code, arg, complement=False):
     # init parameters
     epochs = arg.trainSearch_epoch
     save=arg.trainSearch_save
@@ -166,12 +166,18 @@ def main(code, arg):
         file.write("valid_acc = {}\n".format(valid_acc))
 
     # logging.info("Architecture = %s", genotype))
-
-    return {
-        'valid_acc': valid_acc,
-        'params': n_params,
-        'flops': n_flops,
-    }
+    if complement:
+        return {
+            'valid_acc': 1.0-valid_acc,
+            'params': n_params,
+            'flops': n_flops,
+        }
+    else:
+        return {
+            'valid_acc': valid_acc,
+            'params': n_params,
+            'flops': n_flops,
+        }
 
 # Training
 

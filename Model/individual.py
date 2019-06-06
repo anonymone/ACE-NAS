@@ -106,7 +106,7 @@ class population:
         for indId, ind in zip(range(self.popSize), self.individuals):
             if self.individuals[indId].isTraind():
                 continue
-            fitness = self.eval(ind, self.args)
+            fitness = self.eval(ind, self.args,complement=True)
             self.individuals[indId].setFitness([fitness['valid_acc'],fitness['flops']])
         return None
 
@@ -230,10 +230,10 @@ class SEEIndividual(code):
                     str(i).replace('[', '').replace(
                         ']', '').replace(' ', '') + '-'
         if showFitness:
-            fitnessString = 'Fitness: {0}'.format(self.fitness)
+            fitnessString = '--> {0}'.format(self.fitness)
         else:
             fitnessString = ''
-        return 'Code: {0}'.format(str_dec[0:-1]) + fitnessString
+        return '{0}'.format(str_dec[0:-1]) + fitnessString
 
     def isTraind(self):
         '''
