@@ -69,6 +69,7 @@ def main(code, arg, complement=False):
 
     # logging.info("Genome = %s", genome)
     logging.info("Architecture ID = %s", code.ID)
+    logging.info("Code = %s", code.toString())
 
     torch.cuda.set_device(gpu)
     cudnn.benchmark = True
