@@ -140,14 +140,14 @@ def main(code, arg, complement=False):
         logging.info('epoch %d lr %e', epoch, scheduler.get_lr()[0])
         model.droprate = dropPathProb * epoch / epochs
 
-        train_acc, train_obj = train(
+        train_err, train_obj = train(
             train_queue, model, criterion, optimizer, train_params)
-        logging.info('train_acc %f', train_acc)
+        logging.info('train_err %f', train_err)
 
-    valid_acc, valid_obj = infer(valid_queue, model, criterion)
-    logging.info('valid_acc %f', valid_acc)
+    valid_err, valid_obj = infer(valid_queue, model, criterion)
+    logging.info('valid_error %f', valid_err)
 
-    # calculate for flops
+    # calculate for flopss1
     model = add_flops_counting_methods(model)
     model.eval()
     model.start_flops_count()
@@ -163,18 +163,18 @@ def main(code, arg, complement=False):
         file.write("Architecture = {}\n".format(code.toString()))
         file.write("param size = {}MB\n".format(n_params))
         file.write("flops = {}MB\n".format(n_flops))
-        file.write("valid_acc = {}\n".format(valid_acc))
+        file.write("valid_error = {}\n".format(valid_error))
 
     # logging.info("Architecture = %s", genotype))
     if complement:
         return {
-            'valid_acc': 1.0-valid_acc,
+            'valid_err': valid_err,
             'params': n_params,
             'flops': n_flops,
         }
     else:
         return {
-            'valid_acc': valid_acc,
+            'valid_acc': 1.0-valid_acc,
             'params': n_params,
             'flops': n_flops,
         }
@@ -212,7 +212,7 @@ def train(train_queue, net, criterion, optimizer, params):
     #
     # logging.info('train acc %f', 100. * correct / total)
 
-    return 100.*correct/total, train_loss/total
+    return 100.0-(100.*correct/total), train_loss/total
 
 
 def infer(valid_queue, net, criterion):
@@ -238,7 +238,7 @@ def infer(valid_queue, net, criterion):
     acc = 100.*correct/total
     # logging.info('valid acc %f', 100. * correct / total)
 
-    return acc, test_loss/total
+    return 100.0-acc, test_loss/total
 
 
 if __name__ == "__main__":

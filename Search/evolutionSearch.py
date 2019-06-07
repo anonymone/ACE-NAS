@@ -49,6 +49,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO,
 fh = logging.FileHandler(os.path.join(args.save, 'log.txt'))
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
+# set seed 
+np.random.seed(args.seed)
 
 pop_hist = []  # keep track of every evaluated architecture
 
