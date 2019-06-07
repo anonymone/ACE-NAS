@@ -164,7 +164,7 @@ def main(code, arg, complement=False):
         file.write("Architecture = {}\n".format(code.toString()))
         file.write("param size = {}MB\n".format(n_params))
         file.write("flops = {}MB\n".format(n_flops))
-        file.write("valid_error = {}\n".format(valid_error))
+        file.write("valid_error = {}\n".format(valid_err))
 
     # logging.info("Architecture = %s", genotype))
     if complement:
