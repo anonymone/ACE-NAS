@@ -21,7 +21,7 @@ parser.add_argument('--seed', type=int, default=0, help='random seed')
 parser.add_argument('--generation', type=int, default=30, help='random seed')
 
 # population setting
-parser.add_argument('--popSize', type=int, default=30,
+parser.add_argument('--popSize', type=int, default=15,
                     help='The size of population.')
 parser.add_argument('--objSize', type=int, default=2,
                     help='The number of objectives.')
@@ -39,7 +39,7 @@ parser.add_argument('--trainSearch_save', type=str,
 parser.add_argument('--trainSearch_exprRoot', type=str,
                     default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int,
-                    default=24, help='# of filters for first cell')
+                    default=34, help='# of filters for first cell')
 parser.add_argument('--trainSearch_auxiliary',
                     type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')

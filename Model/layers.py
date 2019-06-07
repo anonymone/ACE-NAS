@@ -79,6 +79,7 @@ class SEEPhase(nn.Module):
             node.append(self.nodeGenerator(
                 outChannel*len(self.nodeGraph[i]), outChannel, Kernel, Stride))
         self.nodeList = nn.ModuleList(node)
+        self.maxPool = nn.MaxPool2d(kernel_size=2, stride=2)
 
     def decoder(self, code):
         '''
@@ -199,8 +200,8 @@ class SEEPhase(nn.Module):
         for i in topoList[1:-1]:
             outputs[i] = self.nodeList[i](
                 torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1))
-
-        return self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
+        x = self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
+        return self.maxPool(x)
 
 
 class SEENetworkGenerator(nn.Module):
@@ -236,22 +237,22 @@ if __name__ == "__main__":
     import sys
     sys.path.append('./Model')
     from individual import SEEIndividual
-    ind = SEEIndividual(3, 2)
-    ind.setDec([[0, 5, 1],
-                [0, 0, 4],
-                [0, 1, 2], [1, 3, 1],
-                [5, 5, 2],
-                [0, 0, 4],
-                [4, 1, 5], [1, 3, 1],
-                [0, 1, 2], [1, 3, 1],
-                [5, 1, 3], [1, 3, 1],
-                [6, 0, 4],
-                [6, 1, 4], [1, 3, 1],
-                [7, 1, 0], [1, 3, 1]])
+    ind = SEEIndividual(2)
+    # ind.setDec([[0, 5, 1],
+    #             [0, 0, 4],
+    #             [0, 1, 2], [1, 3, 1],
+    #             [5, 5, 2],
+    #             [0, 0, 4],
+    #             [4, 1, 5], [1, 3, 1],
+    #             [0, 1, 2], [1, 3, 1],
+    #             [5, 1, 3], [1, 3, 1],
+    #             [6, 0, 4],
+    #             [6, 1, 4], [1, 3, 1],
+    #             [7, 1, 0], [1, 3, 1]])
     model = SEENetworkGenerator([ind.getDec()], [[3,1]],10, (32,32))
     data = torch.randn(16, 3, 32, 32)
     out = model(torch.autograd.Variable(data))
-    print((out,out.shape))
+    print(model)
     # test isLoop
     # a = {
     #     0 :[],
