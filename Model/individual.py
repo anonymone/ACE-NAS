@@ -107,7 +107,7 @@ class population:
             if self.individuals[indId].isTraind():
                 continue
             fitness = self.eval(ind, self.args,complement=True)
-            self.individuals[indId].setFitness([fitness['valid_acc'],fitness['flops']])
+            self.individuals[indId].setFitness([fitness['valid_err'],fitness['flops']])
         return None
 
     def newPop(self, index=None):
