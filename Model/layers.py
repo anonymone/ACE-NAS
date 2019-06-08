@@ -18,16 +18,26 @@ class ConvNode(nn.Module):
         :Param outChannels: int, the number of output channels.
         '''
         super(ConvNode, self).__init__()
+        if inChannels != outChannels:
+            # this node is used to deal with the depth-wise concatenations.
+            self.depthWiseNode = nn.Sequential(
+                nn.Conv2d(in_channels=inChannels,out_channels=outChannels,kernel_size=1,bias=False),
+                nn.BatchNorm2d(outChannels),
+                nn.ReLU(inplace=True)
+            )
+        else:
+            self.depthWiseNode = Identity()
         # Calculate paading
         padding = int((kernelSize-1)/2)
         self.model = nn.Sequential(
-            nn.Conv2d(in_channels=inChannels, out_channels=outChannels,
+            nn.Conv2d(in_channels=outChannels, out_channels=outChannels,
                       kernel_size=kernelSize, stride=stride, padding=padding, bias=bias),
             nn.BatchNorm2d(outChannels),
             nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
+        x = self .depthWiseNode(x)
         return self.model(x)
 
 
@@ -49,6 +59,19 @@ class PoolNode(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
+
+class Identity(nn.Module):
+    """
+    Adding an identity allows us to keep things general in certain places.
+    This code is inspired by NSGA-net
+    """
+
+    def __init__(self):
+        super(Identity, self).__init__()
+
+    def forward(self, x):
+        return x
 
 class SEEPhase(nn.Module):
     '''
@@ -72,14 +95,18 @@ class SEEPhase(nn.Module):
                 self.nodeGenerator = ConvNode
             else:
                 self.nodeGenerator = ConvNode
+            # 0 means to insert a node between two near node.
             if i == 0:
                 node.append(self.nodeGenerator(
                     inChannel, outChannel, Kernel, Stride))
-                continue
-            node.append(self.nodeGenerator(
-                outChannel*len(self.nodeGraph[i]), outChannel, Kernel, Stride))
+            else:
+                node.append(self.nodeGenerator(
+                    outChannel*len(self.nodeGraph[i]), outChannel, Kernel, Stride))
         self.nodeList = nn.ModuleList(node)
-        self.maxPool = nn.MaxPool2d(kernel_size=2, stride=2)
+        # self.out = nn.Sequential(
+        #     nn.BatchNorm2d(outChannel),
+        #     nn.ReLU(inplace=True)
+        # )
 
     def decoder(self, code):
         '''
@@ -200,16 +227,18 @@ class SEEPhase(nn.Module):
         for i in topoList[1:-1]:
             outputs[i] = self.nodeList[i](
                 torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1))
-        x = self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
-        return self.maxPool(x)
+        return  self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
+       
 
 
 class SEENetworkGenerator(nn.Module):
     def __init__(self, codeList, channelsList, out_features, data_shape, repeats=None):
         super(SEENetworkGenerator, self).__init__()
+        self._repeats = repeats
         phases = []
         for code, (inChannel, outChannel) in zip(codeList, channelsList):
             phases.append(SEEPhase(code, inChannel, outChannel))
+        phases = self.buildNetwork(phases)
         self.model = nn.Sequential(*phases)
 
         # After the evolved part of the network, we would like to do global average pooling and a linear layer.
@@ -222,6 +251,23 @@ class SEENetworkGenerator(nn.Module):
         self.linear = nn.Linear(shape[1] * shape[2] * shape[3], out_features)
         # We accumulated some unwanted gradient information data with those forward passes.
         self.model.zero_grad()
+
+    def buildNetwork(self, phases):
+        """
+        Build up the layers with transitions.
+        :param phases: list of phases
+        :return: list of layers (the model).
+        """
+        layers = []
+        last_phase = phases.pop()
+        for phase in phases:
+            # for _ in range(repeat):
+            #     layers.append(phase)
+            layers.append(phase)
+            layers.append(nn.MaxPool2d(kernel_size=2, stride=2))  # TODO: Generalize this, or consider a new genome.
+
+        layers.append(last_phase)
+        return layers
 
     def forward(self, x):
         '''
@@ -237,22 +283,16 @@ if __name__ == "__main__":
     import sys
     sys.path.append('./Model')
     from individual import SEEIndividual
-    ind = SEEIndividual(2)
-    # ind.setDec([[0, 5, 1],
-    #             [0, 0, 4],
-    #             [0, 1, 2], [1, 3, 1],
-    #             [5, 5, 2],
-    #             [0, 0, 4],
-    #             [4, 1, 5], [1, 3, 1],
-    #             [0, 1, 2], [1, 3, 1],
-    #             [5, 1, 3], [1, 3, 1],
-    #             [6, 0, 4],
-    #             [6, 1, 4], [1, 3, 1],
-    #             [7, 1, 0], [1, 3, 1]])
-    model = SEENetworkGenerator([ind.getDec()], [[3,1]],10, (32,32))
+    ind = SEEIndividual(2,(4,13,3))
+    initChannel = 12
+    channels = [(3, initChannel),
+                (initChannel, 2*initChannel),
+                (2*initChannel, 4*initChannel)]
+    model = SEENetworkGenerator(ind.getDec(), channels,10,(32,32))
     data = torch.randn(16, 3, 32, 32)
     out = model(torch.autograd.Variable(data))
     print(model)
+    print("hello Layers.")
     # test isLoop
     # a = {
     #     0 :[],

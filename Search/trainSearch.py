@@ -23,20 +23,23 @@ from misc.flops_counter import add_flops_counting_methods
 device = 'cuda'
 
 # def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0, initChannel=24, modelLayers=11, auxiliary=False, cutout=False, dropPathProb=0.0):
+
+
 def main(code, arg, complement=False):
     # init parameters
     epochs = arg.trainSearch_epoch
-    save=arg.trainSearch_save
-    exprRoot=arg.trainSearch_exprRoot
-    seed=0
-    gpu=0
-    initChannel= arg.trainSearch_initChannel
+    save = arg.trainSearch_save
+    exprRoot = arg.trainSearch_exprRoot
+    seed = 0
+    gpu = 0
+    initChannel = arg.trainSearch_initChannel
     auxiliary = arg.trainSearch_auxiliary
     cutout = arg.trainSearch_cutout
     dropPathProb = arg.trainSearch_dropPathProb
     # ---- train logger ----------------- #
     utils.create_exp_dir(exprRoot)
-    save_pth = os.path.join(exprRoot, '{}'.format(save.replace('#id',str(code.ID))))
+    save_pth = os.path.join(exprRoot, '{}'.format(
+        save.replace('#id', str(code.ID))))
     utils.create_exp_dir(save_pth)
     log_format = '%(asctime)s %(message)s'
     logging.basicConfig(stream=sys.stdout, level=logging.INFO,
@@ -60,9 +63,8 @@ def main(code, arg, complement=False):
         'report_freq': report_freq,
     }
 
-    channels = [(3, initChannel),
-                (initChannel, 2*initChannel),
-                (2*initChannel, 4*initChannel)]
+    channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
+                                      * initChannel) for i in range(1, len(code.getDec()))]
 
     model = layers.SEENetworkGenerator(
         code.getDec(), channels, CIFAR_CLASSES, (32, 32))
@@ -243,8 +245,27 @@ def infer(valid_queue, net, criterion):
 
 
 if __name__ == "__main__":
-    SEE_V3 = individual.SEEIndividual(31, 2)
+    parser = argparse.ArgumentParser("TEST")
+    # train search method setting.
+    parser.add_argument('--trainSearch_epoch', type=int, default=25,
+                        help='# of epochs to train during architecture search')
+    parser.add_argument('--trainSearch_save', type=str,
+                        default='SEE_#id', help='the filename including each model.')
+    parser.add_argument('--trainSearch_exprRoot', type=str,
+                        default='./Experiments/model', help='the root path of experiments.')
+    parser.add_argument('--trainSearch_initChannel', type=int,
+                        default=34, help='# of filters for first cell')
+    parser.add_argument('--trainSearch_auxiliary',
+                        type=bool, default=False, help='')
+    parser.add_argument('--trainSearch_cutout',
+                        type=bool, default=False, help='')
+    parser.add_argument('--trainSearch_dropPathProb',
+                        type=bool, default=False, help='')
+    parser.add_argument('--dataRoot', type=str,
+                        default='./Dataset', help='The root path of dataset.')
+
+    args = parser.parse_args()
+    SEE_V3 = individual.SEEIndividual(2, (4, 13, 3))
     start = time.time()
-    print(main(code=SEE_V3, epochs=1, save='SEE_V3', seed=1, initChannel=16,
-               auxiliary=False, cutout=False, dropPathProb=0.0))
+    print(main(code=SEE_V3, arg=args))
     print('Time elapsed = {} mins'.format((time.time() - start)/60))
