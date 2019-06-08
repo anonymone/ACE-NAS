@@ -1,0 +1,22 @@
+//
+
+digraph binaryTree{
+    node[shape=circle,color=pink,fontcolor=red,fontsize=10];
+    root[color=blue,fontcolor=black,fontsize=20];
+    root->a[style=dotted];
+    root->b;
+    a->c;
+    a->d;
+    b->e;
+    b->f;
+    subgraph cluster_sgh {
+        bgcolor = lightgrey;
+        Input1[shape=box,color=orange, fontcolor=orange, fontsize=15 label=Input1];
+        CONV[shape=circle];
+        Input1 -> CONV;
+    }
+    c -> Input1;
+    d -> Input1;
+    e -> Input1;
+    f -> Input1;
+}
