@@ -12,6 +12,7 @@ def SEEMutationV1(code):
                 perturb = np.random.randint(-1,1,size=(1,unitLength))
                 perturb[perturb==0]=1
                 newCode[i,j,:] = newCode[i,j,:] + perturb
+                newCode[newCode<0] = np.random.randint(0,9,size=np.sum(newCode<0))
                 if j == 0:
                         newCode[i,j,1] = np.random.randint(2,5) 
         return newCode
