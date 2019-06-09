@@ -18,26 +18,26 @@ class ConvNode(nn.Module):
         :Param outChannels: int, the number of output channels.
         '''
         super(ConvNode, self).__init__()
-        if inChannels != outChannels:
-            # this node is used to deal with the depth-wise concatenations.
-            self.depthWiseNode = nn.Sequential(
-                nn.Conv2d(in_channels=inChannels,out_channels=outChannels,kernel_size=1,bias=False),
-                nn.BatchNorm2d(outChannels),
-                nn.ReLU(inplace=True)
-            )
-        else:
-            self.depthWiseNode = Identity()
+        # if inChannels != outChannels:
+        #     # this node is used to deal with the depth-wise concatenations.
+        #     self.depthWiseNode = nn.Sequential(
+        #         nn.Conv2d(in_channels=inChannels,out_channels=outChannels,kernel_size=1,bias=False),
+        #         nn.BatchNorm2d(outChannels),
+        #         nn.ReLU(inplace=True)
+        #     )
+        # else:
+        #     self.depthWiseNode = Identity()
         # Calculate paading
         padding = int((kernelSize-1)/2)
         self.model = nn.Sequential(
-            nn.Conv2d(in_channels=outChannels, out_channels=outChannels,
+            nn.Conv2d(in_channels=inChannels, out_channels=outChannels,
                       kernel_size=kernelSize, stride=stride, padding=padding, bias=bias),
             nn.BatchNorm2d(outChannels),
             nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
-        x = self .depthWiseNode(x)
+        # x = self .depthWiseNode(x)
         return self.model(x)
 
 
