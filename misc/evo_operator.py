@@ -7,12 +7,13 @@ def SEEMutationV1(code):
         mutateCoverage = 0.2
         phase, unitNumber, unitLength = code.shape
         newCode = deepcopy(code)
-        mutateIndex = [(random.randint(0, phase-1), random.randint(0, unitNumber-1))
-                       for _ in range(int(unitNumber*phase*mutateCoverage))]
+        mutateIndex = [(random.randint(0, phase-1), random.randint(0, unitNumber-1)) for _ in range(int(unitNumber*phase*mutateCoverage))]
         for i,j in mutateIndex:
-            newCode[i,j,:] = np.random.randint(0,9,size=(1,unitLength)) 
-            if j == 0:
-                newCode[i,j,1] = np.random.randint(2,4) 
+                perturb = np.random.randint(-1,1,size=(1,unitLength))
+                perturb[perturb==0]=1
+                newCode[i,j,:] = newCode[i,j,:] + perturb
+                if j == 0:
+                        newCode[i,j,1] = np.random.randint(2,5) 
         return newCode
 
 def SEECrossoverV1(code1,code2):
