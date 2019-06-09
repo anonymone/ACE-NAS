@@ -74,7 +74,7 @@ class code():
 
 
 class population:
-    def __init__(self, objSize, mutation, evaluation, callback=None, crossover=None, crossoverRate=0.2, args=None):
+    def __init__(self, objSize, mutation, evaluation, callback=None, crossover=None, crossoverRate=0.2, mutationRate=0.9,args=None):
         '''
         Param: objSize, int, the number of objective.
         Param: popSize, int, the number of individuals.
@@ -90,6 +90,7 @@ class population:
         self.individuals = list()
         self.mutate = mutation
         self.crossoverRate = crossoverRate
+        self.mutationRate = mutationRate
         self.eval = evaluation
         self.callback = callback
         self.crossover = crossover
@@ -116,8 +117,16 @@ class population:
             subPop = deepcopy(self.individuals[index])
         else:
             subPop = deepcopy(self.individuals)
+        newPop = []
         for indID, ind in zip(range(len(subPop)), subPop):
-            code = self.mutate(ind.getDec())
+            if random.random() < self.mutationRate:
+                code = self.mutate(ind.getDec())
+                subPop[indID].setDec(code)
+                subPop[indID].setFitness(
+                    [0 for _ in range(subPop[indID].shape[1])])
+                # Update ID
+                subPop[indID].ID = uuid.uuid1()
+                newPop.append(subPop[indID])
             if self.crossover is not None and random.random() < self.crossoverRate:
                 ind1, ind2 = self.individuals[random.randint(
                     0, self.popSize-1)], self.individuals[random.randint(0, self.popSize-1)]
@@ -133,13 +142,9 @@ class population:
                 # Update ID
                 for i in newInd:
                     i.ID = uuid.uuid1()
-                self.add(newInd)
-            subPop[indID].setDec(code)
-            subPop[indID].setFitness(
-                [0 for _ in range(subPop[indID].shape[1])])
-            # Update ID
-            subPop[indID].ID = uuid.uuid1()
-        self.add(subPop)
+                # self.add(newInd)
+                newPop.extend(newInd)
+        self.add(newPop)
 
     def remove(self, index):
         '''
@@ -208,7 +213,8 @@ class SEEIndividual(code):
         self.dec = np.random.randint(*valueBoundary, blockLength)
         self.dec[0, 0, 1] = np.random.randint(3, 9)
         for i in range(blockLength[0]):
-            self.dec[i, 0, 1] = np.random.randint(3, 9)
+            # backbone need 2~3 nodes.
+            self.dec[i, 0, 1] = np.random.randint(2,4)
         self.fitness = np.zeros(objSize)
         decSize = blockLength[0]*blockLength[1]*blockLength[2]
         self.shape = [decSize, objSize]
@@ -245,7 +251,7 @@ class SEEIndividual(code):
 class SEEPopulation(population):
     def __init__(self, popSize, objSize, blockLength=(3, 12, 3), valueBoundary=(0, 9), mutation=None, crossover=None, evaluation=None, args=None):
         super(SEEPopulation, self).__init__(objSize=objSize, crossover=crossover,
-                                            mutation=mutation, evaluation=evaluation, crossoverRate=args.crossoverRate, args=args)
+                                            mutation=mutation, evaluation=evaluation, crossoverRate=args.crossoverRate, mutationRate= args.mutationRate, args=args)
         self.individuals = [SEEIndividual(objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
                             for _ in range(popSize)]
         self.popSize = popSize

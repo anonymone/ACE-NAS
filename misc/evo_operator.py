@@ -12,7 +12,7 @@ def SEEMutationV1(code):
         for i,j in mutateIndex:
             newCode[i,j,:] = np.random.randint(0,9,size=(1,unitLength)) 
             if j == 0:
-                newCode[i,j,1] = np.random.randint(3,9) 
+                newCode[i,j,1] = np.random.randint(2,4) 
         return newCode
 
 def SEECrossoverV1(code1,code2):

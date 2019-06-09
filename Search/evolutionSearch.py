@@ -25,11 +25,13 @@ parser.add_argument('--popSize', type=int, default=15,
                     help='The size of population.')
 parser.add_argument('--objSize', type=int, default=2,
                     help='The number of objectives.')
-parser.add_argument('--blockLength', type=tuple, default=(3, 12, 3),
+parser.add_argument('--blockLength', type=tuple, default=(3, 5, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
-parser.add_argument('--crossoverRate', type=float, default=0.2,
+parser.add_argument('--crossoverRate', type=float, default=0.02,
+                    help='The propability rate of crossover.')
+parser.add_argument('--mutationRate', type=float, default=0.9,
                     help='The propability rate of crossover.')
 # train search method setting.
 parser.add_argument('--trainSearch_epoch', type=int, default=25,
@@ -39,7 +41,7 @@ parser.add_argument('--trainSearch_save', type=str,
 parser.add_argument('--trainSearch_exprRoot', type=str,
                     default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int,
-                    default=34, help='# of filters for first cell')
+                    default=32, help='# of filters for first cell')
 parser.add_argument('--trainSearch_auxiliary',
                     type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
@@ -48,7 +50,7 @@ parser.add_argument('--trainSearch_dropPathProb',
 parser.add_argument('--dataRoot', type=str,
                     default='./Dataset', help='The root path of dataset.')
 # testing setting
-parser.add_argument('--evalMode', type=str, default='EXP',
+parser.add_argument('--evalMode', type=str, default='DEBUG',
                     help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
@@ -75,7 +77,7 @@ Engine = NSGA2.NSGA2()
 population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEECrossoverV1,
                            objSize=args.objSize, blockLength=args.blockLength,
                            valueBoundary=args.valueBoundary, mutation=evo_operator.SEEMutationV1,
-                           evaluation=trainSearch.main, args=args)
+                           evaluation=trainSearch.main,args=args)
 
 # evaluation
 population.evaluation()
