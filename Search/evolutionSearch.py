@@ -50,13 +50,15 @@ parser.add_argument('--trainSearch_dropPathProb',
 parser.add_argument('--dataRoot', type=str,
                     default='./Dataset', help='The root path of dataset.')
 # testing setting
-parser.add_argument('--evalMode', type=str, default='EXP',
+parser.add_argument('--evalMode', type=str, default='DEBUG',
                     help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
 args.save = './Experiments/search-{}-{}'.format(
     args.save, time.strftime("%Y%m%d-%H%M%S"))
 utils.create_exp_dir(args.save)
+args.trainSearch_exprRoot = os.path.join(args.save, "model")
+utils.create_exp_dir(args.trainSearch_exprRoot)
 
 log_format = '%(asctime)s %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
