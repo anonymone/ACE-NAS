@@ -6,6 +6,7 @@
 *.bak
 *.csv
 *.txt
+*.dot
 
 # folder 
 /Dataset/*-py

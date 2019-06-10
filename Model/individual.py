@@ -214,7 +214,7 @@ class SEEIndividual(code):
         self.dec[0, 0, 1] = np.random.randint(3, 9)
         for i in range(blockLength[0]):
             # backbone need 2~3 nodes.
-            self.dec[i, 0, 1] = np.random.randint(2,4)
+            self.dec[i, 0, 1] = np.random.randint(2,3)
         self.fitness = np.zeros(objSize)
         decSize = blockLength[0]*blockLength[1]*blockLength[2]
         self.shape = [decSize, objSize]

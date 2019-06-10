@@ -167,6 +167,8 @@ def main(code, arg, complement=False):
         file.write("param size = {}MB\n".format(n_params))
         file.write("flops = {}MB\n".format(n_flops))
         file.write("valid_error = {}\n".format(valid_err))
+    with open(os.path.join(save_pth, 'network.dot'), "w") as file:
+        file.write(model.toDot())
 
     # logging.info("Architecture = %s", genotype))
     if complement:
@@ -177,7 +179,7 @@ def main(code, arg, complement=False):
         }
     else:
         return {
-            'valid_acc': 1.0-valid_acc,
+            'valid_acc': 100.0-valid_err,
             'params': n_params,
             'flops': n_flops,
         }
@@ -247,7 +249,7 @@ def infer(valid_queue, net, criterion):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("TEST")
     # train search method setting.
-    parser.add_argument('--trainSearch_epoch', type=int, default=25,
+    parser.add_argument('--trainSearch_epoch', type=int, default=1,
                         help='# of epochs to train during architecture search')
     parser.add_argument('--trainSearch_save', type=str,
                         default='SEE_#id', help='the filename including each model.')
