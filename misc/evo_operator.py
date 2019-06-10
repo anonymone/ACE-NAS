@@ -14,7 +14,7 @@ def SEEMutationV1(code):
                 newCode[i,j,:] = newCode[i,j,:] + perturb
                 newCode[newCode<0] = np.random.randint(0,9,size=np.sum(newCode<0))
                 if j == 0:
-                        newCode[i,j,1] = np.random.randint(2,5) 
+                        newCode[i,j,1] = np.random.randint(4,7) 
         return newCode
 
 def SEECrossoverV1(code1,code2):
