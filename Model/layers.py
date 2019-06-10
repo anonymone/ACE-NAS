@@ -73,6 +73,7 @@ class Identity(nn.Module):
     def forward(self, x):
         return x
 
+
 class SEEPhase(nn.Module):
     '''
     :Param nodeParam, list, recive the parameters of each node from decoder
@@ -80,6 +81,7 @@ class SEEPhase(nn.Module):
     :Param nodeGraph, dict, the topological information of network
     :Param nodeGenerator, to generate specific node.
     '''
+
     def __init__(self, code, inChannel, outChannel, repeat=None):
         super(SEEPhase, self).__init__()
         self.actionIns = Action()
@@ -149,11 +151,13 @@ class SEEPhase(nn.Module):
             elif Action == self.actionIns.ADD_NODE:
                 newNode = len(nodeGraph)
                 if To == From:
-                    for nodeId in nodeGraph:
-                        if To in nodeGraph[nodeId]:
-                            nodeGraph[nodeId].append(newNode)
-                            nodeGraph[nodeId].remove(To)
-                    nodeGraph[newNode] = [From]
+                    continue
+                    # continue
+                    # for nodeId in nodeGraph:
+                    #     if To in nodeGraph[nodeId]:
+                    #         nodeGraph[nodeId].append(newNode)
+                    #         nodeGraph[nodeId].remove(To)
+                    # nodeGraph[newNode] = [From]
                 else:
                     nodeGraph[To].append(len(nodeGraph))
                     nodeGraph[len(nodeGraph)] = [From]
@@ -219,7 +223,7 @@ class SEEPhase(nn.Module):
             del graph[i]
         topologicalStructure.reverse()
         return False, topologicalStructure
-    
+
     def toDot(self, tag=''):
         nodeTemplate = '#ID[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#ID];\n'
         graphTemplate = "digraph {#nodeList#topology}"
@@ -229,8 +233,10 @@ class SEEPhase(nn.Module):
         for nodeID in self.nodeGraph:
             nodeList = nodeList + nodeTemplate.replace('#ID', tag+str(nodeID))
             for preNode in self.nodeGraph[nodeID]:
-                topology = topology + edgeTemplate.replace('#preID', tag+str(preNode)).replace('#recentID',tag+str(nodeID))
-        return graphTemplate.replace('#nodeList',nodeList).replace('#topology',topology)
+                topology = topology + \
+                    edgeTemplate.replace(
+                        '#preID', tag+str(preNode)).replace('#recentID', tag+str(nodeID))
+        return graphTemplate.replace('#nodeList', nodeList).replace('#topology', topology)
 
     def forward(self, x):
         _, topoList = SEEPhase.isLoop(self.nodeGraph)
@@ -239,8 +245,7 @@ class SEEPhase(nn.Module):
         for i in topoList[1:-1]:
             outputs[i] = self.nodeList[i](
                 torch.cat([outputs[j] for j in self.nodeGraph[i]], dim=1))
-        return  self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
-       
+        return self.nodeList[topoList[-1]](torch.cat([outputs[j] for j in self.nodeGraph[topoList[-1]]], dim=1))
 
 
 class SEENetworkGenerator(nn.Module):
@@ -256,7 +261,8 @@ class SEENetworkGenerator(nn.Module):
         # After the evolved part of the network, we would like to do global average pooling and a linear layer.
         # However, we don't know the output size so we do some forward passes and observe the output sizes.
         # This code refers from  NSGA-NET https://github.com/ianwhale/nsga-net
-        out = self.model(torch.autograd.Variable(torch.zeros(1, channelsList[0][0], *data_shape)))
+        out = self.model(torch.autograd.Variable(
+            torch.zeros(1, channelsList[0][0], *data_shape)))
         shape = out.data.shape
         self.gap = nn.AvgPool2d(kernel_size=(shape[-2], shape[-1]), stride=1)
         shape = self.gap(out).data.shape
@@ -276,34 +282,41 @@ class SEENetworkGenerator(nn.Module):
             # for _ in range(repeat):
             #     layers.append(phase)
             layers.append(phase)
-            layers.append(nn.MaxPool2d(kernel_size=2, stride=2))  # TODO: Generalize this, or consider a new genome.
+            # TODO: Generalize this, or consider a new genome.
+            layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
 
         layers.append(last_phase)
         return layers
 
     def toDot(self):
-        graphTemplate = "digraph SEE_Network{#phase#edge}"
+        graphTemplate = "digraph SEE_Network{#phase#edge#classifier}"
         subgraphTemplate = "subgraph Phase#PhaseID {#graph}\n"
         edgeTemplate = "#preID->MaxPool#PoolID;\nMaxPool#PoolID->#recentID;\n"
+        classifierTemplate = "#nodeID->GlobalAveragePooling"
         phase = []
         phaseedge = []
         model = self.model[0]
-        _,order = model.isLoop(model.nodeGraph)
-        subgraph = model.toDot(tag="phase"+str(0)).replace('digraph {','').replace('}','')
-        phase.append(subgraphTemplate.replace('#graph',subgraph).replace("#PhaseID",str(0)))
-        for PhaseID in range(1,len(self.model)):
+        _, order = model.isLoop(model.nodeGraph)
+        subgraph = model.toDot(
+            tag="phase"+str(0)).replace('digraph {', '').replace('}', '')
+        phase.append(subgraphTemplate.replace(
+            '#graph', subgraph).replace("#PhaseID", str(0)))
+        for PhaseID in range(1, len(self.model)):
             model = self.model[PhaseID]
             if type(model) != SEEPhase:
-                edge = edgeTemplate.replace("#PoolID",str(PhaseID))
+                edge = edgeTemplate.replace("#PoolID", str(PhaseID))
                 continue
-            edge = edge.replace("#preID","phase{0}".format(PhaseID-2)+str(order[-1]))
-            _,order = model.isLoop(model.nodeGraph)
-            edge = edge.replace("#recentID","phase{0}".format(PhaseID)+str(order[0]))
+            edge = edge.replace(
+                "#preID", "phase{0}".format(PhaseID-2)+str(order[-1]))
+            _, order = model.isLoop(model.nodeGraph)
+            edge = edge.replace(
+                "#recentID", "phase{0}".format(PhaseID)+str(order[0]))
             phaseedge.append(edge)
-            subgraph = model.toDot(tag="phase"+str(PhaseID)).replace('digraph {','').replace('}','')
-            phase.append(subgraphTemplate.replace('#graph',subgraph).replace("#PhaseID",str(PhaseID)))
-        return graphTemplate.replace("#phase","".join(phase)).replace("#edge","".join(phaseedge))
-
+            subgraph = model.toDot(
+                tag="phase"+str(PhaseID)).replace('digraph {', '').replace('}', '')
+            phase.append(subgraphTemplate.replace(
+                '#graph', subgraph).replace("#PhaseID", str(PhaseID)))
+        return graphTemplate.replace("#phase", "".join(phase)).replace("#edge", "".join(phaseedge)).replace("#classifier", classifierTemplate.replace("#nodeID", "phase{0}".format(PhaseID)+str(order[-1])))
 
     def forward(self, x):
         '''
@@ -313,18 +326,19 @@ class SEENetworkGenerator(nn.Module):
         '''
         x = self.gap(self.model(x))
         x = x.view(x.size(0), -1)
-        return self.linear(x),None
+        return self.linear(x), None
+
 
 if __name__ == "__main__":
     import sys
     sys.path.append('./Model')
     from individual import SEEIndividual
-    ind = SEEIndividual(2,(4,13,3))
+    ind = SEEIndividual(2, (4, 13, 3))
     initChannel = 12
     channels = [(3, initChannel),
                 (initChannel, 2*initChannel),
                 (2*initChannel, 4*initChannel)]
-    model =  SEENetworkGenerator(ind.getDec(), channels,10,(32,32))
+    model = SEENetworkGenerator(ind.getDec(), channels, 10, (32, 32))
     # data = torch.randn(16, 3, 32, 32)
     # out = model(torch.autograd.Variable(data))
     print(model.toDot())

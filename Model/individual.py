@@ -213,8 +213,8 @@ class SEEIndividual(code):
         self.dec = np.random.randint(*valueBoundary, blockLength)
         self.dec[0, 0, 1] = np.random.randint(3, 9)
         for i in range(blockLength[0]):
-            # backbone need 2~3 nodes.
-            self.dec[i, 0, 1] = np.random.randint(2,3)
+            # backbone need 4~6 nodes.
+            self.dec[i, 0, 1] = np.random.randint(4,7)
         self.fitness = np.zeros(objSize)
         decSize = blockLength[0]*blockLength[1]*blockLength[2]
         self.shape = [decSize, objSize]

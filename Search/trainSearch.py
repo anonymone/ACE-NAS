@@ -267,7 +267,7 @@ if __name__ == "__main__":
                         default='./Dataset', help='The root path of dataset.')
 
     args = parser.parse_args()
-    SEE_V3 = individual.SEEIndividual(2, (4, 13, 3))
+    SEE_V3 = individual.SEEIndividual(2, (3, 10, 3))
     start = time.time()
     print(main(code=SEE_V3, arg=args))
     print('Time elapsed = {} mins'.format((time.time() - start)/60))
