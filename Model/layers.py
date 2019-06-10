@@ -219,6 +219,18 @@ class SEEPhase(nn.Module):
             del graph[i]
         topologicalStructure.reverse()
         return False, topologicalStructure
+    
+    def toDot(self, tag=''):
+        nodeTemplate = '#ID[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#ID];\n'
+        graphTemplate = "digraph {#nodeList#topology}"
+        edgeTemplate = "#preID->#recentID;\n"
+        nodeList = ''
+        topology = ''
+        for nodeID in self.nodeGraph:
+            nodeList = nodeList + nodeTemplate.replace('#ID', tag+str(nodeID))
+            for preNode in self.nodeGraph[nodeID]:
+                topology = topology + edgeTemplate.replace('#preID', tag+str(preNode)).replace('#recentID',tag+str(nodeID))
+        return graphTemplate.replace('#nodeList',nodeList).replace('#topology',topology)
 
     def forward(self, x):
         _, topoList = SEEPhase.isLoop(self.nodeGraph)
@@ -269,6 +281,30 @@ class SEENetworkGenerator(nn.Module):
         layers.append(last_phase)
         return layers
 
+    def toDot(self):
+        graphTemplate = "digraph SEE_Network{#phase#edge}"
+        subgraphTemplate = "subgraph Phase#PhaseID {#graph}\n"
+        edgeTemplate = "#preID->MaxPool#PoolID;\nMaxPool#PoolID->#recentID;\n"
+        phase = []
+        phaseedge = []
+        model = self.model[0]
+        _,order = model.isLoop(model.nodeGraph)
+        subgraph = model.toDot(tag="phase"+str(0)).replace('digraph {','').replace('}','')
+        phase.append(subgraphTemplate.replace('#graph',subgraph).replace("#PhaseID",str(0)))
+        for PhaseID in range(1,len(self.model)):
+            model = self.model[PhaseID]
+            if type(model) != SEEPhase:
+                edge = edgeTemplate.replace("#PoolID",str(PhaseID))
+                continue
+            edge = edge.replace("#preID","phase{0}".format(PhaseID-2)+str(order[-1]))
+            _,order = model.isLoop(model.nodeGraph)
+            edge = edge.replace("#recentID","phase{0}".format(PhaseID)+str(order[0]))
+            phaseedge.append(edge)
+            subgraph = model.toDot(tag="phase"+str(PhaseID)).replace('digraph {','').replace('}','')
+            phase.append(subgraphTemplate.replace('#graph',subgraph).replace("#PhaseID",str(PhaseID)))
+        return graphTemplate.replace("#phase","".join(phase)).replace("#edge","".join(phaseedge))
+
+
     def forward(self, x):
         '''
         Forward propagation.
@@ -288,10 +324,10 @@ if __name__ == "__main__":
     channels = [(3, initChannel),
                 (initChannel, 2*initChannel),
                 (2*initChannel, 4*initChannel)]
-    model = SEENetworkGenerator(ind.getDec(), channels,10,(32,32))
-    data = torch.randn(16, 3, 32, 32)
-    out = model(torch.autograd.Variable(data))
-    print(model)
+    model =  SEENetworkGenerator(ind.getDec(), channels,10,(32,32))
+    # data = torch.randn(16, 3, 32, 32)
+    # out = model(torch.autograd.Variable(data))
+    print(model.toDot())
     print("hello Layers.")
     # test isLoop
     # a = {

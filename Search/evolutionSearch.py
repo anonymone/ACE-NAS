@@ -50,7 +50,7 @@ parser.add_argument('--trainSearch_dropPathProb',
 parser.add_argument('--dataRoot', type=str,
                     default='./Dataset', help='The root path of dataset.')
 # testing setting
-parser.add_argument('--evalMode', type=str, default='DEBUG',
+parser.add_argument('--evalMode', type=str, default='EXP',
                     help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
@@ -92,5 +92,8 @@ for generation in range(args.generation):
     index = Engine.enviromentalSeleection(popValue, args.popSize)
     index2 = [x for x in range(population.popSize) if x not in index]
     population.remove(index2)
+    # static the best middle and worrse.
+    popValue = population.toMatrix(needDec=False)
+    # best, middle, worrse = np.min(popValue[:,1]),np.min(popValue[:,2])
     population.save(os.path.join(
         args.save, 'Generation-{0}'.format(generation)))
