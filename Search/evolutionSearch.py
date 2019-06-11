@@ -25,7 +25,7 @@ parser.add_argument('--popSize', type=int, default=15,
                     help='The size of population.')
 parser.add_argument('--objSize', type=int, default=2,
                     help='The number of objectives.')
-parser.add_argument('--blockLength', type=tuple, default=(3, 5, 3),
+parser.add_argument('--blockLength', type=tuple, default=(3, 10, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
@@ -68,12 +68,11 @@ fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 # set seed
 np.random.seed(args.seed)
-
 pop_hist = []  # keep track of every evaluated architecture
 
 # recording setting
-logging.info('PopSize:{0}\nblockLength{1}\ntrainSearch_epoch{2}\ntrainSearch_initChannel{3}\n'.format(
-    args.popSize, args.blockLength, args.trainSearch_epoch, args.trainSearch_initChannel))
+logging.info("args = %s", args)
+
 # init population
 Engine = NSGA2.NSGA2()
 population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEECrossoverV1,
