@@ -271,6 +271,7 @@ class SEEPopulation(population):
     
     def save(self, savePath='./data', fileFormat='csv'):
         tabel = DataFrame(self.toMatrix(needDec=True))
+        tabel.index = [ind.ID for ind in self.individuals]
         if fileFormat=='csv':
             tabel.to_csv(savePath+'.csv')
         elif fileFormat == 'json':
@@ -283,6 +284,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         "Multi-objetive Genetic Algorithm for SEENAS")
     parser.add_argument('--crossoverRate', type=float,
+                        default=0.2, help='The propability rate of crossover.')
+    parser.add_argument('--mutationRate', type=float,
                         default=0.2, help='The propability rate of crossover.')
     args = parser.parse_args()
     pop = SEEPopulation(popSize=30, objSize=2, args=args)
