@@ -30,9 +30,9 @@ parser.add_argument('--report_freq', type=float, default=50, help='report freque
 parser.add_argument('--epochs', type=int, default=600, help='num of training epochs')
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
 parser.add_argument('--save', type=str, default='Experiments', help='experiment name')
-parser.add_argument('--cutout', action='store_true', default=False, help='use cutout')
+parser.add_argument('--cutout', action='store_true', default=True, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
-parser.add_argument('--auxiliary', action='store_true', default=False, help='use auxiliary tower')
+parser.add_argument('--auxiliary', action='store_true', default=True, help='use auxiliary tower')
 parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight for auxiliary loss')
 parser.add_argument('--layers', default=20, type=int, help='total number of layers (equivalent w/ N=6)')
 parser.add_argument('--droprate', default=0, type=float, help='dropout probability (default: 0.0)')
@@ -79,15 +79,21 @@ def main():
     valid_data = torchvision.datasets.CIFAR10(root=args.data, train=False, download=True, transform=valid_transform)
 
     train_queue = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=2)
+        train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=4)
 
     valid_queue = torch.utils.data.DataLoader(
-        valid_data, batch_size=128, shuffle=False, pin_memory=True, num_workers=2)
+        valid_data, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
 
     # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
     # Model
-    ind = individual.SEEIndividual(decSize=3*39,objSize=2, blockLength=(3,13,3))
+    ind = individual.SEEIndividual(objSize=2, blockLength=(3,10,3))
+    indDec = 'Phase:044-762-825-508-183-501-137-485-244-522-Phase:646-573-777-210-877-048-045-724-667-353-Phase:255-251-032-125-343-751-363-581-331-536'.replace('Phase:',"").split('-')
+    code = []
+    for unit in indDec:
+        for bit in unit:
+            code.append(int(bit))
+    ind.setDec(code)
     net = layers.SEENetworkGenerator(ind.getDec(), [[3,128],[128,128],[128,128]],10,(32,32))
 
     # logging.info("{}".format(net))
