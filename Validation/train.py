@@ -29,10 +29,10 @@ parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight dec
 parser.add_argument('--report_freq', type=float, default=50, help='report frequency')
 parser.add_argument('--epochs', type=int, default=600, help='num of training epochs')
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
-parser.add_argument('--save', type=str, default='Experiments', help='experiment name')
+parser.add_argument('--save', type=str, default='Validation', help='experiment name')
 parser.add_argument('--cutout', action='store_true', default=True, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
-parser.add_argument('--auxiliary', action='store_true', default=True, help='use auxiliary tower')
+parser.add_argument('--auxiliary', action='store_true', default=False, help='use auxiliary tower')
 parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight for auxiliary loss')
 parser.add_argument('--layers', default=20, type=int, help='total number of layers (equivalent w/ N=6)')
 parser.add_argument('--droprate', default=0, type=float, help='dropout probability (default: 0.0)')
@@ -79,10 +79,10 @@ def main():
     valid_data = torchvision.datasets.CIFAR10(root=args.data, train=False, download=True, transform=valid_transform)
 
     train_queue = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=4)
+        train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=0)
 
     valid_queue = torch.utils.data.DataLoader(
-        valid_data, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
+        valid_data, batch_size=128, shuffle=False, pin_memory=True, num_workers=0)
 
     # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
