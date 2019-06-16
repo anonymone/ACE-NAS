@@ -88,7 +88,9 @@ def main():
 
     # Model
     ind = individual.SEEIndividual(objSize=2, blockLength=(3,10,3))
-    indDec = 'Phase:044-762-825-508-183-501-137-485-244-522-Phase:646-573-777-210-877-048-045-724-667-353-Phase:255-251-032-125-343-751-363-581-331-536'.replace('Phase:',"").split('-')
+    indDec = 'Phase:044-762-825-508-183-501-137-485-244-522-Phase:646-573-777-210-877-048-045-724-667-353-Phase:255-251-032-125-343-751-363-581-331-536'
+    logging.info("Code dec: ".format(indDec))
+    indDec = indDec.replace('Phase:',"").split('-')
     code = []
     for unit in indDec:
         for bit in unit:
