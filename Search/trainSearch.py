@@ -25,17 +25,17 @@ device = 'cuda'
 # def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0, initChannel=24, modelLayers=11, auxiliary=False, cutout=False, dropPathProb=0.0):
 
 
-def main(code, arg, complement=False):
+def main(code, args, complement=False):
     # init parameters
-    epochs = arg.trainSearch_epoch
-    save = arg.trainSearch_save
-    exprRoot = arg.trainSearch_exprRoot
+    epochs = args.trainSearch_epoch
+    save = args.trainSearch_save
+    exprRoot = args.trainSearch_exprRoot
     seed = 0
     gpu = 0
-    initChannel = arg.trainSearch_initChannel
-    auxiliary = arg.trainSearch_auxiliary
-    cutout = arg.trainSearch_cutout
-    dropPathProb = arg.trainSearch_dropPathProb
+    initChannel = args.trainSearch_initChannel
+    auxiliary = args.trainSearch_auxiliary
+    cutout = args.trainSearch_cutout
+    dropPathProb = args.trainSearch_dropPathProb
     # ---- train logger ----------------- #
     utils.create_exp_dir(exprRoot)
     save_pth = os.path.join(exprRoot, '{}'.format(
@@ -50,7 +50,7 @@ def main(code, arg, complement=False):
     learning_rate = 0.025
     momentum = 0.9
     weight_decay = 3e-4
-    data_root = arg.dataRoot
+    data_root = args.dataRoot
     batch_size = 128
     cutout_length = 16
     auxiliary_weight = 0.4
@@ -269,5 +269,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     SEE_V3 = individual.SEEIndividual(2, (3, 10, 3))
     start = time.time()
-    print(main(code=SEE_V3, arg=args))
+    print(main(code=SEE_V3, args=args))
     print('Time elapsed = {} mins'.format((time.time() - start)/60))

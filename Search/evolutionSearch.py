@@ -14,7 +14,7 @@ from Search import trainSearch
 from EvolutionAlgorithm.NSGA2 import NSGA2
 from Model.individual import SEEPopulation
 
-parser = argparse.ArgumentParser("Multi-objetive Genetic Algorithm for SEENAS")
+parser = argparse.ArgumentParser("Multi-objetive Genetic Algorithm for KW-BEE")
 parser.add_argument('--save', type=str, default='SEE_Exp',
                     help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
