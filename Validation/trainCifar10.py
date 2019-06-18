@@ -29,7 +29,7 @@ parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight dec
 parser.add_argument('--report_freq', type=float, default=50, help='report frequency')
 parser.add_argument('--epochs', type=int, default=600, help='num of training epochs')
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
-parser.add_argument('--save', type=str, default='Validation', help='experiment name')
+parser.add_argument('--save', type=str, default='ValidationCifar10', help='experiment name')
 parser.add_argument('--cutout', action='store_true', default=True, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
 parser.add_argument('--auxiliary', action='store_true', default=False, help='use auxiliary tower')

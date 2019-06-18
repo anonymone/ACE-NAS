@@ -3,7 +3,7 @@ import random
 from copy import deepcopy
 
 
-def SEEMutationV1(code):
+def SEEMutationV1(code, args):
         mutateCoverage = 0.2
         phase, unitNumber, unitLength = code.shape
         newCode = deepcopy(code)
@@ -17,7 +17,7 @@ def SEEMutationV1(code):
                         newCode[i,j,1] = np.random.randint(4,7) 
         return newCode
 
-def SEECrossoverV1(code1,code2):
+def SEECrossoverV1(code1,code2, args):
     '''Fixed-length cross'''
     phase, unitNumber, unitLength = code1.shape
     # Cross over in SEEcrossover is operated in phase lavel if it ok.
@@ -26,3 +26,9 @@ def SEECrossoverV1(code1,code2):
         sub1_1, sub1_2 = code1[0:croPhase,:,:],code1[croPhase:,:,:]
         sub2_1, sub2_2 = code2[0:croPhase,:,:],code2[croPhase:,:,:]
     return np.vstack((sub1_1,sub2_2)),np.vstack((sub2_1,sub1_2))
+
+def WF_BEEMutation(code, args):
+        pass
+
+def WF_BEECrossover(code1, code2, args):
+        pass

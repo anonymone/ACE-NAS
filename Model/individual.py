@@ -120,7 +120,7 @@ class population:
         newPop = []
         for indID, ind in zip(range(len(subPop)), subPop):
             if random.random() < self.mutationRate:
-                code = self.mutate(ind.getDec())
+                code = self.mutate(ind.getDec(), self.args)
                 subPop[indID].setDec(code)
                 subPop[indID].setFitness(
                     [0 for _ in range(subPop[indID].shape[1])])
@@ -137,7 +137,7 @@ class population:
                     betterCode = ind1.getDec()
                 else:
                     betterCode = ind2.getDec()
-                newCode1,newCode2 = self.crossover(ind.getDec(), betterCode)
+                newCode1,newCode2 = self.crossover(ind.getDec(), betterCode, self.args)
                 newInd = [subPop[indID].copy(newCode1), subPop[indID].copy(newCode1)]
                 # Update ID
                 for i in newInd:
