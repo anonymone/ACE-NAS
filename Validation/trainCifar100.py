@@ -75,8 +75,8 @@ def main():
 
     # Data
     train_transform, valid_transform = utils._data_transforms_cifar10(args)
-    train_data = torchvision.datasets.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
-    valid_data = torchvision.datasets.CIFAR10(root=args.data, train=False, download=True, transform=valid_transform)
+    train_data = torchvision.datasets.CIFAR100(root=args.data, train=True, download=True, transform=train_transform)
+    valid_data = torchvision.datasets.CIFAR100(root=args.data, train=False, download=True, transform=valid_transform)
 
     train_queue = torch.utils.data.DataLoader(
         train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=0)
