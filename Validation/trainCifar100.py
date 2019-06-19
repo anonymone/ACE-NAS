@@ -71,7 +71,7 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    best_acc = 0  # initiate a artificial best accuracy so far
+    best_err = 0  # initiate a artificial best accuracy so far
 
     # Data
     train_transform, valid_transform = utils._data_transforms_cifar10(args)
@@ -122,12 +122,12 @@ def main():
         # net.droprate = args.droprate * epoch / args.epochs
 
         train(train_queue, net, criterion, optimizer)
-        _, valid_acc = infer(valid_queue, net, criterion)
+        _, valid_err = infer(valid_queue, net, criterion)
 
-        if valid_acc > best_acc:
+        if valid_err < best_err:
             utils.save(net, os.path.join(args.save, 'weights.pt'))
-            best_acc = valid_acc
-
+            best_err = valid_err
+    logging.info("The best Test Error: {0}".format())
 
 # Training
 def train(train_queue, net, criterion, optimizer):
@@ -156,9 +156,9 @@ def train(train_queue, net, criterion, optimizer):
         correct += predicted.eq(targets).sum().item()
 
         if step % args.report_freq == 0:
-            logging.info('train %03d %e %f', step, train_loss/total, 100.*correct/total)
+            logging.info('train %03d %e %f', step, train_loss/total, 100.-(100.*correct/total))
 
-    logging.info('train acc %f', 100. * correct / total)
+    logging.info('train err %f', 100. * correct / total)
 
     return train_loss/total, 100.*correct/total
 
@@ -183,8 +183,8 @@ def infer(valid_queue, net, criterion):
             if step % args.report_freq == 0:
                 logging.info('valid %03d %e %f', step, test_loss/total, 100.*correct/total)
 
-    acc = 100.*correct/total
-    logging.info('valid acc %f', 100. * correct / total)
+    acc = 100.-(100.*correct/total)
+    logging.info('valid err %f', 100. * correct / total)
 
     return test_loss/total, acc
 
