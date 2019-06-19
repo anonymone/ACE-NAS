@@ -71,7 +71,7 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    best_err = 0  # initiate a artificial best accuracy so far
+    best_err = 100  # initiate a artificial best accuracy so far
 
     # Data
     train_transform, valid_transform = utils._data_transforms_cifar10(args)
@@ -88,7 +88,7 @@ def main():
 
     # Model
     ind = individual.SEEIndividual(objSize=2, blockLength=(3,10,3))
-    indDec = 'Phase:140-784-356-328-051-835-517-755-735-364-Phase:841-537-449-083-632-703-545-124-021-474-Phase:452-723-657-147-288-765-652-712-258-422'
+    indDec = 'Phase:651-135-700-617-467-666-075-224-047-386-Phase:662-665-021-614-215-215-377-204-573-655-Phase:146-130-713-656-615-476-323-657-766-585'
     logging.info("Code dec: {0}".format(indDec))
     indDec = indDec.replace('Phase:',"").split('-')
     code = []
@@ -158,9 +158,9 @@ def train(train_queue, net, criterion, optimizer):
         if step % args.report_freq == 0:
             logging.info('train %03d %e %f', step, train_loss/total, 100.-(100.*correct/total))
 
-    logging.info('train err %f', 100. * correct / total)
+    logging.info('train err %f', 100.-(100.*correct/total))
 
-    return train_loss/total, 100.*correct/total
+    return train_loss/total, 100.-(100.*correct/total)
 
 
 def infer(valid_queue, net, criterion):
@@ -181,10 +181,10 @@ def infer(valid_queue, net, criterion):
             correct += predicted.eq(targets).sum().item()
 
             if step % args.report_freq == 0:
-                logging.info('valid %03d %e %f', step, test_loss/total, 100.*correct/total)
+                logging.info('valid %03d %e %f', step, test_loss/total, 100.-(100.*correct/total))
 
     acc = 100.-(100.*correct/total)
-    logging.info('valid err %f', 100. * correct / total)
+    logging.info('valid err %f', 100.-(100.*correct/total))
 
     return test_loss/total, acc
 
