@@ -47,7 +47,7 @@ def main(code, args, complement=False):
                         format=log_format, datefmt='%m/%d %I:%M:%S %p')
 
     # ---- parameter values setting ----- #
-    CIFAR_CLASSES = 10
+    CIFAR_CLASSES = args.trainSearchDatasetClassNumber
     learning_rate = 0.025
     momentum = 0.9
     weight_decay = 3e-4

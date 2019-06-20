@@ -21,11 +21,11 @@ parser.add_argument('--seed', type=int, default=0, help='random seed')
 parser.add_argument('--generation', type=int, default=30, help='random seed')
 
 # population setting
-parser.add_argument('--popSize', type=int, default=15,
+parser.add_argument('--popSize', type=int, default=30,
                     help='The size of population.')
 parser.add_argument('--objSize', type=int, default=2,
                     help='The number of objectives.')
-parser.add_argument('--blockLength', type=tuple, default=(3, 10, 3),
+parser.add_argument('--blockLength', type=tuple, default=(3, 15, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
@@ -34,7 +34,7 @@ parser.add_argument('--crossoverRate', type=float, default=0.02,
 parser.add_argument('--mutationRate', type=float, default=0.9,
                     help='The propability rate of crossover.')
 # train search method setting.
-parser.add_argument('--trainSearch_epoch', type=int, default=25,
+parser.add_argument('--trainSearch_epoch', type=int, default=30,
                     help='# of epochs to train during architecture search')
 parser.add_argument('--trainSearch_save', type=str,
                     default='SEE_#id', help='the filename including each model.')
@@ -51,8 +51,10 @@ parser.add_argument('--dataRoot', type=str,
                     default='./Dataset', help='The root path of dataset.')
 parser.add_argument('--trainSearchDataset', type=str,
                     default='Cifar10', help='The name of dataset.')
+parser.add_argument('--trainSearchDatasetClassNumber', type=int,
+                    default=10, help='The classes number of dataset.')
 # testing setting
-parser.add_argument('--evalMode', type=str, default='DEBUG',
+parser.add_argument('--evalMode', type=str, default='EXP',
                     help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
