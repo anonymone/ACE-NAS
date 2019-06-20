@@ -127,7 +127,7 @@ def main():
         if valid_err < best_err:
             utils.save(net, os.path.join(args.save, 'weights.pt'))
             best_err = valid_err
-    logging.info("The best Test Error: {0}".format())
+    logging.info("The best Test Error: {0}".format(best_err))
 
 # Training
 def train(train_queue, net, criterion, optimizer):
