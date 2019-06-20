@@ -49,6 +49,8 @@ parser.add_argument('--trainSearch_dropPathProb',
                     type=bool, default=False, help='')
 parser.add_argument('--dataRoot', type=str,
                     default='./Dataset', help='The root path of dataset.')
+parser.add_argument('--trainSearchDataset', type=str,
+                    default='Cifar10', help='The name of dataset.')
 # testing setting
 parser.add_argument('--evalMode', type=str, default='DEBUG',
                     help='Evaluating mode for testing usage.')
