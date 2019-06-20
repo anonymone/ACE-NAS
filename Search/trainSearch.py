@@ -117,12 +117,12 @@ def main(code, args, complement=False):
         transforms.Normalize(CIFAR_MEAN, CIFAR_STD),
     ])
 
-    if args.trainSearchDataset == "cafir10":
+    if args.trainSearchDataset == "cifar10":
         train_data = Cifar10.CIFAR10(
             root=data_root, train=True, download=True, transform=train_transform)
         valid_data = Cifar10.CIFAR10(
             root=data_root, train=False, download=True, transform=valid_transform)
-    elif args.trainSearchDataset == "cafir10":
+    elif args.trainSearchDataset == "cifar100":
         train_data = Cifar100.CIFAR100(
             root=data_root, train=True, download=True, transform=train_transform)
         valid_data = Cifar100.CIFAR100(
