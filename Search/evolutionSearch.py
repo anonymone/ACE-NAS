@@ -14,7 +14,7 @@ from Search import trainSearch
 from EvolutionAlgorithm.NSGA2 import NSGA2
 from Model.individual import SEEPopulation
 
-parser = argparse.ArgumentParser("Multi-objetive Genetic Algorithm for KW-BEE")
+parser = argparse.ArgumentParser("Multi-objetive Genetic Algorithm for WF-BEE")
 parser.add_argument('--save', type=str, default='SEE_Exp',
                     help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
@@ -29,9 +29,9 @@ parser.add_argument('--blockLength', type=tuple, default=(3, 15, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
-parser.add_argument('--crossoverRate', type=float, default=0.02,
+parser.add_argument('--crossoverRate', type=float, default=0.3,
                     help='The propability rate of crossover.')
-parser.add_argument('--mutationRate', type=float, default=0.9,
+parser.add_argument('--mutationRate', type=float, default=1,
                     help='The propability rate of crossover.')
 # train search method setting.
 parser.add_argument('--trainSearch_epoch', type=int, default=30,
@@ -46,7 +46,7 @@ parser.add_argument('--trainSearch_auxiliary',
                     type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
 parser.add_argument('--trainSearch_dropPathProb',
-                    type=bool, default=False, help='')
+                    type=float, default=0.0, help='')
 parser.add_argument('--dataRoot', type=str,
                     default='./Dataset', help='The root path of dataset.')
 parser.add_argument('--trainSearchDataset', type=str,
