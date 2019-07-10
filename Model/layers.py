@@ -133,7 +133,7 @@ class SEEPhase(nn.Module):
         actioncode_iterator = iter(actionCode)
         while actioncode_iterator.__length_hint__() != 0:
             # build graph
-            From, Action, To = actioncode_iterator.__next__()
+            Action, From, To = actioncode_iterator.__next__()
             # Normalize the code
             To = To % len(nodeGraph)
             From = From % (To+1)
