@@ -18,7 +18,7 @@ import numpy as np
 from misc import utils
 from Model import individual, layers
 
-parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
+parser = argparse.ArgumentParser(description='PyTorch CIFAR100 Training')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
 parser.add_argument('--data', type=str, default='./Dataset', help='location of the data corpus')
 parser.add_argument('--batch_size', type=int, default=96, help='batch size')
@@ -36,7 +36,7 @@ parser.add_argument('--auxiliary', action='store_true', default=False, help='use
 parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight for auxiliary loss')
 parser.add_argument('--layers', default=20, type=int, help='total number of layers (equivalent w/ N=6)')
 parser.add_argument('--droprate', default=0, type=float, help='dropout probability (default: 0.0)')
-parser.add_argument('--init_channels', type=int, default=32, help='num of init channels')
+parser.add_argument('--init_channels', type=int, default=128, help='num of init channels')
 parser.add_argument('--arch', type=str, default='NSGANet', help='which architecture to use')
 parser.add_argument('--filter_increment', default=4, type=int, help='# of filter increment')
 parser.add_argument('--SE', action='store_true', default=False, help='use Squeeze-and-Excitation')
@@ -96,7 +96,12 @@ def main():
         for bit in unit:
             code.append(int(bit))
     ind.setDec(code)
-    net = layers.SEENetworkGenerator(ind.getDec(), [[3,128],[128,128],[128,128]],100,(32,32))
+
+    initChannel = args.init_channels
+    channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
+                                    * initChannel) for i in range(1, len(ind.getDec()))]
+
+    net = layers.SEENetworkGenerator(ind.getDec(), channels,10,(32,32),repeats=3)
 
     # logging.info("{}".format(net))
     logging.info("param size = %fMB", utils.count_parameters_in_MB(net))

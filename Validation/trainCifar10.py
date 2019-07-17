@@ -88,7 +88,7 @@ def main():
 
     # Model
     ind = individual.SEEIndividual(objSize=2, blockLength=(3,10,3))
-    indDec = 'Phase:140-784-356-328-051-835-517-755-735-364-Phase:841-537-449-083-632-703-545-124-021-474-Phase:452-723-657-147-288-765-652-712-258-422'
+    indDec = 'Phase:362-896-321-616-715-024-752-547-415-060-Phase:360-736-625-544-005-174-882-177-855-881-Phase:553-278-576-157-392-230-787-799-958-699'
     logging.info("Code dec: {0}".format(indDec))
     indDec = indDec.replace('Phase:',"").split('-')
     code = []
@@ -96,7 +96,12 @@ def main():
         for bit in unit:
             code.append(int(bit))
     ind.setDec(code)
-    net = layers.SEENetworkGenerator(ind.getDec(), [[3,128],[128,128],[128,128]],10,(32,32))
+
+    initChannel = args.init_channels
+    channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
+                                    * initChannel) for i in range(1, len(ind.getDec()))]
+
+    net = layers.SEENetworkGenerator(ind.getDec(), channels,10,(32,32),repeats=3)
 
     # logging.info("{}".format(net))
     logging.info("param size = %fMB", utils.count_parameters_in_MB(net))

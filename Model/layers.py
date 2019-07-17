@@ -255,6 +255,9 @@ class SEENetworkGenerator(nn.Module):
         phases = []
         for code, (inChannel, outChannel) in zip(codeList, channelsList):
             phases.append(SEEPhase(code, inChannel, outChannel))
+            if self._repeats is not None:
+                for i in range(self._repeats-1):
+                    phases.append(SEEPhase(code, outChannel, outChannel))
         phases = self.buildNetwork(phases)
         self.model = nn.Sequential(*phases)
 
@@ -278,10 +281,13 @@ class SEENetworkGenerator(nn.Module):
         """
         layers = []
         last_phase = phases.pop()
-        for phase in phases:
+        for i in range(1,len(phases)+1):
             # for _ in range(repeat):
             #     layers.append(phase)
-            layers.append(phase)
+            layers.append(phases[i-1])
+            if self._repeats is not None:
+                if i% self._repeats != 0:
+                    continue
             # TODO: Generalize this, or consider a new genome.
             layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
 
