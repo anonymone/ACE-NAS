@@ -5,12 +5,13 @@
 *.dat
 *.bak
 *.csv
-*.txt
 *.dot
+*.zip
 
 # folder 
 /Dataset/*-py
 /Dataset/*.gz
 /Dataset/*/*-py
 /Dataset/*/*.gz
-/Experiments/logs/
+/Dataset/cifar*
+/Experiments/*/

@@ -36,7 +36,7 @@ parser.add_argument('--auxiliary', action='store_true', default=False, help='use
 parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight for auxiliary loss')
 parser.add_argument('--layers', default=20, type=int, help='total number of layers (equivalent w/ N=6)')
 parser.add_argument('--droprate', default=0, type=float, help='dropout probability (default: 0.0)')
-parser.add_argument('--init_channels', type=int, default=128, help='num of init channels')
+parser.add_argument('--init_channels', type=int, default=12, help='num of init channels')
 parser.add_argument('--arch', type=str, default='NSGANet', help='which architecture to use')
 parser.add_argument('--filter_increment', default=4, type=int, help='# of filter increment')
 parser.add_argument('--SE', action='store_true', default=False, help='use Squeeze-and-Excitation')
@@ -82,7 +82,7 @@ def main():
         train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=0)
 
     valid_queue = torch.utils.data.DataLoader(
-        valid_data, batch_size=128, shuffle=False, pin_memory=True, num_workers=0)
+        valid_data, batch_size=100, shuffle=False, pin_memory=True, num_workers=0)
 
     # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -101,7 +101,7 @@ def main():
     channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
                                     * initChannel) for i in range(1, len(ind.getDec()))]
 
-    net = layers.SEENetworkGenerator(ind.getDec(), channels,10,(32,32),repeats=3)
+    net = layers.SEENetworkGenerator(ind.getDec(), channels,100,(32,32),repeats=None)
 
     # logging.info("{}".format(net))
     logging.info("param size = %fMB", utils.count_parameters_in_MB(net))
