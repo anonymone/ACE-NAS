@@ -50,9 +50,9 @@ def unicodeToAscii(s):
 
 
 def normalizeString(s):
-    s = unicodeToAscii(s.lower().strip())
-    s = re.sub(r"([.!?])", r" \1", s)
-    s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
+    s = unicodeToAscii(s.strip())
+    # s = re.sub(r"([.!?])", r" \1", s)
+    # s = re.sub(r"[^a-zA-Z.!?]+", r" ", s)
     return s
 
 def readLangs(lang1, lang2, reverse=False):
@@ -76,7 +76,7 @@ def readLangs(lang1, lang2, reverse=False):
 
     return input_lang, output_lang, pairs
 
-MAX_LENGTH = 10
+MAX_LENGTH = 60
 
 eng_prefixes = (
     "i am ", "i m ",
@@ -90,9 +90,7 @@ eng_prefixes = (
 
 def filterPair(p):
     return len(p[0].split(' ')) < MAX_LENGTH and \
-        len(p[1].split(' ')) < MAX_LENGTH and \
-        p[1].startswith(eng_prefixes)
-
+        len(p[1].split(' ')) < MAX_LENGTH
 
 def filterPairs(pairs):
     return [pair for pair in pairs if filterPair(pair)]
@@ -112,7 +110,7 @@ def prepareData(lang1, lang2, reverse=False):
     return input_lang, output_lang, pairs
 
 
-input_lang, output_lang, pairs = prepareData('eng', 'fra', True)
+input_lang, output_lang, pairs = prepareData('data', 'data', True)
 print(random.choice(pairs))
 
 class EncoderRNN(nn.Module):
