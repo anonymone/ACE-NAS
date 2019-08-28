@@ -1,6 +1,8 @@
 import sys
 # update your projecty root path before running
 sys.path.insert(0, './')
+import os
+import logging
 
 import numpy as np
 import torch 
@@ -12,6 +14,8 @@ import random
 from misc import utils
 from Model import embeddingModel
 
+LOG_FORMAT = '%(asctime)s%(name)s%(message)s'
+logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
 
 class RankNet(nn.Module):
     def __init__(self, sizeList=[(256,128),(128,64),(64,32),(32,1)]):
@@ -97,57 +101,96 @@ class RankNetDataset(data.Dataset):
         return fmt_str
 
 class Predictor:
-    def __init__(self, encoder, modelSize = [(256,128),(128,64),(64,32),(32,1)]):
+    def __init__(self, encoder, modelSavePath, modelSize = [(256,128),(128,64),(64,32),(32,1)]):
+        self.saveModelPath = modelSavePath
         self.model = RankNet(modelSize)
         self.criterion = nn.BCELoss()
         parameters = filter(lambda p: p.requires_grad, self.model.parameters())
         self.optimizer = torch.optim.Adam(parameters)
         self.encoder = encoder
+        self.device = "cuda" if torch.cuda.is_available() else "cpu" 
         
+    def predict(self, codeString):
+        vector = self.encoder.encode(codeString)
+        vector = torch.from_numpy(vector).to(self.device)
+        self.model = self.model.to(self.device)
+        with torch.no_grad():
+            outputs = self.model.predict(vector)
+        outputs = outputs.to('cpu')
+        outputs = outputs.detach().numpy()
+        return outputs.reshape(1,-1)
+
     def trian(self, dataset, trainEpoch = 50, printFreqence=1000):
-        device = "cuda" if torch.cuda.is_available() else "cpu" 
-        self.model = self.model.to(device)
+        if os.path.exists(self.saveModelPath + "model.ckpt"):
+            self.model.load_state_dict(torch.load(self.saveModelPath + "model.ckpt"))
+            self.model.eval()
+            logging.info("RankNet model find in {0}".format(self.saveModelPath+"model.ckpt"))
+        else:
+            if not os.path.exists(self.saveModelPath):
+                os.makedirs(self.saveModelPath)
+                os.chmod(self.saveModelPath,mode=0o777)
+            logging.warning("No pretrained model. Model will start trainning from scratch...")
+            # device = "cuda" if torch.cuda.is_available() else "cpu" 
+            self.model = self.model.to(self.device)
 
-        # Dataset Loader
-        dataQueue = torch.utils.data.DataLoader(dataset=dataset, 
-                                                batch_size=32, 
-                                                shuffle=True)
-        for epoch in range(trainEpoch):
-            train_loss = 0
-            correct = 0
-            total = 0
-            for step, (inputs, labels) in enumerate(dataQueue):
+            # Dataset Loader
+            dataQueue = torch.utils.data.DataLoader(dataset=dataset, 
+                                                    batch_size=32, 
+                                                    shuffle=True)
+            for epoch in range(trainEpoch):
+                train_loss = 0
+                correct = 0
+                total = 0
+                for step, (inputs, labels) in enumerate(dataQueue):
 
-                inputs_i,inputs_j, labels = inputs[0].to(device), inputs[1].to(device), labels.to(device)
-                self.optimizer.zero_grad()
-                outputs = self.model(inputs_i, inputs_j)
-                loss = self.criterion(outputs, labels)
-                loss.backward()
-                self.optimizer.step()
+                    inputs_i,inputs_j, labels = inputs[0].to(self.device), inputs[1].to(self.device), labels.to(self.device)
+                    self.optimizer.zero_grad()
+                    outputs = self.model(inputs_i, inputs_j)
+                    loss = self.criterion(outputs, labels)
+                    loss.backward()
+                    self.optimizer.step()
 
-                train_loss += loss.item()
-                outputs = outputs.cpu()
-                predicted = outputs.detach().numpy()
-                predicted[predicted>=0.5] = 1
-                predicted[predicted<0.5] = 0
-                total += labels.size(0)
-                correct += np.sum(predicted.reshape(1,-1)==labels.cpu().numpy().reshape(1,-1))
-                if (step+1)%printFreqence == 0:
-                    print("Epoch: {0}, Step: {1} Loss: {2}, Acc: {3}".format(epoch, 
-                                                                            step, 
-                                                                            train_loss/total, 
-                                                                            100.*correct/total))
+                    train_loss += loss.item()
+                    outputs = outputs.cpu()
+                    predicted = outputs.detach().numpy()
+                    predicted[predicted>=0.5] = 1
+                    predicted[predicted<0.5] = 0
+                    total += labels.size(0)
+                    correct += np.sum(predicted.reshape(1,-1)==labels.cpu().numpy().reshape(1,-1))
+                    if (step+1)%printFreqence == 0:
+                        logging.info("Epoch: {0}, Step: {1} Loss: {2}, Acc: {3}".format(epoch, 
+                                                                                step+1, 
+                                                                                train_loss/total, 
+                                                                                100.*correct/total))
+            torch.save(self.model.state_dict(), self.saveModelPath+"model.ckpt")
 
-    def predict(self):
-        pass
-        
 if __name__ == "__main__":
     import pandas as pd
     import numpy as np
     import torch.utils as utils
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--EmbeddingTrainPath', action='store', dest='train_path', default='./Dataset/encodeData/data.txt',
+                        help='Path to train data')
+    parser.add_argument('--EmdeddingDevPath', action='store', dest='dev_path', default='./Dataset/encodeData/data_val.txt',
+                        help='Path to dev data')
+    parser.add_argument('--EmbeddingExptDir', action='store', dest='expt_dir', default='./Dataset/encodeData/',
+                        help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
+    parser.add_argument('--EmdeddingLoadCheckpoint', action='store', dest='load_checkpoint', default='2019_08_26_07_35_34',
+                        help='The name of the checkpoint to load, usually an encoded time string')
+    parser.add_argument('--EmdeddingResume', action='store_true', dest='resume',
+                        default=False,
+                        help='Indicates if training has to be resumed from the latest checkpoint')
+    args = parser.parse_args()
 
     dataset = pd.read_csv('./Dataset/encodeData/surrogate.txt')
     dataset = RankNetDataset(dataset.values)
 
-    predictor = Predictor(None)
-    predictor.trian(dataset=dataset)    
+    encoder = embeddingModel.EmbeddingModel(opt=args)
+
+    predictor = Predictor(encoder=encoder,modelSavePath="./Dataset/encodeData/RankModel/")
+    predictor.trian(dataset=dataset,trainEpoch=20)
+    codeString = ["0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4', '0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4"]
+    value = predictor.predict(codeString)
+    print(value)

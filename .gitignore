@@ -14,7 +14,7 @@
 /Dataset/*/*-py
 /Dataset/*/*.gz
 /Dataset/cifar*
-/Dataset/netDataset
+/Dataset/encodeData/
 /Experiments/*/
 SurrogateModel/data/.ipynb_checkpoints/eng-fra-checkpoint.txt
 SurrogateModel/.ipynb_checkpoints/data-checkpoint.txt

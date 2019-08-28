@@ -24,8 +24,8 @@ device = 'cuda' if torch.cuda.is_available() else "cpu"
 
 class EmbeddingModel:
     def __init__(self, opt):
-        logging.info("loading checkpoint from {}".format(os.path.join(opt.EmdeddingExptDir, Checkpoint.CHECKPOINT_DIR_NAME, opt.EmdeddingLoadCheckpoint)))
-        checkpoint_path = os.path.join(opt.EmdeddingExptDir, Checkpoint.CHECKPOINT_DIR_NAME, opt.EmdeddingLoadCheckpoint)
+        logging.info("loading checkpoint from {}".format(os.path.join(opt.expt_dir, opt.load_checkpoint)))
+        checkpoint_path = os.path.join(opt.expt_dir, opt.load_checkpoint)
         checkpoint = Checkpoint.load(checkpoint_path)
         self.seq2seq = checkpoint.model
         self.input_vocab = checkpoint.input_vocab
@@ -42,9 +42,9 @@ class EmbeddingModel:
             src_id_seq = torch.LongTensor([self.input_vocab.stoi[tok] for tok in seq]).view(1,-1)
             src_id_seq = src_id_seq.to(device)
             with torch.no_grad():
-                output, hiden = seq2seq.encoder(src_id_seq, [len(seq)])
+                output, hiden = self.seq2seq.encoder(src_id_seq, [len(seq)])
             hiden_cpu = hiden.cpu()
-            vectors.append(np.append(hiden_cpu.data.numpy().reshape(1,-1), value))
+            vectors.append(hiden_cpu.data.numpy().reshape(1,-1))
         return np.array(vectors)
 
 
