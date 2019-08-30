@@ -53,9 +53,23 @@ class RankNetDataset(data.Dataset):
     def batchData(datasetSize, batchSize = 32):
         index = [x for x in range(datasetSize)]
         pairs = [np.array([i,j]) for i,j in itertools.product(index,index)]
+        # pairs = []
+        # for i in range(datasetSize):
+        #     for j in range(i, datasetSize, 1):
+        #         pairs.append(np.array([i,j]))
         random.shuffle(pairs)
         # pairs = [pairs[i:i+batchSize] for i in range(0,datasetSize - datasetSize%batchSize, batchSize)]
         return np.array(pairs)
+
+    def addData(self, newDataset):
+        if self.train:
+            self.train_data = np.vstack([self.train_data, newDataset[:,:-1].astype(dtype="float32")])
+            self.train_values = np.hstack([self.train_values, newDataset[:,-1].astype(dtype="float32")])
+            self.dataset = RankNetDataset.batchData(self.train_data.shape[0])
+        else:
+            self.test_data = np.vstack([self.train_data, newDataset[:,:-1].astype(dtype="float32")])
+            self.test_values = np.hstack([self.train_values, newDataset[:,-1].astype(dtype="float32")])
+            self.dataset = RankNetDataset.batchData(self.test_data.shape[0])
 
     def __getitem__(self, index):
         """
@@ -118,10 +132,10 @@ class Predictor:
             outputs = self.model.predict(vector)
         outputs = outputs.to('cpu')
         outputs = outputs.detach().numpy()
-        return outputs.reshape(1,-1)
+        return outputs.reshape(1)
 
-    def trian(self, dataset, trainEpoch = 50, printFreqence=1000):
-        if os.path.exists(self.saveModelPath + "model.ckpt"):
+    def trian(self, dataset = None, trainEpoch = 50, printFreqence=1000):
+        if os.path.exists(self.saveModelPath + "model.ckpt") and dataset is None:
             self.model.load_state_dict(torch.load(self.saveModelPath + "model.ckpt"))
             self.model.eval()
             logging.info("RankNet model find in {0}".format(self.saveModelPath+"model.ckpt"))
@@ -185,12 +199,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     dataset = pd.read_csv('./Dataset/encodeData/surrogate.txt')
+    newdataset = np.ndarray(shape= dataset.shape)
     dataset = RankNetDataset(dataset.values)
+    print(dataset.__len__())
+    dataset.addData(newdataset)
+    print(dataset.__len__())
+    # encoder = embeddingModel.EmbeddingModel(opt=args)
 
-    encoder = embeddingModel.EmbeddingModel(opt=args)
-
-    predictor = Predictor(encoder=encoder,modelSavePath="./Dataset/encodeData/RankModel/")
-    predictor.trian(dataset=dataset,trainEpoch=20)
-    codeString = ["0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4', '0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4"]
-    value = predictor.predict(codeString)
-    print(value)
+    # predictor = Predictor(encoder=encoder,modelSavePath="./Dataset/encodeData/RankModel_test/")
+    # predictor.trian(dataset=dataset,trainEpoch=20)
+    # codeString = ["0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4', '0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4"]
+    # value = predictor.predict(codeString)
+    # print(value)

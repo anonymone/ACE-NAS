@@ -96,7 +96,7 @@ class population:
         self.crossover = crossover
         self.args = args
 
-    def evaluation(self):
+    def evaluation(self, **kwargs):
         if self.args.evalMode == 'DEBUG':
             for indId, ind in zip(range(self.popSize), self.individuals):
                 if self.individuals[indId].isTraind():
@@ -107,11 +107,11 @@ class population:
         for indId, ind in zip(range(self.popSize), self.individuals):
             if self.individuals[indId].isTraind():
                 continue
-            fitness = self.eval(ind, self.args,complement=True)
+            fitness = self.eval(ind, self.args,complement=True, **kwargs)
             self.individuals[indId].setFitness([fitness['valid_err'],fitness['flops']])
         return None
 
-    def newPop(self, index=None):
+    def newPop(self, index=None, inplace=True):
         assert self.mutate != None, 'mutating method is not defined.'
         if index is not None:
             subPop = deepcopy(self.individuals[index])
@@ -144,7 +144,10 @@ class population:
                     i.ID = uuid.uuid1()
                 # self.add(newInd)
                 newPop.extend(newInd)
-        self.add(newPop)
+        if inplace:
+            self.add(newPop)
+        else:
+            return newPop
 
     def remove(self, index):
         '''
@@ -249,9 +252,17 @@ class SEEIndividual(code):
 
 
 class SEEPopulation(population):
-    def __init__(self, popSize, objSize, blockLength=(3, 12, 3), valueBoundary=(0, 9), mutation=None, crossover=None, evaluation=None, args=None):
+    def __init__(self, popSize, objSize, 
+                    blockLength=(3, 12, 3), 
+                    valueBoundary=(0, 9), 
+                    mutation=None, 
+                    crossover=None, 
+                    evaluation=None, 
+                    args=None):
         super(SEEPopulation, self).__init__(objSize=objSize, crossover=crossover,
-                                            mutation=mutation, evaluation=evaluation, crossoverRate=args.crossoverRate, mutationRate= args.mutationRate, args=args)
+                                            mutation=mutation, evaluation=evaluation, 
+                                            crossoverRate=args.crossoverRate, 
+                                            mutationRate= args.mutationRate, args=args)
         self.individuals = [SEEIndividual(objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
                             for _ in range(popSize)]
         self.popSize = popSize
@@ -268,6 +279,20 @@ class SEEPopulation(population):
                 [np.hstack(([ind_id], ind.getFitness())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
 
         return matrix
+
+    def toString(self, needFitness=True):
+        '''
+        return a list with tuple contraining (dec string like 'unit-unit-...', fitness )
+        '''
+        def num2string(dec):
+            dec = dec.reshape(-1,3)
+            return " ".join(["-".join([str(s) for s in unit]) for unit in dec])
+
+        if needFitness:
+            stringList = [(num2string(ind.getDec()), ind.getFitness()) for ind in self.individuals]
+        else:
+            stringList = [num2string(ind.getDec()) for ind in self.individuals]
+        return stringList
     
     def save(self, savePath='./data', fileFormat='csv'):
         tabel = DataFrame(self.toMatrix(needDec=True))
@@ -298,4 +323,5 @@ if __name__ == "__main__":
     # print(ind.toString())
     # # print(ind.toVector())
     # print(pop.toMatrix())
-    pop.save('./Experiments/hi')
+    # pop.save('./Experiments/hi')
+    print(pop.toString())

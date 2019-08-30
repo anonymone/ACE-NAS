@@ -44,8 +44,22 @@ class EmbeddingModel:
             with torch.no_grad():
                 output, hiden = self.seq2seq.encoder(src_id_seq, [len(seq)])
             hiden_cpu = hiden.cpu()
-            vectors.append(hiden_cpu.data.numpy().reshape(1,-1))
+            vectors.append(hiden_cpu.data.numpy().reshape(-1))
         return np.array(vectors)
+    
+    def encode2numpy(self, code, withfitness =True):
+        if withfitness:
+            decList = []
+            values = []
+            for decString, value in code:
+                decList.append(decString)
+                values.append(value)
+            return np.hstack([self.encode(decList),np.array(values)])
+        else:
+            decList = []
+            for decString in code:
+                decList.append(decString)
+            return np.array(decList)
 
 
 def trainEmbeddingModel(opt):
@@ -129,3 +143,48 @@ def trainEmbeddingModel(opt):
 #     seq_str = raw_input("Type in a source sequence:")
 #     seq = seq_str.strip().split()
 #     print(predictor.predict(seq))
+
+if __name__ == "__main__":
+    import sys
+    sys.path.insert(0,"./")
+    from Model import surroogate
+    from Model import individual
+    import numpy as np
+    import pandas as pd
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        "Embedding Test")
+    # Predictor model setting 
+    parser.add_argument('--PredictorModelDataset', dest='predictDataset', default='./Dataset/encodeData/surrogate.txt')
+    parser.add_argument('--PredictorModelPath', dest='predictPath', default='./Dataset/encodeData/RankModel/')
+    parser.add_argument('--PredictorModelEpoch', dest='predictEpoch', default= 20)
+
+
+    parser.add_argument('--EmbeddingTrainPath', action='store', dest='train_path', default='./Dataset/encodeData/data.txt',
+                    help='Path to train data')
+    parser.add_argument('--EmdeddingDevPath', action='store', dest='dev_path', default='./Dataset/encodeData/data_val.txt',
+                        help='Path to dev data')
+    parser.add_argument('--EmdeddingExptDir', action='store', dest='expt_dir', default='./Dataset/encodeData',
+                        help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
+    parser.add_argument('--EmdeddingLoadCheckpoint', action='store', dest='load_checkpoint', default='2019_08_26_07_35_34',
+                        help='The name of the checkpoint to load, usually an encoded time string')
+    parser.add_argument('--EmdeddingResume', action='store_true', dest='resume',
+                        default=False,
+                        help='Indicates if training has to be resumed from the latest checkpoint') 
+    parser.add_argument('--crossoverRate', type=float,
+                        default=0.2, help='The propability rate of crossover.')
+    parser.add_argument('--mutationRate', type=float,
+                        default=0.2, help='The propability rate of crossover.')
+    args = parser.parse_args()
+
+    pop = individual.SEEPopulation(popSize=30, objSize=2, args=args)
+    popString = pop.toString()
+
+    model = EmbeddingModel(args)
+    encodeNumpy = model.encode2numpy(popString)
+    PredicDataset = pd.read_csv("./Dataset/encodeData/surrogate.txt")
+    PredicDataset = surroogate.RankNetDataset(PredicDataset.values)
+    PredicDataset.addData(encodeNumpy[:,:-1])
+    predictor = surroogate.Predictor(encoder=model, modelSavePath=args.predictPath)
+    predictor.trian(dataset=PredicDataset, trainEpoch=args.predictEpoch)
