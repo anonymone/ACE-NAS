@@ -45,7 +45,7 @@ args = parser.parse_args()
 args.save = './Experiments/train-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))
 utils.create_exp_dir(args.save)
 
-device = 'cuda'
+device = 'cuda' if torch.cuda.is_available() else "cpu"
 
 log_format = '%(asctime)s %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,

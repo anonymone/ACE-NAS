@@ -39,13 +39,13 @@ parser.add_argument('--generation', type=int, default=30, help='random seed')
 # Embedding model setting
 parser.add_argument('--EmbeddingTrainPath', action='store', dest='train_path', default='./Dataset/encodeData/data.txt',
                     help='Path to train data')
-parser.add_argument('--EmdeddingDevPath', action='store', dest='dev_path', default='./Dataset/encodeData/data_val.txt',
+parser.add_argument('--EmbeddingDevPath', action='store', dest='dev_path', default='./Dataset/encodeData/data_val.txt',
                     help='Path to dev data')
-parser.add_argument('--EmdeddingExptDir', action='store', dest='expt_dir', default='./Dataset/encodeData',
+parser.add_argument('--EmbeddingExptDir', action='store', dest='expt_dir', default='./Dataset/encodeData',
                     help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
-parser.add_argument('--EmdeddingLoadCheckpoint', action='store', dest='load_checkpoint', default='2019_08_26_07_35_34',
+parser.add_argument('--EmbeddingLoadCheckpoint', action='store', dest='load_checkpoint', default='2019_08_26_07_35_34',
                     help='The name of the checkpoint to load, usually an encoded time string')
-parser.add_argument('--EmdeddingResume', action='store_true', dest='resume',
+parser.add_argument('--EmbeddingResume', action='store_true', dest='resume',
                     default=False,
                     help='Indicates if training has to be resumed from the latest checkpoint')
 
