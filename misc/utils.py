@@ -124,3 +124,6 @@ def create_exp_dir(path, scripts_to_save=None):
         for script in scripts_to_save:
             dst_file = os.path.join(path, 'scripts', os.path.basename(script))
             shutil.copyfile(script, dst_file)
+
+def normalization(data):
+    return (data - np.min(data,0))/(np.max(data,0)-np.min(data,0))

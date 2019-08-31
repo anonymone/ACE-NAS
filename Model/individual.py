@@ -229,20 +229,23 @@ class SEEIndividual(code):
         else:
             return SEEIndividual(self.objSize, self.blockLength, self.valueBoundary,self.args)
 
-    def toString(self, showFitness=False):
+    def toString(self, showFitness=False, displayUsed= True):
         dec = self.dec.reshape(self.blockLength)
         str_dec = ''
-        for phase in dec:
-            str_dec = str_dec + 'Phase:'
-            for i in phase:
-                str_dec = str_dec + \
-                    str(i).replace('[', '').replace(
-                        ']', '').replace(' ', '') + '-'
-        if showFitness:
-            fitnessString = '--> {0}'.format(self.fitness)
+        if displayUsed:
+            for phase in dec:
+                str_dec = str_dec + 'Phase:'
+                for i in phase:
+                    str_dec = str_dec + \
+                        str(i).replace('[', '').replace(
+                            ']', '').replace(' ', '') + '-'
+            if showFitness:
+                fitnessString = '--> {0}'.format(self.fitness)
+            else:
+                fitnessString = ''
+            return '{0}'.format(str_dec[0:-1]) + fitnessString
         else:
-            fitnessString = ''
-        return '{0}'.format(str_dec[0:-1]) + fitnessString
+            return " ".join(["-".join([str(s) for s in unit]) for unit in self.getDec().reshape(-1,3)])
 
     def isTraind(self):
         '''

@@ -7,18 +7,52 @@ import time
 import logging
 import argparse
 
+import torch
+from torch.optim.lr_scheduler import StepLR
+import torchtext
+import pandas as pd
+
+import seq2seq
+from seq2seq.trainer import SupervisedTrainer
+from seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq
+from seq2seq.loss import Perplexity
+from seq2seq.optim import Optimizer
+from seq2seq.dataset import SourceField, TargetField
+from seq2seq.evaluator import Predictor
+from seq2seq.util.checkpoint import Checkpoint
+
 from misc import utils
 from misc import evo_operator
 import numpy as np
 from Search import trainSearch
 from EvolutionAlgorithm.NSGA2 import NSGA2
 from Model.individual import SEEPopulation
+from Model.embeddingModel import EmbeddingModel as em
+from Model.surroogate import Predictor, RankNetDataset
 
-parser = argparse.ArgumentParser("Multi-objetive Genetic Algorithm for WF-BEE")
+parser = argparse.ArgumentParser("Multi-objetive Genetic Algorithm for WF-BEE with SG")
 parser.add_argument('--save', type=str, default='SEE_Exp',
                     help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
 parser.add_argument('--generation', type=int, default=30, help='random seed')
+
+# Embedding model setting
+parser.add_argument('--EmbeddingTrainPath', action='store', dest='train_path', default='./Dataset/encodeData/data.txt',
+                    help='Path to train data')
+parser.add_argument('--EmdeddingDevPath', action='store', dest='dev_path', default='./Dataset/encodeData/data_val.txt',
+                    help='Path to dev data')
+parser.add_argument('--EmdeddingExptDir', action='store', dest='expt_dir', default='./Dataset/encodeData',
+                    help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
+parser.add_argument('--EmdeddingLoadCheckpoint', action='store', dest='load_checkpoint', default='2019_08_26_07_35_34',
+                    help='The name of the checkpoint to load, usually an encoded time string')
+parser.add_argument('--EmdeddingResume', action='store_true', dest='resume',
+                    default=False,
+                    help='Indicates if training has to be resumed from the latest checkpoint')
+
+# Predictor model setting 
+parser.add_argument('--PredictorModelDataset', dest='predictDataset', default='./Dataset/encodeData/surrogate.txt')
+parser.add_argument('--PredictorModelPath', dest='predictPath', default='./Dataset/encodeData/RankModel/')
+parser.add_argument('--PredictorModelEpoch', dest='predictEpoch', default= 20)
 
 # population setting
 parser.add_argument('--popSize', type=int, default=30,
@@ -33,6 +67,7 @@ parser.add_argument('--crossoverRate', type=float, default=0.3,
                     help='The propability rate of crossover.')
 parser.add_argument('--mutationRate', type=float, default=1,
                     help='The propability rate of crossover.')
+
 # train search method setting.
 parser.add_argument('--trainSearch_epoch', type=int, default=30,
                     help='# of epochs to train during architecture search')
@@ -53,6 +88,8 @@ parser.add_argument('--trainSearchDataset', type=str,
                     default='cifar10', help='The name of dataset.')
 parser.add_argument('--trainSearchDatasetClassNumber', type=int,
                     default=10, help='The classes number of dataset.')
+parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',
+                    default=5, help='the frequence of evaluation by surrogate.')
 # testing setting
 parser.add_argument('--evalMode', type=str, default='EXP',
                     help='Evaluating mode for testing usage.')
@@ -84,19 +121,44 @@ population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEECross
                            valueBoundary=args.valueBoundary, mutation=evo_operator.SEEMutationV1,
                            evaluation=trainSearch.main,args=args)
 
+# init the encoder mdoel
+embedModel = em(opt=args)
+
 # evaluation
 population.evaluation()
 population.save(os.path.join(args.save, 'Generation-{0}'.format('init')))
+enCodeNumpy  =  embedModel.encode2numpy(population.toString())
+
+# load the  predictor model
+# PredicDataset = RankNetDataset(pd.read_csv(args.predictDataset))
+predicDataset = RankNetDataset()
+predicDataset.addData(enCodeNumpy[:,:-1])
+
+# need to check wether the fitness is select correctly.
+predictor = Predictor(encoder=embedModel, args= args,modelSavePath=args.predictPath)
+predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
 
 for generation in range(args.generation):
-    logging.info(
-        "=======================Generatiion {0}=======================".format(generation))
-    population.newPop()
-    population.evaluation()
-    popValue = population.toMatrix()
+    # record the generation where is applying the real evaluation method.
+    realTrainPoint = [ x for x in range(0, args.generation, args.trainSGF)]
+    # create the new model file
+    logging.info("=======================Generatiion {0}=======================".format(generation))
+    if generation in realTrainPoint:
+        # the real evaluation 
+        population.newPop(inplace=True)
+        population.evaluation()
+        popValue = population.toMatrix()
+        enCodeNumpy  =  embedModel.encode2numpy(population.toString())
+        predicDataset.addData(enCodeNumpy[:,:-1])
+        predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
+    else:
+        population.newPop(inplace=True)
+        popValue = predictor.evaluation(population)
     index = Engine.enviromentalSeleection(popValue, args.popSize)
     index2 = [x for x in range(population.popSize) if x not in index]
     population.remove(index2)
+    # evaluaion using surrogate.
+    
     # static the best middle and worrse.
     popValue = population.toMatrix(needDec=False)
     # best, middle, worrse = np.min(popValue[:,1]),np.min(popValue[:,2])

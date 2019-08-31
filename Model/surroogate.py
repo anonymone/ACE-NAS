@@ -13,6 +13,7 @@ import random
 
 from misc import utils
 from Model import embeddingModel
+from Model import layers
 
 LOG_FORMAT = '%(asctime)s%(name)s%(message)s'
 logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
@@ -36,19 +37,29 @@ class RankNet(nn.Module):
         return self.model(inputs)
 
 class RankNetDataset(data.Dataset):
-    def __init__(self, dataNumpy, train=True,
+    def __init__(self, dataNumpy=None, train=True,
                  transform=None, target_transferm=None):
         self.transform = transform
         self.target_transform = target_transferm
         self.train = train
-        self.dataset = RankNetDataset.batchData(dataNumpy.shape[0])
-        if self.train:
-            self.train_data = dataNumpy[:,1:-1].astype(dtype="float32")
-            self.train_values = dataNumpy[:,-1].astype(dtype="float32")
+        if dataNumpy is None:
+            if self.train:
+                self.dataset = np.array([])
+                self.train_data = np.array([])
+                self.train_values = np.array([])
+            else:
+                self.dataset = np.array([])
+                self.test_data = np.array([])
+                self.test_data = np.array([])
         else:
-            self.test_data = dataNumpy[:,1:-1].astype(dtype="float32")
-            self.test_values = dataNumpy[:,-1].astype(dtype="float32")
-    
+            self.dataset = RankNetDataset.batchData(dataNumpy.shape[0])
+            if self.train:
+                self.train_data = dataNumpy[:,1:-1].astype(dtype="float32")
+                self.train_values = dataNumpy[:,-1].astype(dtype="float32")
+            else:
+                self.test_data = dataNumpy[:,1:-1].astype(dtype="float32")
+                self.test_values = dataNumpy[:,-1].astype(dtype="float32")
+        
     @staticmethod
     def batchData(datasetSize, batchSize = 32):
         index = [x for x in range(datasetSize)]
@@ -61,15 +72,30 @@ class RankNetDataset(data.Dataset):
         # pairs = [pairs[i:i+batchSize] for i in range(0,datasetSize - datasetSize%batchSize, batchSize)]
         return np.array(pairs)
 
-    def addData(self, newDataset):
+    def updateData (self, dataset):
+        '''
+        dataset is a numpy 2darray.
+        '''
+        self.dataset = RankNetDataset.batchData(dataset.shape[0])
         if self.train:
-            self.train_data = np.vstack([self.train_data, newDataset[:,:-1].astype(dtype="float32")])
-            self.train_values = np.hstack([self.train_values, newDataset[:,-1].astype(dtype="float32")])
-            self.dataset = RankNetDataset.batchData(self.train_data.shape[0])
+            self.train_data = dataset[:,:-1].astype(dtype="float32")
+            self.train_values = dataset[:,-1].astype(dtype="float32")
         else:
-            self.test_data = np.vstack([self.train_data, newDataset[:,:-1].astype(dtype="float32")])
-            self.test_values = np.hstack([self.train_values, newDataset[:,-1].astype(dtype="float32")])
-            self.dataset = RankNetDataset.batchData(self.test_data.shape[0])
+            self.test_data = dataset[:,:-1].astype(dtype="float32")
+            self.test_values = dataset[:,-1].astype(dtype="float32")
+
+    def addData(self, newDataset):
+        if self.dataset.__len__() == 0:
+            self.updateData(newDataset)
+        else:
+            if self.train:
+                self.train_data = np.vstack([self.train_data, newDataset[:,:-1].astype(dtype="float32")])
+                self.train_values = np.hstack([self.train_values, newDataset[:,-1].astype(dtype="float32")])
+                self.dataset = RankNetDataset.batchData(self.train_data.shape[0])
+            else:
+                self.test_data = np.vstack([self.train_data, newDataset[:,:-1].astype(dtype="float32")])
+                self.test_values = np.hstack([self.train_values, newDataset[:,-1].astype(dtype="float32")])
+                self.dataset = RankNetDataset.batchData(self.test_data.shape[0])
 
     def __getitem__(self, index):
         """
@@ -79,6 +105,7 @@ class RankNetDataset(data.Dataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
+        assert self.dataset.__len__() > 0, "Dataset is empty."
         index_ij = self.dataset[index]
         target = np.zeros(1)
         if self.train:
@@ -115,7 +142,7 @@ class RankNetDataset(data.Dataset):
         return fmt_str
 
 class Predictor:
-    def __init__(self, encoder, modelSavePath, modelSize = [(256,128),(128,64),(64,32),(32,1)]):
+    def __init__(self, encoder, modelSavePath, args, modelSize = [(256,128),(128,64),(64,32),(32,1)]):
         self.saveModelPath = modelSavePath
         self.model = RankNet(modelSize)
         self.criterion = nn.BCELoss()
@@ -123,8 +150,11 @@ class Predictor:
         self.optimizer = torch.optim.Adam(parameters)
         self.encoder = encoder
         self.device = "cuda" if torch.cuda.is_available() else "cpu" 
+        self.args= args
         
     def predict(self, codeString):
+        if type(codeString) is not list:
+            codeString = [codeString]
         vector = self.encoder.encode(codeString)
         vector = torch.from_numpy(vector).to(self.device)
         self.model = self.model.to(self.device)
@@ -134,7 +164,21 @@ class Predictor:
         outputs = outputs.detach().numpy()
         return outputs.reshape(1)
 
-    def trian(self, dataset = None, trainEpoch = 50, printFreqence=1000):
+    def evaluation(self, populations):
+        result = []
+        initChannel = self.args.trainSearch_initChannel
+        CIFAR_CLASSES = self.args.trainSearchDatasetClassNumber
+
+        for Id, ind in enumerate(populations.individuals):
+            channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
+                                        * initChannel) for i in range(1, len(ind.getDec()))]
+            model = layers.SEENetworkGenerator(ind.getDec(), channels, CIFAR_CLASSES, (32, 32))
+            n_params = (np.sum(np.prod(v.size()) for v in filter(
+                    lambda p: p.requires_grad, model.parameters())) / 1e6)
+            result.append(np.hstack([[Id], -self.predict(ind.toString(displayUsed=False)), [n_params]]))
+        return np.array(result)
+
+    def trian(self, dataset = None, trainEpoch = 50, printFreqence=10):
         if os.path.exists(self.saveModelPath + "model.ckpt") and dataset is None:
             self.model.load_state_dict(torch.load(self.saveModelPath + "model.ckpt"))
             self.model.eval()
