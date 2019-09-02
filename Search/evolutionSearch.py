@@ -136,11 +136,11 @@ predicDataset.addData(enCodeNumpy[:,:-1])
 
 # need to check wether the fitness is select correctly.
 predictor = Predictor(encoder=embedModel, args= args,modelSavePath=args.predictPath)
-predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
+# predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
 
 for generation in range(args.generation):
     # record the generation where is applying the real evaluation method.
-    realTrainPoint = [ x for x in range(0, args.generation, args.trainSGF)]
+    realTrainPoint = [ x for x in range(0, args.generation + 1, args.trainSGF)]
     # create the new model file
     logging.info("=======================Generatiion {0}=======================".format(generation))
     if generation in realTrainPoint:
@@ -149,11 +149,13 @@ for generation in range(args.generation):
         population.evaluation()
         popValue = population.toMatrix()
         enCodeNumpy  =  embedModel.encode2numpy(population.toString())
-        predicDataset.addData(enCodeNumpy[:,:-1])
-        predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
+        predicDataset.updateData(enCodeNumpy[:,:-1])
+        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch/2))
     else:
         population.newPop(inplace=True)
         popValue = predictor.evaluation(population)
+        # test Only use acc.
+        popValue = popValue[:,:-1]
     index = Engine.enviromentalSeleection(popValue, args.popSize)
     index2 = [x for x in range(population.popSize) if x not in index]
     population.remove(index2)
