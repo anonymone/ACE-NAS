@@ -22,10 +22,10 @@ class RankNet(nn.Module):
     def __init__(self, sizeList=[(256,128),(128,64),(64,32),(32,1)]):
         super(RankNet,self).__init__()
         self.model = nn.Sequential()
-        for inSize, outSize in sizeList[:-1]:
-            self.model.add_module('Linear{0}_{1}'.format(inSize,outSize),nn.Linear(inSize,outSize))
-            self.model.add_module('ReLU',nn.ReLU())
-        self.model.add_module('Linear{0}_{1}'.format(sizeList[-1][0],sizeList[-1][1]),nn.Linear(sizeList[-1][0],sizeList[-1][1]))
+        for layerNumber, (inSize, outSize) in enumerate(sizeList[:-1]):
+            self.model.add_module('Linear{0}'.format(layerNumber),nn.Linear(inSize,outSize))
+            self.model.add_module('ReLU{0}'.format(layerNumber),nn.ReLU())
+        self.model.add_module('Linear{0}'.format(layerNumber),nn.Linear(sizeList[-1][0],sizeList[-1][1]))
         self.P_ij = nn.Sigmoid()
     def forward(self, input1, input2):
         x_i = self.model(input1)
@@ -34,7 +34,8 @@ class RankNet(nn.Module):
         return self.P_ij(S_ij)
     
     def predict(self, inputs):
-        return self.model(inputs)
+        outputs = self.model(inputs)
+        return outputs
 
 class RankNetDataset(data.Dataset):
     def __init__(self, dataNumpy=None, train=True,
@@ -181,7 +182,7 @@ class Predictor:
         return np.array(result)
 
     def trian(self, dataset = None, trainEpoch = 50, printFreqence=10):
-        if os.path.exists(self.saveModelPath + "model.ckpt") and dataset is None:
+        if os.path.exists(os.path.join(self.saveModelPath,"model.ckpt")) and dataset is None:
             self.model.load_state_dict(torch.load(self.saveModelPath + "model.ckpt"))
             self.model.eval()
             logging.info("RankNet model find in {0}".format(self.saveModelPath+"model.ckpt"))
@@ -222,7 +223,7 @@ class Predictor:
                                                                                 step+1, 
                                                                                 train_loss/total, 
                                                                                 100.*correct/total))
-            torch.save(self.model.state_dict(), self.saveModelPath+"model.ckpt")
+            torch.save(self.model.state_dict(), os.path.join(self.saveModelPath,"model.ckpt"))
 
 if __name__ == "__main__":
     import pandas as pd
