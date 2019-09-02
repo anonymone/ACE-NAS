@@ -25,7 +25,7 @@ class RankNet(nn.Module):
         for layerNumber, (inSize, outSize) in enumerate(sizeList[:-1]):
             self.model.add_module('Linear{0}'.format(layerNumber),nn.Linear(inSize,outSize))
             self.model.add_module('ReLU{0}'.format(layerNumber),nn.ReLU())
-        self.model.add_module('Linear{0}'.format(layerNumber),nn.Linear(sizeList[-1][0],sizeList[-1][1]))
+        self.model.add_module('Linear{0}'.format(layerNumber+1),nn.Linear(sizeList[-1][0],sizeList[-1][1]))
         self.P_ij = nn.Sigmoid()
     def forward(self, input1, input2):
         x_i = self.model(input1)
