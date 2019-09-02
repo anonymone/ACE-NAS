@@ -175,7 +175,9 @@ class Predictor:
             model = layers.SEENetworkGenerator(ind.getDec(), channels, CIFAR_CLASSES, (32, 32))
             n_params = (np.sum(np.prod(v.size()) for v in filter(
                     lambda p: p.requires_grad, model.parameters())) / 1e6)
-            result.append(np.hstack([[Id], -self.predict(ind.toString(displayUsed=False)), [n_params]]))
+            fitnessSG = -self.predict(ind.toString(displayUsed=False))
+            populations.individuals[Id].setFitnessSG(fitnessSG)
+            result.append(np.hstack([[Id], fitnessSG, [n_params]]))
         return np.array(result)
 
     def trian(self, dataset = None, trainEpoch = 50, printFreqence=10):

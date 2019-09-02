@@ -91,7 +91,7 @@ parser.add_argument('--trainSearchDatasetClassNumber', type=int,
 parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',
                     default=5, help='the frequence of evaluation by surrogate.')
 # testing setting
-parser.add_argument('--evalMode', type=str, default='EXP',
+parser.add_argument('--evalMode', type=str, default='DEBUG',
                     help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()

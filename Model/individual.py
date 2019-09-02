@@ -26,6 +26,7 @@ class code():
             assert type(args) == dict, 'args is not dict type.'
             for key in args:
                 self.__dict__[key] = args[key]
+        self.evaluated = False
 
     def getDec(self):
         return self.dec.copy()
@@ -71,6 +72,9 @@ class code():
         return the code and fitness as a numpy.ndarray with size (-1).
         '''
         return np.hstack((self.dec, self.fitness))
+    
+    def isEvaluated(self):
+        return self.evaluated
 
 
 class population:
@@ -102,6 +106,7 @@ class population:
                 if self.individuals[indId].isTraind():
                     continue
                 self.individuals[indId].setFitness(np.random.random((1,2)))
+                self.individuals[indId].evaluated = True
             return None
         assert self.eval != None, 'evaluating method is not defined.'
         for indId, ind in zip(range(self.popSize), self.individuals):
@@ -109,6 +114,7 @@ class population:
                 continue
             fitness = self.eval(ind, self.args,complement=True, **kwargs)
             self.individuals[indId].setFitness([fitness['valid_err'],fitness['flops']])
+            self.individuals[indId].evaluated = True
         return None
 
     def newPop(self, index=None, inplace=True):
@@ -126,6 +132,7 @@ class population:
                     [0 for _ in range(subPop[indID].shape[1])])
                 # Update ID
                 subPop[indID].ID = uuid.uuid1()
+                subPop[indID].evaluated = False
                 newPop.append(subPop[indID])
             if self.crossover is not None and random.random() < self.crossoverRate:
                 ind1, ind2 = self.individuals[random.randint(
@@ -142,6 +149,7 @@ class population:
                 # Update ID
                 for i in newInd:
                     i.ID = uuid.uuid1()
+                    i.evaluated = False
                 # self.add(newInd)
                 newPop.extend(newInd)
         if inplace:
@@ -219,6 +227,8 @@ class SEEIndividual(code):
             # backbone need 4~6 nodes.
             self.dec[i, 0, 1] = np.random.randint(4,7)
         self.fitness = np.zeros(objSize)
+        # the surrogate predicting value
+        self.fitness_SG = np.zeros(1)
         decSize = blockLength[0]*blockLength[1]*blockLength[2]
         self.shape = [decSize, objSize]
         self.ID = uuid.uuid1()
@@ -247,11 +257,19 @@ class SEEIndividual(code):
         else:
             return " ".join(["-".join([str(s) for s in unit]) for unit in self.getDec().reshape(-1,3)])
 
+    def setFitnessSG(self, fitnessSG):
+        if type(fitnessSG) != np.array:
+            fitnessSG = np.array(fitnessSG).reshape(1)
+        self.fitness_SG = fitnessSG
+
+    def getFitnessSG(self):
+        return self.fitness_SG
+
     def isTraind(self):
         '''
         used to check whether individual is assigned with a fitness.
         '''
-        return np.any(np.sum(self.getFitness()) != 0)
+        return self.isEvaluated()
 
 
 class SEEPopulation(population):
@@ -276,10 +294,10 @@ class SEEPopulation(population):
         '''
         if needDec:
             matrix = np.vstack(
-                [np.hstack(([ind_id], ind.getDec().flatten(), ind.getFitness())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
+                [np.hstack(([ind_id], ind.getDec().flatten(), ind.getFitness(), ind.getFitnessSG())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
         else:
             matrix = np.vstack(
-                [np.hstack(([ind_id], ind.getFitness())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
+                [np.hstack(([ind_id], ind.getFitness(), ind.getFitnessSG())) for ind_id, ind in zip(range(self.popSize), self.individuals)])
 
         return matrix
 
