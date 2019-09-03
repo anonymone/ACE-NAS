@@ -145,6 +145,7 @@ class RankNetDataset(data.Dataset):
 class Predictor:
     def __init__(self, encoder, modelSavePath, args, modelSize = [(256,128),(128,64),(64,32),(32,1)]):
         self.saveModelPath = modelSavePath
+        self.modelSize = modelSize
         self.model = RankNet(modelSize)
         self.criterion = nn.BCELoss()
         parameters = filter(lambda p: p.requires_grad, self.model.parameters())
@@ -182,7 +183,11 @@ class Predictor:
             result.append(np.hstack([[Id], fitnessSG, [n_params]]))
         return np.array(result)
 
-    def trian(self, dataset = None, trainEpoch = 50, printFreqence=10):
+    def trian(self, dataset = None, trainEpoch = 50, printFreqence=100, newModel=False):
+        if newModel:
+            self.model = RankNet(self.modelSize)
+            parameters = filter(lambda p: p.requires_grad, self.model.parameters())
+            self.optimizer = torch.optim.Adam(parameters)
         if os.path.exists(os.path.join(self.saveModelPath,"model.ckpt")) and dataset is None:
             self.model.load_state_dict(torch.load(self.saveModelPath + "model.ckpt"))
             self.model.eval()

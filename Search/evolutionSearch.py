@@ -140,7 +140,7 @@ predictor = Predictor(encoder=embedModel, args= args,modelSavePath=args.predictP
 
 for generation in range(args.generation + 1):
     # record the generation where is applying the real evaluation method.
-    realTrainPoint = [ x for x in range(0, args.generation, args.trainSGF)]
+    realTrainPoint = [ x for x in range(0, args.generation + 1, args.trainSGF)]
     # create the new model file
     logging.info("=======================Generatiion {0}=======================".format(generation))
     if generation in realTrainPoint:
@@ -151,8 +151,8 @@ for generation in range(args.generation + 1):
         # only use the acc, param
         popValue = popValue[:,:-1]
         enCodeNumpy  =  embedModel.encode2numpy(population.toString())
-        predicDataset.updateData(enCodeNumpy[:,:-1])
-        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch))
+        predicDataset.addData(enCodeNumpy[:,:-1])
+        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True)
     else:
         population.newPop(inplace=True)
         popValue = predictor.evaluation(population)
@@ -161,8 +161,6 @@ for generation in range(args.generation + 1):
     index = Engine.enviromentalSeleection(popValue, args.popSize)
     index2 = [x for x in range(population.popSize) if x not in index]
     population.remove(index2)
-    # evaluaion using surrogate.
-    
     # static the best middle and worrse.
     popValue = population.toMatrix(needDec=False)
     # best, middle, worrse = np.min(popValue[:,1]),np.min(popValue[:,2])
