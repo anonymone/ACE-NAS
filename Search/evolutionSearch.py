@@ -148,6 +148,8 @@ for generation in range(args.generation + 1):
         population.newPop(inplace=True)
         population.evaluation()
         popValue = population.toMatrix()
+        # only use the acc, param
+        popValue = popValue[:,:-1]
         enCodeNumpy  =  embedModel.encode2numpy(population.toString())
         predicDataset.updateData(enCodeNumpy[:,:-1])
         predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch))
