@@ -178,6 +178,7 @@ class Predictor:
                     lambda p: p.requires_grad, model.parameters())) / 1e6)
             fitnessSG = -self.predict(ind.toString(displayUsed=False))
             populations.individuals[Id].setFitnessSG(fitnessSG)
+            populations.individuals[Id].setFitness([0., n_params])
             result.append(np.hstack([[Id], fitnessSG, [n_params]]))
         return np.array(result)
 
@@ -218,6 +219,10 @@ class Predictor:
                     predicted[predicted<0.5] = 0
                     total += labels.size(0)
                     correct += np.sum(predicted.reshape(1,-1)==labels.cpu().numpy().reshape(1,-1))
+                    # if newCorrect > correct and epoch > trainEpoch*0.5:
+                    #     torch.save(self.model.state_dict(), os.path.join(self.saveModelPath,"model_acc{0}.ckpt".format(newCorrect)))
+                    #     logging.info("Save new Model (acc:{0}) successfully!".format(newCorrect))
+                    # correct = newCorrect
                     if (step+1)%printFreqence == 0:
                         logging.info("Epoch: {0}, Step: {1} Loss: {2}, Acc: {3}".format(epoch, 
                                                                                 step+1, 

@@ -138,9 +138,9 @@ predicDataset.addData(enCodeNumpy[:,:-1])
 predictor = Predictor(encoder=embedModel, args= args,modelSavePath=args.predictPath)
 # predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
 
-for generation in range(args.generation):
+for generation in range(args.generation + 1):
     # record the generation where is applying the real evaluation method.
-    realTrainPoint = [ x for x in range(0, args.generation + 1, args.trainSGF)]
+    realTrainPoint = [ x for x in range(0, args.generation, args.trainSGF)]
     # create the new model file
     logging.info("=======================Generatiion {0}=======================".format(generation))
     if generation in realTrainPoint:
@@ -150,7 +150,7 @@ for generation in range(args.generation):
         popValue = population.toMatrix()
         enCodeNumpy  =  embedModel.encode2numpy(population.toString())
         predicDataset.updateData(enCodeNumpy[:,:-1])
-        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch/2))
+        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch))
     else:
         population.newPop(inplace=True)
         popValue = predictor.evaluation(population)
