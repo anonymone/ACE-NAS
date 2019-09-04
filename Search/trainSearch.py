@@ -2,7 +2,6 @@ import sys
 sys.path.insert(0, './')
 
 import os
-import os
 import numpy as np
 import torch
 import logging
@@ -21,9 +20,7 @@ import time
 from misc import utils
 from misc.flops_counter import add_flops_counting_methods
 
-device = 'cuda'
-
-# def main(code, epochs, save='SearchExp', exprRoot='./Experiments', seed=0, gpu=0, initChannel=24, modelLayers=11, auxiliary=False, cutout=False, dropPathProb=0.0):
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def main(code, args, complement=False, **kwargs):

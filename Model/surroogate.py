@@ -12,11 +12,14 @@ import itertools
 import random 
 
 from misc import utils
+from misc.flops_counter import add_flops_counting_methods
 from Model import embeddingModel
 from Model import layers
 
 LOG_FORMAT = '%(asctime)s%(name)s%(message)s'
 logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 class RankNet(nn.Module):
     def __init__(self, sizeList=[(256,128),(128,64),(64,32),(32,1)]):
@@ -175,12 +178,19 @@ class Predictor:
             channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
                                         * initChannel) for i in range(1, len(ind.getDec()))]
             model = layers.SEENetworkGenerator(ind.getDec(), channels, CIFAR_CLASSES, (32, 32))
-            n_params = (np.sum(np.prod(v.size()) for v in filter(
-                    lambda p: p.requires_grad, model.parameters())) / 1e6)
+            # calculate for flopss1
+            model = add_flops_counting_methods(model)
+            model.eval()
+            model.start_flops_count()
+            # when the dataset changed it would be changed.
+            random_data = torch.randn(1, 3, 32, 32).to("cpu")
+            model(torch.autograd.Variable(random_data).to("cpu"))
+            n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
+            # calculate for predict value
             fitnessSG = self.predict(ind.toString(displayUsed=False))
             populations.individuals[Id].setFitnessSG(fitnessSG)
-            populations.individuals[Id].setFitness([0., n_params])
-            result.append(np.hstack([[Id], fitnessSG, [n_params]]))
+            populations.individuals[Id].setFitness([0., n_flops])
+            result.append(np.hstack([[Id], fitnessSG, [n_flops]]))
         return np.array(result)
 
     def trian(self, dataset = None, trainEpoch = 50, printFreqence=100, newModel=False):
@@ -261,10 +271,10 @@ if __name__ == "__main__":
     print(dataset.__len__())
     dataset.addData(newdataset)
     print(dataset.__len__())
-    # encoder = embeddingModel.EmbeddingModel(opt=args)
+    encoder = embeddingModel.EmbeddingModel(opt=args)
 
-    # predictor = Predictor(encoder=encoder,modelSavePath="./Dataset/encodeData/RankModel_test/")
-    # predictor.trian(dataset=dataset,trainEpoch=20)
-    # codeString = ["0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4', '0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4"]
-    # value = predictor.predict(codeString)
-    # print(value)
+    predictor = Predictor(encoder=encoder,modelSavePath="./Dataset/encodeData/RankModel_test/")
+    predictor.trian(dataset=dataset,trainEpoch=20)
+    codeString = ["0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4', '0-4-4 6-0-8 1-9-7 7-0-1 8-4-6 3-0-0 6-1-7 8-1-7 7-2-7 7-0-2 4-5-3 2-5-4 9-1-6 1-1-1 2-3-4 3-6-2 2-1-8 3-9-4 4-2-7 3-3-3 5-5-6 8-7-7 7-0-0 5-0-3 2-8-4 4-7-1 3-8-4 2-1-8 3-8-7 3-6-4"]
+    value = predictor.predict(codeString)
+    print(value)
