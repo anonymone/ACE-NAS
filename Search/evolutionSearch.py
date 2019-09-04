@@ -11,6 +11,7 @@ import torch
 from torch.optim.lr_scheduler import StepLR
 import torchtext
 import pandas as pd
+from copy import deepcopy
 
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
@@ -53,6 +54,8 @@ parser.add_argument('--EmbeddingResume', action='store_true', dest='resume',
 parser.add_argument('--PredictorModelDataset', dest='predictDataset', default='./Dataset/encodeData/surrogate.txt')
 parser.add_argument('--PredictorModelPath', dest='predictPath', default='./Dataset/encodeData/RankModel/')
 parser.add_argument('--PredictorModelEpoch', dest='predictEpoch', default= 20)
+parser.add_argument('--PredictorSelectNumberofIndividuals', dest='predictSelectNum', default= 2)
+parser.add_argument('--PredictorSearchEpoch', dest='predictSearchEpoch', default= 10)
 
 # population setting
 parser.add_argument('--popSize', type=int, default=30,
@@ -63,7 +66,7 @@ parser.add_argument('--blockLength', type=tuple, default=(3, 15, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
-parser.add_argument('--crossoverRate', type=float, default=0.3,
+parser.add_argument('--crossoverRate', type=float, default=0.1,
                     help='The propability rate of crossover.')
 parser.add_argument('--mutationRate', type=float, default=1,
                     help='The propability rate of crossover.')
@@ -142,7 +145,7 @@ for generation in range(args.generation + 1):
     # record the generation where is applying the real evaluation method.
     realTrainPoint = [ x for x in range(0, args.generation + 1, args.trainSGF)]
     # create the new model file
-    logging.info("=======================Generatiion {0}=======================".format(generation))
+    logging.info("===========================Generatiion {0}===========================".format(generation))
     if generation in realTrainPoint:
         # the real evaluation 
         population.newPop(inplace=True)
@@ -154,10 +157,25 @@ for generation in range(args.generation + 1):
         predicDataset.addData(enCodeNumpy[:,:-1])
         predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True)
     else:
-        population.newPop(inplace=True)
-        popValue = predictor.evaluation(population)
-        # test Only use acc.
-        popValue = popValue[:,:-1]
+        surrogatePop = deepcopy(population)
+        individuals = surrogatePop.individuals
+        for surrogateRunTimes in range(args.predictSearchEpoch):
+            if (surrogateRunTimes+1)%10 == 0:
+                logging.info("=======================Generatiion {0}.{1} with Surrogate=======================".format(generation,surrogateRunTimes+1))
+            surrogatePop.newPop(inplace=True)
+            popValue = predictor.evaluation(surrogatePop.individuals)
+            # test Only use acc.
+            index = Engine.enviromentalSeleection(popValue[:,:-1], args.popSize)
+            index2 = [x for x in range(surrogatePop.popSize) if x not in index]
+            surrogatePop.remove(index2)
+        popValue = surrogatePop.toMatrix()
+        popValue = popValue[:,[0,-1]]
+        index = Engine.enviromentalSeleection(popValue[:,:-1], popNum = args.predictSelectNum)
+        theBestInd = surrogatePop.getInd(index)
+        theBestInd = surrogatePop.evaluation(individuals=theBestInd)
+        population.add(theBestInd)
+    popValue = population.toMatrix()
+    popValue = popValue[:,:-1]
     index = Engine.enviromentalSeleection(popValue, args.popSize)
     index2 = [x for x in range(population.popSize) if x not in index]
     population.remove(index2)

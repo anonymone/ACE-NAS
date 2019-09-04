@@ -100,29 +100,50 @@ class population:
         self.crossover = crossover
         self.args = args
 
-    def evaluation(self, **kwargs):
-        if self.args.evalMode == 'DEBUG':
+    def evaluation(self, individuals=None, **kwargs):
+        if self.args.evalMode == 'DEBUG' and individuals is None:
             for indId, ind in zip(range(self.popSize), self.individuals):
                 if self.individuals[indId].isTraind():
                     continue
                 self.individuals[indId].setFitness(np.random.random((1,2)))
                 self.individuals[indId].evaluated = True
             return None
-        assert self.eval != None, 'evaluating method is not defined.'
-        for indId, ind in zip(range(self.popSize), self.individuals):
-            if self.individuals[indId].isTraind():
-                continue
-            fitness = self.eval(ind, self.args,complement=True, **kwargs)
-            self.individuals[indId].setFitness([fitness['valid_err'],fitness['flops']])
-            self.individuals[indId].evaluated = True
-        return None
-
-    def newPop(self, index=None, inplace=True):
-        assert self.mutate != None, 'mutating method is not defined.'
-        if index is not None:
-            subPop = deepcopy(self.individuals[index])
+        elif self.args.evalMode == 'DEBUG' and individuals is not None:
+            for indId, _ in enumerate(individuals):
+                if individuals[indId].isTraind():
+                    continue
+                individuals[indId].setFitness(np.random.random((1,2)))
+                individuals[indId].evaluated = True
+            return deepcopy(individuals)
         else:
+            assert self.eval != None, 'evaluating method is not defined.'
+            if individuals is None:
+                for indId, ind in zip(range(self.popSize), self.individuals):
+                    if self.individuals[indId].isTraind():
+                        continue
+                    fitness = self.eval(ind, self.args,complement=True, **kwargs)
+                    self.individuals[indId].setFitness([fitness['valid_err'],fitness['flops']])
+                    self.individuals[indId].evaluated = True
+                return None
+            else :
+                for indId, _ in enumerate(individuals):
+                    if individuals[indId].isTraind():
+                        continue
+                    fitness = self.eval(ind, self.args,complement=True, **kwargs)
+                    individuals[indId].setFitness([fitness['valid_err'],fitness['flops']])
+                    individuals[indId].evaluated = True
+                return deepcopy(individuals)
+
+    def newPop(self, individuals=None, index=None, inplace=True):
+        assert self.mutate != None, 'mutating method is not defined.'
+        if index is not None and individuals is None:
+            subPop = deepcopy(self.individuals[index])
+        elif index is None and individuals is None:
             subPop = deepcopy(self.individuals)
+        elif index is not None and individuals is not None:
+            subPop = deepcopy(individuals[index])
+        else:
+            subPop = deepcopy(individuals)
         newPop = []
         for indID, ind in zip(range(len(subPop)), subPop):
             if random.random() < self.mutationRate:
@@ -156,6 +177,12 @@ class population:
             self.add(newPop)
         else:
             return newPop
+
+    def getInd(self, index=None):
+        if index is None:
+            return self.individuals
+        else:
+            return [self.individuals[i] for i in index]
 
     def remove(self, index):
         '''

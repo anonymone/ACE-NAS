@@ -169,27 +169,28 @@ class Predictor:
         outputs = outputs.detach().numpy()
         return outputs.reshape(1)
 
-    def evaluation(self, populations):
+    # Normal evaluation
+    def evaluation(self, individuals):
         result = []
         initChannel = self.args.trainSearch_initChannel
         CIFAR_CLASSES = self.args.trainSearchDatasetClassNumber
 
-        for Id, ind in enumerate(populations.individuals):
+        for Id, ind in enumerate(individuals):
             channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
                                         * initChannel) for i in range(1, len(ind.getDec()))]
-            model = layers.SEENetworkGenerator(ind.getDec(), channels, CIFAR_CLASSES, (32, 32))
+            model = layers.SEENetworkGenerator(ind.getDec(), channels, CIFAR_CLASSES, (32, 32)).to(device)
             # calculate for flopss1
             model = add_flops_counting_methods(model)
             model.eval()
             model.start_flops_count()
             # when the dataset changed it would be changed.
-            random_data = torch.randn(1, 3, 32, 32).to("cpu")
-            model(torch.autograd.Variable(random_data).to("cpu"))
+            random_data = torch.randn(1, 3, 32, 32)
+            model(torch.autograd.Variable(random_data).to(device))
             n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
             # calculate for predict value
             fitnessSG = self.predict(ind.toString(displayUsed=False))
-            populations.individuals[Id].setFitnessSG(fitnessSG)
-            populations.individuals[Id].setFitness([0., n_flops])
+            individuals[Id].setFitnessSG(fitnessSG)
+            individuals[Id].setFitness([0., n_flops])
             result.append(np.hstack([[Id], fitnessSG, [n_flops]]))
         return np.array(result)
 
