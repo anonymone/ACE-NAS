@@ -167,7 +167,7 @@ for generation in range(args.generation + 1):
         popValue = popValue[:,:-1]
         enCodeNumpy  =  embedModel.encode2numpy(population.toString())
         predicDataset.updateData(enCodeNumpy[:,:-1])
-        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=False)
+        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True)
     else:
         surrogatePop = deepcopy(population)
         individuals = surrogatePop.individuals
