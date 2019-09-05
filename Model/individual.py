@@ -1,10 +1,11 @@
 import numpy as np
-import pandas
+import pandas as pd
 from pandas import DataFrame
 import random
 from copy import deepcopy
 import argparse
 import uuid
+import logging
 
 
 class code():
@@ -288,6 +289,29 @@ class SEEPopulation(population):
                             for _ in range(popSize)]
         self.popSize = popSize
 
+    def load(self, path, objSize, blockLength, valueBoundary, addMode = False):
+        try:
+            historyData = pd.read_csv(path)
+        except:
+            logging.error("Open {0} failed!".format(path))
+        decLength = blockLength[0]*blockLength[1]*blockLength[2]
+        individuals = []
+        for Id, indData in enumerate(historyData.values):
+            ID, dec, fitness, fitnessSG = indData[0],indData[2:decLength+2], indData[decLength+2:decLength+objSize+2], indData[2+decLength+objSize:]
+            ind = SEEIndividual(objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
+            ind.setDec(dec)
+            ind.setFitness(fitness)
+            ind.setFitnessSG(fitnessSG)
+            individuals.append(ind)
+            ind.ID = ID
+        if addMode:
+            self.popSize = self.popSize + len(individuals)
+            self.individuals = self.individuals.extend(individuals)
+        else:
+            self.popSize = len(individuals)
+            self.individuals = individuals
+
+
     def toMatrix(self, needDec=False):
         '''
         return a table containing dec and fitness, numpy.ndarray.
@@ -335,11 +359,12 @@ if __name__ == "__main__":
                         default=0.2, help='The propability rate of crossover.')
     args = parser.parse_args()
     pop = SEEPopulation(popSize=30, objSize=2, args=args)
-    ind = pop.individuals[0]
-    ind.setFitness([1.4314, 2.342])
-    pop.add(ind)
-    ind.setFitness([3.34, 4.4231])
-    pop.add([ind, ind])
+    pop.load(path='./Dataset/initialization/population.csv',objSize=2,blockLength=(3,15,3),valueBoundary=(0,9))
+    # ind = pop.individuals[0]
+    # ind.setFitness([1.4314, 2.342])
+    # pop.add(ind)
+    # ind.setFitness([3.34, 4.4231])
+    # pop.add([ind, ind])
     # print(pop.toMatrix())
     # print(ind.toString())
     # # print(ind.toVector())
