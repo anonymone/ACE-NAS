@@ -150,13 +150,14 @@ for generation in range(args.generation + 1):
     logging.info("=======================Generatiion {0}=======================".format(generation))
     if generation in realTrainPoint:
         # the real evaluation 
-        population.newPop(inplace=True)
         if generation == 0:
             population.load(path='./Dataset/initialization/population_G1.csv',
                             objSize=args.objSize,
                             blockLength=args.blockLength,
-                            valueBoundary=args.valueBoundary)
+                            valueBoundary=args.valueBoundary,
+                            addMode=True)
         else:
+            population.newPop(inplace=True)
             population.evaluation()
         popValue = population.toMatrix()
         # only use the acc, param
