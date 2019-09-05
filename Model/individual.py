@@ -127,7 +127,7 @@ class population:
                     self.individuals[indId].evaluated = True
                 return None
             else :
-                for indId, _ in enumerate(individuals):
+                for indId, ind in enumerate(individuals):
                     if individuals[indId].isTraind():
                         continue
                     fitness = self.eval(ind, self.args,complement=True, **kwargs)
@@ -326,14 +326,14 @@ class SEEPopulation(population):
         for Id, indData in enumerate(historyData.values):
             ID, dec, fitness, fitnessSG = indData[0],indData[2:decLength+2], indData[decLength+2:decLength+objSize+2], indData[2+decLength+objSize:]
             ind = SEEIndividual(objSize=self.objSize, blockLength=blockLength, valueBoundary=valueBoundary)
-            ind.setDec(dec)
+            ind.setDec(dec.astype("int"))
             ind.setFitness(fitness)
             ind.setFitnessSG(fitnessSG)
             individuals.append(ind)
             ind.ID = ID
         if addMode:
             self.popSize = self.popSize + len(individuals)
-            self.individuals = self.individuals.extend(individuals)
+            self.individuals.extend(individuals)
         else:
             self.popSize = len(individuals)
             self.individuals = individuals

@@ -94,7 +94,7 @@ parser.add_argument('--trainSearchDatasetClassNumber', type=int,
 parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',
                     default=5, help='the frequence of evaluation by surrogate.')
 # testing setting
-parser.add_argument('--evalMode', type=str, default='DEBUG',
+parser.add_argument('--evalMode', type=str, default='EXP',
                     help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
@@ -153,20 +153,21 @@ for generation in range(args.generation + 1):
     logging.info("===========================Generatiion {0}===========================".format(generation))
     if generation in realTrainPoint:
         # the real evaluation 
-        population.newPop(inplace=True)
         if generation == 0:
             population.load(path='./Dataset/initialization/population_G1.csv',
                             objSize=args.objSize,
                             blockLength=args.blockLength,
-                            valueBoundary=args.valueBoundary)
+                            valueBoundary=args.valueBoundary,
+                            addMode=True)
         else:
+            population.newPop(inplace=True)
             population.evaluation()
         popValue = population.toMatrix()
         # only use the acc, param
         popValue = popValue[:,:-1]
         enCodeNumpy  =  embedModel.encode2numpy(population.toString())
-        predicDataset.addData(enCodeNumpy[:,:-1])
-        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True)
+        predicDataset.updateData(enCodeNumpy[:,:-1])
+        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=False)
     else:
         surrogatePop = deepcopy(population)
         individuals = surrogatePop.individuals
