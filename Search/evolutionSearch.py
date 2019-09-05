@@ -128,7 +128,12 @@ population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEECross
 embedModel = em(opt=args)
 
 # evaluation
-population.evaluation()
+# population.evaluation()
+# we fix the initialization in general experiments
+population.load(path='./Dataset/initialization/population_init.csv',
+                objSize=args.objSize,
+                blockLength=args.blockLength,
+                valueBoundary=args.valueBoundary)
 population.save(os.path.join(args.save, 'Generation-{0}'.format('init')))
 enCodeNumpy  =  embedModel.encode2numpy(population.toString())
 
@@ -149,7 +154,13 @@ for generation in range(args.generation + 1):
     if generation in realTrainPoint:
         # the real evaluation 
         population.newPop(inplace=True)
-        population.evaluation()
+        if generation == 0:
+            population.load(path='./Dataset/initialization/population_G1.csv',
+                            objSize=args.objSize,
+                            blockLength=args.blockLength,
+                            valueBoundary=args.valueBoundary)
+        else:
+            population.evaluation()
         popValue = population.toMatrix()
         # only use the acc, param
         popValue = popValue[:,:-1]
