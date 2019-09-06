@@ -148,7 +148,7 @@ predicDataset.addData(enCodeNumpy[:,:-1])
 predictor = Predictor(encoder=embedModel, args= args,modelSavePath=args.predictPath)
 # predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
 
-for generation in range(args.generation + 1):
+for generation in range(args.generation):
     # record the generation where is applying the real evaluation method.
     realTrainPoint = [ x for x in range(0, args.generation + 1, args.trainSGF)]
     # create the new model file
