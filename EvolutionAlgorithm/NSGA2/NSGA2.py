@@ -54,14 +54,17 @@ class NSGA2(EAbase.EAbase):
         for m in range(fitnessNum):
             objVector = fitnessValue[:, m]
             orderIndex = np.argsort(objVector)
+            # orderIndex = orderIndex[::-1]
             subIndex = orderIndex[1:-1]
             Idistance[orderIndex[0]] = Idistance[orderIndex[-1]] = np.inf
             for i in range(len(subIndex)):
                 Idistance[subIndex[i]] = Idistance[subIndex[i]] + (
-                    objVector[orderIndex[i+1]] - objVector[orderIndex[i-1]])/(np.max(objVector)+0.1-np.min(objVector))
+                    objVector[orderIndex[i+2]] - objVector[orderIndex[i]])/(np.max(objVector)+0.1-np.min(objVector))
         return  Idistance
 
     def enviromentalSeleection(self, pop, popNum):
+        # if pop size is less than popNum, enviromentalSelection will select all individuals
+        popNum = popNum if popNum < len(pop) else len(pop)
         F = self.fastNondomiatedSort(pop)
         count = 0
         selectingIndex = []
@@ -77,7 +80,7 @@ class NSGA2(EAbase.EAbase):
             crowdValue = self.crowdingDistance(subpop)
             index = np.argsort(-crowdValue).tolist()
             index = index[0:(popNum-count)]
-            selectingIndex.extend(index)
+            selectingIndex.extend([Fi[x] for x in index])
             selectingIndex.sort()
         return selectingIndex
 
