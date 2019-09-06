@@ -94,6 +94,8 @@ parser.add_argument('--trainSearchDatasetClassNumber', type=int,
 parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',
                     default=5, help='the frequence of evaluation by surrogate.')
 # testing setting
+# DEBUG is replace all evaluation 
+# FAST is load prepared Data
 parser.add_argument('--evalMode', type=str, default='EXP',
                     help='Evaluating mode for testing usage.')
 
@@ -153,7 +155,7 @@ for generation in range(args.generation + 1):
     logging.info("===========================Generatiion {0}===========================".format(generation))
     if generation in realTrainPoint:
         # the real evaluation 
-        if generation == 0:
+        if generation == 0 and args.evalMode == "FAST":
             population.load(path='./Dataset/initialization/population_G1.csv',
                             objSize=args.objSize,
                             blockLength=args.blockLength,
