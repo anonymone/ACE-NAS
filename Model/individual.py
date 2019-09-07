@@ -316,6 +316,12 @@ class SEEPopulation(population):
                             for _ in range(popSize)]
         self.popSize = popSize
 
+    def newPop(self, index=None, inplace=True):
+        Pop = super().newPop(index=index, inplace=False)
+        for ind in Pop:
+            ind.setFitnessSG(0.0)
+        self.add(Pop)
+
     def load(self, path, objSize, blockLength, valueBoundary, addMode = False):
         try:
             historyData = pd.read_csv(path)
