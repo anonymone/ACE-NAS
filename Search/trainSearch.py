@@ -212,7 +212,7 @@ def train(train_queue, net, criterion, optimizer, params):
     for step, (inputs, targets) in enumerate(train_queue):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        outputs, outputs_aux = net(inputs)
+        outputs, outputs_aux = net(inputs, step)
         loss = criterion(outputs, targets)
 
         if params['auxiliary']:
@@ -245,7 +245,7 @@ def infer(valid_queue, net, criterion):
     with torch.no_grad():
         for step, (inputs, targets) in enumerate(valid_queue):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs, _ = net(inputs)
+            outputs, _ = net(inputs, step)
             loss = criterion(outputs, targets)
 
             test_loss += loss.item()

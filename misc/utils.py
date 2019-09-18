@@ -246,6 +246,7 @@ class MaybeCalibrateSize(nn.Module):
         out = torch.add(s0,s1)
         return out
 
+
 class AuxHeadCIFAR(nn.Module):
     def __init__(self, C_in, classes):
         """assuming input size 8x8"""
