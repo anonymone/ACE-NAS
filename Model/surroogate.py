@@ -194,7 +194,7 @@ class Predictor:
         return outputs.reshape(1)
 
     # Normal evaluation
-    def evaluation(self, individuals):
+    def evaluation(self,args ,individuals):
         result = []
         initChannel = self.args.trainSearch_initChannel
         CIFAR_CLASSES = self.args.trainSearchDatasetClassNumber
@@ -202,8 +202,15 @@ class Predictor:
         for Id, ind in enumerate(individuals):
             channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
                                               * initChannel) for i in range(1, len(ind.getDec()))]
-            model = layers.SEENetworkGenerator(
-                ind.getDec(), channels, CIFAR_CLASSES, (32, 32)).to(device)
+            model = NAOlayer.SEEArchitecture(args=args,
+                                     classes=CIFAR_CLASSES,
+                                     layers=2,
+                                     channels=initChannel,
+                                     code= code.getDec(), 
+                                     keepProb=args.keepProb, 
+                                     dropPathKeepProb=args.dropPathKeepProb,
+                                     useAuxHead=False, 
+                                     steps=steps)
             # calculate for flopss1
             model = add_flops_counting_methods(model)
             model.eval()

@@ -11,7 +11,7 @@ import torch.utils
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
 
-from Model import layers, individual
+from Model import layers, individual, NAOlayer
 
 from Dataset import cifar10Search as Cifar10
 from Dataset import cifar100Search as Cifar100
@@ -61,11 +61,20 @@ def main(code, args, complement=False, **kwargs):
         'report_freq': report_freq,
     }
 
-    channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
-                                      * initChannel) for i in range(1, len(code.getDec()))]
+    # channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
+    #                                   * initChannel) for i in range(1, len(code.getDec()))]
 
-    model = layers.SEENetworkGenerator(
-        code.getDec(), channels, CIFAR_CLASSES, (32, 32))
+    steps = int(np.ceil(40000 / batch_size)) * args.trainSearch_epoch
+
+    model = NAOlayer.SEEArchitecture(args=args,
+                                     classes=CIFAR_CLASSES,
+                                     layers=2,
+                                     channels=initChannel,
+                                     code= code.getDec(), 
+                                     keepProb=args.trainSearch_keep_prob, 
+                                     dropPathKeepProb=args.trainSearch_drop_path_keep_prob,
+                                     useAuxHead=False, 
+                                     steps=steps)
 
     # logging.info("Genome = %s", genome)
     logging.info("Architecture ID = %s", code.ID)
@@ -275,13 +284,15 @@ if __name__ == "__main__":
                         help='The propability rate of crossover.')
     # train search method setting.
     parser.add_argument('--trainSearch_epoch', type=int, default=30,
-                        help='# of epochs to train during architecture search')
+                    help='# of epochs to train during architecture search')
     parser.add_argument('--trainSearch_save', type=str,
                         default='SEE_#id', help='the filename including each model.')
     parser.add_argument('--trainSearch_exprRoot', type=str,
                         default='./Experiments/model', help='the root path of experiments.')
     parser.add_argument('--trainSearch_initChannel', type=int,
                         default=32, help='# of filters for first cell')
+    parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
+    parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=1.0)
     parser.add_argument('--trainSearch_auxiliary',
                         type=bool, default=False, help='')
     parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
@@ -293,6 +304,8 @@ if __name__ == "__main__":
                         default='cifar10', help='The name of dataset.')
     parser.add_argument('--trainSearchDatasetClassNumber', type=int,
                         default=10, help='The classes number of dataset.')
+    parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',
+                    default=5, help='the frequence of evaluation by surrogate.')
     # testing setting
     parser.add_argument('--evalMode', type=str, default='EXP',
                         help='Evaluating mode for testing usage.')

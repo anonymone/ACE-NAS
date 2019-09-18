@@ -62,7 +62,7 @@ parser.add_argument('--popSize', type=int, default=30,
                     help='The size of population.')
 parser.add_argument('--objSize', type=int, default=2,
                     help='The number of objectives.')
-parser.add_argument('--blockLength', type=tuple, default=(3, 15, 3),
+parser.add_argument('--blockLength', type=tuple, default=(2, 15, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
@@ -72,6 +72,8 @@ parser.add_argument('--mutationRate', type=float, default=1,
                     help='The propability rate of crossover.')
 
 # train search method setting.
+parser.add_argument('--trainSearch_preLoad', type=bool, default=False,
+                    help='# of epochs to train during architecture search')
 parser.add_argument('--trainSearch_epoch', type=int, default=30,
                     help='# of epochs to train during architecture search')
 parser.add_argument('--trainSearch_save', type=str,
@@ -80,6 +82,8 @@ parser.add_argument('--trainSearch_exprRoot', type=str,
                     default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int,
                     default=32, help='# of filters for first cell')
+parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
+parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=1.0)
 parser.add_argument('--trainSearch_auxiliary',
                     type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
@@ -129,13 +133,16 @@ population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEECross
 # init the encoder mdoel
 embedModel = em(opt=args)
 
-# evaluation
-# population.evaluation()
-# we fix the initialization in general experiments
-population.load(path='./Dataset/initialization/population_init.csv',
-                objSize=args.objSize,
-                blockLength=args.blockLength,
-                valueBoundary=args.valueBoundary)
+if args.trainSearch_preLoad:
+    # we fix the initialization in general experiments
+    population.load(path='./Dataset/initialization/population_init.csv',
+                    objSize=args.objSize,
+                    blockLength=args.blockLength,
+                    valueBoundary=args.valueBoundary)
+else:
+    # evaluation
+    population.evaluation()
+    
 population.save(os.path.join(args.save, 'Generation-{0}'.format('init')))
 enCodeNumpy  =  embedModel.encode2numpy(population.toString())
 
@@ -177,7 +184,8 @@ for generation in range(args.generation):
             if (surrogateRunTimes+1)%10 == 0:
                 logging.info("=======================Generatiion {0}.{1} with Surrogate=======================".format(generation,surrogateRunTimes+1))
             surrogatePop.newPop(inplace=True)
-            popValue = predictor.evaluation(surrogatePop.individuals)
+            popValue = predictor.evaluation(args=args,
+                                            individuals=surrogatePop.individuals)
             # test Only use acc.
             index = Engine.enviromentalSeleection(popValue[:,:-1], args.popSize)
             index2 = [x for x in range(surrogatePop.popSize) if x not in index]
