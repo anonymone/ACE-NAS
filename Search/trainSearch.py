@@ -46,7 +46,7 @@ def main(code, args, complement=False, **kwargs):
 
     # ---- parameter values setting ----- #
     CIFAR_CLASSES = args.trainSearchDatasetClassNumber
-    learning_rate = 0.025
+    learning_rate = 0.05
     momentum = 0.9
     weight_decay = 3e-4
     data_root = args.dataRoot
@@ -144,12 +144,12 @@ def main(code, args, complement=False, **kwargs):
     train_queue = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
-        pin_memory=True, num_workers=0)
+        pin_memory=True, num_workers=12)
 
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
-        pin_memory=True, num_workers=0)
+        pin_memory=True, num_workers=12)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, int(epochs))

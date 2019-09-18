@@ -62,7 +62,7 @@ parser.add_argument('--popSize', type=int, default=30,
                     help='The size of population.')
 parser.add_argument('--objSize', type=int, default=2,
                     help='The number of objectives.')
-parser.add_argument('--blockLength', type=tuple, default=(2, 15, 3),
+parser.add_argument('--blockLength', type=tuple, default=(2, 10, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
@@ -81,7 +81,7 @@ parser.add_argument('--trainSearch_save', type=str,
 parser.add_argument('--trainSearch_exprRoot', type=str,
                     default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int,
-                    default=32, help='# of filters for first cell')
+                    default=20, help='# of filters for first cell')
 parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
 parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=1.0)
 parser.add_argument('--trainSearch_auxiliary',
