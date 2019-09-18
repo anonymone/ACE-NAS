@@ -48,14 +48,14 @@ class SepConv(nn.Module):
         self.C_in = C_in
         self.padding = padding
 
-        self.relu1 = nn.ReLU(inplace=True)
+        self.relu1 = nn.ReLU(inplace=False)
         self.W1_depthwise = nn.Conv2d(
             C_in, C_out, kernel_size=kernel_size, stride=stride, padding=self.padding, groups=self.C_in)
         self.W1_pointwise = nn.Conv2d(
             C_in, C_out, kernel_size=1, padding=0, groups=self.C_in)
         self.bn1 = nn.BatchNorm2d(C_out)
 
-        self.relu2 = nn.ReLU(inplace=True)
+        self.relu2 = nn.ReLU(inplace=False)
         self.W2_depthwise = nn.Conv2d(
             C_in, C_out, kernel_size=kernel_size, stride=1, padding=self.padding, groups=self.C_in)
         self.W2_pointwise = nn.Conv2d(
@@ -95,7 +95,7 @@ class SEECell(nn.Module):
         self.actionIns = Action()
         self.nodeGraph = self.decoder(code)
         _, self.topoList = utils.isLoop(self.nodeGraph)
-        self.preOps = self.getPreOps()
+        self.preOps = nn.ModuleList(self.getPreOps())
         # self.layerId = layerId
         # self.layers = layers
         # self.steps = steps
@@ -126,7 +126,7 @@ class SEECell(nn.Module):
             if len(preNode) > 1:
                 conv1x1Nodes[node] = nn.Conv2d(
                     len(preNode)*self.channels, self.channels, kernel_size=1, bias=False)
-        return nn.ModuleList(conv1x1Nodes)
+        return conv1x1Nodes
 
     def decoder(self, code):
         '''

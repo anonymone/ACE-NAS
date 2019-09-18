@@ -21,6 +21,7 @@ from misc import utils
 from misc.flops_counter import add_flops_counting_methods
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+# torch.autograd.set_detect_anomaly(True)
 
 
 def main(code, args, complement=False, **kwargs):
@@ -143,12 +144,12 @@ def main(code, args, complement=False, **kwargs):
     train_queue = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
-        pin_memory=True, num_workers=4)
+        pin_memory=True, num_workers=0)
 
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
-        pin_memory=True, num_workers=4)
+        pin_memory=True, num_workers=0)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, int(epochs))

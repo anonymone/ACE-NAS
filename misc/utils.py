@@ -175,15 +175,15 @@ def isLoop(graph, newEdge=None):
 class ReLUConvBN(nn.Module):
     def __init__(self, C_in, C_out, kernel_size, stride, padding, affine=True):
         super(ReLUConvBN, self).__init__()
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU(inplace=False)
         self.conv = nn.Conv2d(C_in, C_out, kernel_size, stride=stride, padding=padding, bias=False)
         self.bn = nn.BatchNorm2d(C_out, affine=affine)
     
-    def forward(self, x, bn_train=False):
+    def forward(self, x):
         x = self.relu(x)
         x = self.conv(x)
-        if bn_train:
-            self.bn.train()
+        # if bn_train:
+        #     self.bn.train()
         x = self.bn(x)
         return x
 
@@ -220,7 +220,7 @@ class MaybeCalibrateSize(nn.Module):
         # previous reduction cell
         if hw[0] != hw[1]:
             assert hw[0] == 2 * hw[1]
-            self.relu = nn.ReLU(inplace=True)
+            self.relu = nn.ReLU(inplace=False)
             self.preprocess_x = FactorizedReduce(c[0], channels, affine)
             x_out_shape = [hw[1], hw[1], channels]
             self.multi_adds += 1 * 1 * c[0] * channels * hw[1] * hw[1]
@@ -235,28 +235,29 @@ class MaybeCalibrateSize(nn.Module):
             
         self.out_shape = [x_out_shape, y_out_shape]
     
-    def forward(self, s0, s1, bn_train=False):
+    def forward(self, s0, s1):
         if s0.size(2) != s1.size(2):
             s0 = self.relu(s0)
-            s0 = self.preprocess_x(s0, bn_train=bn_train)
+            s0 = self.preprocess_x(s0)
         elif s0.size(1) != self.channels:
-            s0 = self.preprocess_x(s0, bn_train=bn_train)
+            s0 = self.preprocess_x(s0)
         if s1.size(1) != self.channels:
-            s1 = self.preprocess_y(s1, bn_train=bn_train)
-        return s0+s1
+            s1 = self.preprocess_y(s1)
+        out = torch.add(s0,s1)
+        return out
 
 class AuxHeadCIFAR(nn.Module):
     def __init__(self, C_in, classes):
         """assuming input size 8x8"""
         super(AuxHeadCIFAR, self).__init__()
-        self.relu1 = nn.ReLU(inplace=True)
+        self.relu1 = nn.ReLU(inplace=False)
         self.avg_pool = nn.AvgPool2d(5, stride=3, padding=0, count_include_pad=False)
         self.conv1 = nn.Conv2d(C_in, 128, 1, bias=False)
         self.bn1 = nn.BatchNorm2d(128)
-        self.relu2 = nn.ReLU(inplace=True)
+        self.relu2 = nn.ReLU(inplace=False)
         self.conv2 = nn.Conv2d(128, 768, 2, bias=False)
         self.bn2 = nn.BatchNorm2d(768)
-        self.relu3 = nn.ReLU(inplace=True)
+        self.relu3 = nn.ReLU(inplace=False)
         self.classifier = nn.Linear(768, classes)
         
     def forward(self, x, bn_train=False):
