@@ -243,7 +243,7 @@ class MaybeCalibrateSize(nn.Module):
             s0 = self.preprocess_x(s0, bn_train=bn_train)
         if s1.size(1) != self.channels:
             s1 = self.preprocess_y(s1, bn_train=bn_train)
-        return s0+s1
+        return torch.add(s0,s1)
 
 class AuxHeadCIFAR(nn.Module):
     def __init__(self, C_in, classes):
