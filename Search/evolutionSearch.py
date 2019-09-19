@@ -62,7 +62,7 @@ parser.add_argument('--popSize', type=int, default=30,
                     help='The size of population.')
 parser.add_argument('--objSize', type=int, default=2,
                     help='The number of objectives.')
-parser.add_argument('--blockLength', type=tuple, default=(2, 10, 3),
+parser.add_argument('--blockLength', type=tuple, default=(2, 15, 3),
                     help='A tuple containing (phase, unit number, length of unit)')
 parser.add_argument('--valueBoundary', type=tuple,
                     default=(0, 9), help='Decision value bound.')
