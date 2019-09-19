@@ -264,7 +264,7 @@ class SEEArchitecture(nn.Module):
             else:
                 channels *= 2
                 cell = SEECell(
-                    code=self.N_code,
+                    code=self.R_code,
                     channels=channels,
                     reduction=True,
                     # [(Size1), (Size2), ...] in my search space, it is no more than 2.
