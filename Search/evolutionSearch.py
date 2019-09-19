@@ -83,7 +83,7 @@ parser.add_argument('--trainSearch_exprRoot', type=str,
 parser.add_argument('--trainSearch_initChannel', type=int,
                     default=16, help='# of filters for first cell')
 parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
-parser.add_argument('--trainSearch_layers', type=int, default=1)
+parser.add_argument('--trainSearch_layers', type=int, default=2)
 parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=8.0)
 parser.add_argument('--trainSearch_auxiliary',
                     type=bool, default=False, help='')
