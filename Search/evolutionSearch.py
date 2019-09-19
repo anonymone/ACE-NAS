@@ -72,32 +72,21 @@ parser.add_argument('--mutationRate', type=float, default=1,
                     help='The propability rate of crossover.')
 
 # train search method setting.
-parser.add_argument('--trainSearch_preLoad', type=bool, default=False,
-                    help='# of epochs to train during architecture search')
-parser.add_argument('--trainSearch_epoch', type=int, default=30,
-                    help='# of epochs to train during architecture search')
-parser.add_argument('--trainSearch_save', type=str,
-                    default='SEE_#id', help='the filename including each model.')
-parser.add_argument('--trainSearch_exprRoot', type=str,
-                    default='./Experiments/model', help='the root path of experiments.')
-parser.add_argument('--trainSearch_initChannel', type=int,
-                    default=16, help='# of filters for first cell')
+parser.add_argument('--trainSearch_preLoad', type=bool, default=True)
+parser.add_argument('--trainSearch_epoch', type=int, default=30,help='# of epochs to train during architecture search')
+parser.add_argument('--trainSearch_save', type=str,default='SEE_#id', help='the filename including each model.')
+parser.add_argument('--trainSearch_exprRoot', type=str,default='./Experiments/model', help='the root path of experiments.')
+parser.add_argument('--trainSearch_initChannel', type=int,default=16, help='# of filters for first cell')
 parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
 parser.add_argument('--trainSearch_layers', type=int, default=2)
 parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=8.0)
-parser.add_argument('--trainSearch_auxiliary',
-                    type=bool, default=False, help='')
+parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
-parser.add_argument('--trainSearch_dropPathProb',
-                    type=float, default=0.0, help='')
-parser.add_argument('--dataRoot', type=str,
-                    default='./Dataset', help='The root path of dataset.')
-parser.add_argument('--trainSearchDataset', type=str,
-                    default='cifar10', help='The name of dataset.')
-parser.add_argument('--trainSearchDatasetClassNumber', type=int,
-                    default=10, help='The classes number of dataset.')
-parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',
-                    default=5, help='the frequence of evaluation by surrogate.')
+parser.add_argument('--trainSearch_dropPathProb',type=float, default=0.0, help='')
+parser.add_argument('--dataRoot', type=str,default='./Dataset', help='The root path of dataset.')
+parser.add_argument('--trainSearchDataset', type=str,default='cifar10', help='The name of dataset.')
+parser.add_argument('--trainSearchDatasetClassNumber', type=int,default=10, help='The classes number of dataset.')
+parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',default=5, help='the frequence of evaluation by surrogate.')
 # testing setting
 # DEBUG is replace all evaluation 
 # FAST is load prepared Data
@@ -126,7 +115,7 @@ logging.info("args = %s", args)
 
 # init population
 Engine = NSGA2.NSGA2()
-population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEECrossoverV1,
+population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEE_Cell_CrossoverV1,
                            objSize=args.objSize, blockLength=args.blockLength,
                            valueBoundary=args.valueBoundary, mutation=evo_operator.SEEMutationV1,
                            evaluation=trainSearch.main,args=args)
@@ -136,7 +125,7 @@ embedModel = em(opt=args)
 
 if args.trainSearch_preLoad:
     # we fix the initialization in general experiments
-    population.load(path='./Dataset/initialization/population_init.csv',
+    population.load(path='./Dataset/initialization/Generation-init.csv',
                     objSize=args.objSize,
                     blockLength=args.blockLength,
                     valueBoundary=args.valueBoundary)
