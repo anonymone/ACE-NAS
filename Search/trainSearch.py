@@ -46,11 +46,11 @@ def main(code, args, complement=False, **kwargs):
 
     # ---- parameter values setting ----- #
     CIFAR_CLASSES = args.trainSearchDatasetClassNumber
-    learning_rate = 0.05
+    learning_rate = 0.1
     momentum = 0.9
     weight_decay = 3e-4
     data_root = args.dataRoot
-    batch_size = 128
+    batch_size = 196
     cutout_length = 16
     auxiliary_weight = 0.4
     grad_clip = 5
