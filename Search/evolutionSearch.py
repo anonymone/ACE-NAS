@@ -81,9 +81,10 @@ parser.add_argument('--trainSearch_save', type=str,
 parser.add_argument('--trainSearch_exprRoot', type=str,
                     default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int,
-                    default=20, help='# of filters for first cell')
+                    default=16, help='# of filters for first cell')
 parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
-parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=1.0)
+parser.add_argument('--trainSearch_layers', type=int, default=1)
+parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=8.0)
 parser.add_argument('--trainSearch_auxiliary',
                     type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')

@@ -202,6 +202,20 @@ class SEECell(nn.Module):
             else:
                 raise Exception('Unknown action code : {0}'.format(Action))
         return nodeGraph
+    
+    def toDot(self, tag=''):
+        nodeTemplate = '#ID[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#ID];\n'
+        graphTemplate = "digraph {#nodeList#topology}"
+        edgeTemplate = "#preID->#recentID;\n"
+        nodeList = ''
+        topology = ''
+        for nodeID in self.nodeGraph:
+            nodeList = nodeList + nodeTemplate.replace('#ID', tag+str(nodeID))
+            for preNode in self.nodeGraph[nodeID]:
+                topology = topology + \
+                    edgeTemplate.replace(
+                        '#preID', tag+str(preNode)).replace('#recentID', tag+str(nodeID))
+        return graphTemplate.replace('#nodeList', nodeList).replace('#topology', topology)
 
 
 class SEEArchitecture(nn.Module):
@@ -289,6 +303,37 @@ class SEEArchitecture(nn.Module):
         out = self.dropout(out)
         logits = self.classifier(out.view(out.size(0), -1))
         return logits, aux_logits
+    
+    def toDot(self):
+        graphTemplate = "digraph SEE_Network{#phase#edge#classifier}"
+        subgraphTemplate = "subgraph Phase#PhaseID {#graph}\n"
+        edgeTemplate = "#preID->MaxPool#PoolID;\nMaxPool#PoolID->#recentID;\n"
+        classifierTemplate = "#nodeID->GlobalAveragePooling"
+        phase = []
+        phaseedge = []
+        model = self.cells[0]
+        _, order = utils.isLoop(model.nodeGraph)
+        subgraph = model.toDot(
+            tag="phase"+str(0)).replace('digraph {', '').replace('}', '')
+        phase.append(subgraphTemplate.replace(
+            '#graph', subgraph).replace("#PhaseID", str(0)))
+        for PhaseID in range(1, len(self.cells)):
+            model = self.cells[PhaseID]
+            if PhaseID == 1:
+                edge = edgeTemplate.replace("#PoolID", str(PhaseID))
+                continue
+            edge = edge.replace(
+                "#preID", "phase{0}".format(PhaseID-2)+str(order[-1]))
+            _, order = utils.isLoop(model.nodeGraph)
+            edge = edge.replace(
+                "#recentID", "phase{0}".format(PhaseID)+str(order[0]))
+            phaseedge.append(edge)
+            subgraph = model.toDot(
+                tag="phase"+str(PhaseID)).replace('digraph {', '').replace('}', '')
+            phase.append(subgraphTemplate.replace(
+                '#graph', subgraph).replace("#PhaseID", str(PhaseID)))
+        return graphTemplate.replace("#phase", "".join(phase)).replace("#edge", "".join(phaseedge)).replace("#classifier", classifierTemplate.replace("#nodeID", "phase{0}".format(PhaseID)+str(order[-1])))
+
 
 if __name__ == "__main__":
     import sys
@@ -310,4 +355,5 @@ if __name__ == "__main__":
     inputs = torch.Tensor(np.random.rand(1, 3, 32, 32))
     model, inputs = model.to(device), inputs.to(device)
     y,aux = model(inputs, 1)
+    print(model.toDot())
     print(y.cpu().detach().numpy().shape)

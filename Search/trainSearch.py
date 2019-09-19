@@ -69,7 +69,7 @@ def main(code, args, complement=False, **kwargs):
 
     model = NAOlayer.SEEArchitecture(args=args,
                                      classes=CIFAR_CLASSES,
-                                     layers=2,
+                                     layers=args.trainSearch_layers,
                                      channels=initChannel,
                                      code= code.getDec(), 
                                      keepProb=args.trainSearch_keep_prob, 
