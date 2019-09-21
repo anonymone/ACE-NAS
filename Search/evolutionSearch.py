@@ -32,8 +32,7 @@ from Model.embeddingModel import EmbeddingModel as em
 from Model.surroogate import Predictor, RankNetDataset
 
 parser = argparse.ArgumentParser("Multi-objetive Genetic Algorithm for WF-BEE with SG")
-parser.add_argument('--save', type=str, default='SEE_Exp',
-                    help='experiment name')
+parser.add_argument('--save', type=str, default='SEE_Exp', help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
 parser.add_argument('--generation', type=int, default=30, help='random seed')
 
@@ -78,7 +77,7 @@ parser.add_argument('--trainSearch_save', type=str,default='SEE_#id', help='the 
 parser.add_argument('--trainSearch_exprRoot', type=str,default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int,default=16, help='# of filters for first cell')
 parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
-parser.add_argument('--trainSearch_layers', type=int, default=2)
+parser.add_argument('--trainSearch_layers', type=int, default=1)
 parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=8.0)
 parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
 parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
@@ -90,7 +89,7 @@ parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',default=
 # testing setting
 # DEBUG is replace all evaluation 
 # FAST is load prepared Data
-parser.add_argument('--evalMode', type=str, default='EXP',
+parser.add_argument('--evalMode', type=str, default='FAST',
                     help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
@@ -153,7 +152,7 @@ for generation in range(args.generation):
     if generation in realTrainPoint:
         # the real evaluation 
         if generation == 0 and args.evalMode == "FAST":
-            population.load(path='./Dataset/initialization/population_G1.csv',
+            population.load(path='./Dataset/initialization/Generation-0.csv',
                             objSize=args.objSize,
                             blockLength=args.blockLength,
                             valueBoundary=args.valueBoundary,
