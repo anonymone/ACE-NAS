@@ -10,7 +10,7 @@ import numpy as np
 import logging
 import os
 
-from Model import layers
+from Model import layers,NAOlayer
 from Model import embeddingModel
 from misc.flops_counter import add_flops_counting_methods
 from misc import utils
