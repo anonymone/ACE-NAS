@@ -23,12 +23,12 @@ from Model import individual, NAOlayer
 parser = argparse.ArgumentParser(description='Final Validation of Searched Architecture')
 parser.add_argument('--save', type=str, default='ValidationCifar10', help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
-parser.add_argument('--data_worker', type=int, default=0, help='the number of the data worker.')
+parser.add_argument('--data_worker', type=int, default=12, help='the number of the data worker.')
 parser.add_argument('--data', type=str, default='./Dataset', help='location of the data corpus')
 parser.add_argument('--dataset', type=str, default='cifar10', help='the dataset: cifar10, cifar100 ...')
 parser.add_argument('--eport', type=str, help='the path to save the output file.')
 
-parser.add_argument('--layers', default=6, type=int, help='total number of layers (equivalent w/ N=6)')
+parser.add_argument('--layers', default=3, type=int, help='total number of layers (equivalent w/ N=6)')
 parser.add_argument('--init_channels', type=int, default=36, help='num of init channels')
 
 parser.add_argument('--batch_size', type=int, default=128, help='batch size')
@@ -44,15 +44,15 @@ parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight dec
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
 parser.add_argument('--cutout', action='store_true', default=True, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
-parser.add_argument('--auxiliary', action='store_true', default=False, help='use auxiliary tower')
-parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight for auxiliary loss')
+# parser.add_argument('--auxiliary', action='store_true', default=False, help='use auxiliary tower')
+# parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight for auxiliary loss')
 # parser.add_argument('--droprate', default=0, type=float, help='dropout probability (default: 0.0)')
 
 parser.add_argument('--report_freq', type=float, default=100, help='report frequency')
 args = parser.parse_args()
 
 args.save = './Experiments/{0}-{1}'.format(args.save, time.strftime("%Y-%m-%d-%m-%S"))
-utils.create_exp_dir(args.save, scripts_to_save=glob.glob('./Validation/*Cifar10.py'))
+utils.create_exp_dir(args.save, scripts_to_save=glob.glob('./Validation/*Cifar*.py'))
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -99,8 +99,6 @@ def main():
 
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True, num_workers=args.data_worker)
-
-    # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
     indDec = 'Phase:362-896-321-616-715-024-752-547-415-060-Phase:360-736-625-544-005-174-882-177-855-881'
     
