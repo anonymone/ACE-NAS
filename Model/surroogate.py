@@ -200,23 +200,26 @@ class Predictor:
         CIFAR_CLASSES = self.args.trainSearchDatasetClassNumber
 
         for Id, ind in enumerate(individuals):
-            channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
-                                              * initChannel) for i in range(1, len(ind.getDec()))]
+            # channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
+            #                                   * initChannel) for i in range(1, len(ind.getDec()))]
+            
+            steps = int(np.ceil(40000 / 96)) * args.trainSearch_epoch
+
             model = NAOlayer.SEEArchitecture(args=args,
                                      classes=CIFAR_CLASSES,
                                      layers=2,
                                      channels=initChannel,
-                                     code= code.getDec(), 
-                                     keepProb=args.keepProb, 
-                                     dropPathKeepProb=args.dropPathKeepProb,
+                                     code= ind.getDec(), 
+                                     keepProb=args.trainSearch_keep_prob, 
+                                     dropPathKeepProb=args.trainSearch_dropPathProb,
                                      useAuxHead=False, 
-                                     steps=steps)
+                                     steps=steps).to(device)
             # calculate for flopss1
             model = add_flops_counting_methods(model)
             model.eval()
             model.start_flops_count()
             # when the dataset changed it would be changed.
-            random_data = torch.randn(1, 3, 32, 32)
+            random_data = torch.randn(1, 3, 32, 32).to(device)
             model(torch.autograd.Variable(random_data).to(device))
             n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
             # calculate for predict value

@@ -54,7 +54,7 @@ parser.add_argument('--PredictorModelDataset', dest='predictDataset', default='.
 parser.add_argument('--PredictorModelPath', dest='predictPath', default='./Dataset/encodeData/RankModel/')
 parser.add_argument('--PredictorModelEpoch', dest='predictEpoch', default= 20)
 parser.add_argument('--PredictorSelectNumberofIndividuals', dest='predictSelectNum', default= 2)
-parser.add_argument('--PredictorSearchEpoch', dest='predictSearchEpoch', default= 10)
+parser.add_argument('--PredictorSearchEpoch', dest='predictSearchEpoch', default= 100)
 
 # population setting
 parser.add_argument('--popSize', type=int, default=30,
