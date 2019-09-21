@@ -10,85 +10,102 @@ import torchvision
 
 import os 
 import sys
-import time 
+import time
+import glob
 import logging
 import argparse
 import numpy as np
+import random   
 
 from misc import utils
-from Model import individual, layers
+from Model import individual, NAOlayer
 
-parser = argparse.ArgumentParser(description='PyTorch CIFAR100 Training')
+parser = argparse.ArgumentParser(description='Final Validation of Searched Architecture')
+parser.add_argument('--save', type=str, default='ValidationCifar10', help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
+parser.add_argument('--data_worker', type=int, default=0, help='the number of the data worker.')
 parser.add_argument('--data', type=str, default='./Dataset', help='location of the data corpus')
-parser.add_argument('--batch_size', type=int, default=96, help='batch size')
+parser.add_argument('--dataset', type=str, default='cifar10', help='the dataset: cifar10, cifar100 ...')
+parser.add_argument('--eport', type=str, help='the path to save the output file.')
+
+parser.add_argument('--layers', default=6, type=int, help='total number of layers (equivalent w/ N=6)')
+parser.add_argument('--init_channels', type=int, default=36, help='num of init channels')
+
+parser.add_argument('--batch_size', type=int, default=128, help='batch size')
+parser.add_argument('--eval_batch_size', type=int, default=500, help='eval batch size')
+parser.add_argument('--epochs', type=int, default=600, help='num of training epochs')
 parser.add_argument('--learning_rate', type=float, default=0.025, help='init learning rate')
 parser.add_argument('--min_learning_rate', type=float, default=0.0, help='minimum learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
+parser.add_argument('--keep_prob', type=float, default=0.6)
+parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
-parser.add_argument('--report_freq', type=float, default=50, help='report frequency')
-parser.add_argument('--epochs', type=int, default=600, help='num of training epochs')
+
 parser.add_argument('--grad_clip', type=float, default=5, help='gradient clipping')
-parser.add_argument('--save', type=str, default='ValidationCifar100', help='experiment name')
 parser.add_argument('--cutout', action='store_true', default=True, help='use cutout')
 parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
 parser.add_argument('--auxiliary', action='store_true', default=False, help='use auxiliary tower')
 parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight for auxiliary loss')
-parser.add_argument('--layers', default=20, type=int, help='total number of layers (equivalent w/ N=6)')
-parser.add_argument('--droprate', default=0, type=float, help='dropout probability (default: 0.0)')
-parser.add_argument('--init_channels', type=int, default=12, help='num of init channels')
-parser.add_argument('--arch', type=str, default='NSGANet', help='which architecture to use')
-parser.add_argument('--filter_increment', default=4, type=int, help='# of filter increment')
-parser.add_argument('--SE', action='store_true', default=False, help='use Squeeze-and-Excitation')
-parser.add_argument('--net_type', type=str, default='micro', help='(options)micro, macro')
+# parser.add_argument('--droprate', default=0, type=float, help='dropout probability (default: 0.0)')
+
+parser.add_argument('--report_freq', type=float, default=100, help='report frequency')
 args = parser.parse_args()
-args.save = './Experiments/train-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))
-utils.create_exp_dir(args.save)
 
-device = 'cuda' if torch.cuda.is_available() else "cpu"
+args.save = './Experiments/{0}-{1}'.format(args.save, time.strftime("%Y-%m-%d-%m-%S"))
+utils.create_exp_dir(args.save, scripts_to_save=glob.glob('./Validation/*Cifar10.py'))
 
-log_format = '%(asctime)s %(message)s'
-logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-                    format=log_format, datefmt='%m/%d %I:%M:%S %p')
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+log_format = '%(asctime)s %(levelname)s %(message)s'
+logging.basicConfig(stream=sys.stdout,
+                    level=logging.INFO, 
+                    format=log_format, 
+                    datefmt='%m/%d %I:%M:%S')
 fh = logging.FileHandler(os.path.join(args.save, 'log.txt'))
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 
 def main():
     if not torch.cuda.is_available():
-        logging.info('no gpu device available')
-        sys.exit(1)
-
-    # if args.auxiliary and args.net_type == 'macro':
-    #     logging.info('auxiliary head classifier not supported for macro search space models')
-    #     sys.exit(1)
+        logging.warn('no gpu device available!')
 
     logging.info("args = %s", args)
 
     cudnn.enabled = True
-    cudnn.benchmark = True
+    cudnn.benchmark = False
+    cudnn.deterministic = True
+
+    random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
 
-    best_err = 100  # initiate a artificial best accuracy so far
+    best_err = 100  # initiate a artificial best error so far
 
     # Data
     train_transform, valid_transform = utils._data_transforms_cifar10(args)
-    train_data = torchvision.datasets.CIFAR100(root=args.data, train=True, download=True, transform=train_transform)
-    valid_data = torchvision.datasets.CIFAR100(root=args.data, train=False, download=True, transform=valid_transform)
+    if args.dataset == 'cifar10':
+        train_data = torchvision.datasets.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
+        valid_data = torchvision.datasets.CIFAR10(root=args.data, train=False, download=True, transform=valid_transform)
+        class_num = 10
+    elif args.dataset == 'cifar100':
+        train_data = torchvision.datasets.CIFAR100(root=args.data, train=True, download=True, transform=train_transform)
+        valid_data = torchvision.datasets.CIFAR100(root=args.data, train=False, download=True, transform=valid_transform)
+        class_num = 100
 
     train_queue = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=0)
+        train_data, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=args.data_worker)
 
     valid_queue = torch.utils.data.DataLoader(
-        valid_data, batch_size=100, shuffle=False, pin_memory=True, num_workers=0)
+        valid_data, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True, num_workers=args.data_worker)
 
     # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+    indDec = 'Phase:362-896-321-616-715-024-752-547-415-060-Phase:360-736-625-544-005-174-882-177-855-881'
+    
     # Model
-    ind = individual.SEEIndividual(objSize=2, blockLength=(3,10,3))
-    indDec = 'Phase:651-135-700-617-467-666-075-224-047-386-Phase:662-665-021-614-215-215-377-204-573-655-Phase:146-130-713-656-615-476-323-657-766-585'
+    ind = individual.SEEIndividual(objSize=2, blockLength=(2,10,3))
     logging.info("Code dec: {0}".format(indDec))
     indDec = indDec.replace('Phase:',"").split('-')
     code = []
@@ -98,10 +115,20 @@ def main():
     ind.setDec(code)
 
     initChannel = args.init_channels
-    channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
-                                    * initChannel) for i in range(1, len(ind.getDec()))]
+    # channels = [(3, initChannel)] + [((2**(i-1))*initChannel, (2**i)
+    #                                 * initChannel) for i in range(1, len(ind.getDec()))]
 
-    net = layers.SEENetworkGenerator(ind.getDec(), channels,100,(32,32),repeats=None)
+    steps = int(np.ceil(50000 / args.batch_size)) * args.epochs
+
+    net = NAOlayer.SEEArchitecture(args=args,
+                                     classes=class_num,
+                                     layers=args.layers,
+                                     channels=initChannel,
+                                     code= ind.getDec(), 
+                                     keepProb=args.keep_prob, 
+                                     dropPathKeepProb=args.drop_path_keep_prob,
+                                     useAuxHead=False, 
+                                     steps=steps)
 
     # logging.info("{}".format(net))
     logging.info("param size = %fMB", utils.count_parameters_in_MB(net))
@@ -110,32 +137,35 @@ def main():
 
     n_epochs = args.epochs
 
-    parameters = filter(lambda p: p.requires_grad, net.parameters())
+    train_criterion = nn.CrossEntropyLoss().to(device)
+    eval_criterion = nn.CrossEntropyLoss().to(device)
 
-    criterion = nn.CrossEntropyLoss()
-    criterion.to(device)
+    parameters = filter(lambda p: p.requires_grad, net.parameters())
     optimizer = optim.SGD(parameters,
                           lr=args.learning_rate,
                           momentum=args.momentum,
                           weight_decay=args.weight_decay)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, n_epochs, eta_min=args.min_learning_rate)
-
+    step = 0
     for epoch in range(n_epochs):
         scheduler.step()
         logging.info('epoch %d lr %e', epoch, scheduler.get_lr()[0])
         # net.droprate = args.droprate * epoch / args.epochs
 
-        train(train_queue, net, criterion, optimizer)
-        _, valid_err = infer(valid_queue, net, criterion)
+        train_loss, train_err, step = train(train_queue, net, train_criterion, optimizer, step)
+        _, valid_err = infer(valid_queue, net, eval_criterion)
+        logging.info('train_err %f', train_err)
+        logging.info('valid_err %f', valid_err)
 
         if valid_err < best_err:
             utils.save(net, os.path.join(args.save, 'weights.pt'))
             best_err = valid_err
     logging.info("The best Test Error: {0}".format(best_err))
 
+
 # Training
-def train(train_queue, net, criterion, optimizer):
+def train(train_queue, net, criterion, optimizer, global_step):
     net.train()
     train_loss = 0
     correct = 0
@@ -144,13 +174,13 @@ def train(train_queue, net, criterion, optimizer):
     for step, (inputs, targets) in enumerate(train_queue):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        outputs, outputs_aux = net(inputs)
+        outputs, outputs_aux = net(inputs, global_step)
+        global_step += 1
         loss = criterion(outputs, targets)
 
         if args.auxiliary:
             loss_aux = criterion(outputs_aux, targets)
             loss += args.auxiliary_weight * loss_aux
-
         loss.backward()
         nn.utils.clip_grad_norm_(net.parameters(), args.grad_clip)
         optimizer.step()
@@ -165,7 +195,7 @@ def train(train_queue, net, criterion, optimizer):
 
     logging.info('train err %f', 100.-(100.*correct/total))
 
-    return train_loss/total, 100.-(100.*correct/total)
+    return train_loss/total, 100.-(100.*correct/total), global_step
 
 
 def infer(valid_queue, net, criterion):
@@ -185,8 +215,8 @@ def infer(valid_queue, net, criterion):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            if step % args.report_freq == 0:
-                logging.info('valid %03d %e %f', step, test_loss/total, 100.-(100.*correct/total))
+            # if step % args.report_freq == 0:
+            #     logging.info('valid %03d %e %f', step, test_loss/total, 100.-(100.*correct/total))
 
     acc = 100.-(100.*correct/total)
     logging.info('valid err %f', 100.-(100.*correct/total))
