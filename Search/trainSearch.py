@@ -74,7 +74,7 @@ def main(code, args, complement=False, **kwargs):
                                      code= code.getDec(), 
                                      keepProb=args.trainSearch_keep_prob, 
                                      dropPathKeepProb=args.trainSearch_drop_path_keep_prob,
-                                     useAuxHead=False, 
+                                     useAuxHead=auxiliary, 
                                      steps=steps)
 
     # logging.info("Genome = %s", genome)
@@ -144,12 +144,12 @@ def main(code, args, complement=False, **kwargs):
     train_queue = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
-        pin_memory=True, num_workers=12)
+        pin_memory=True, num_workers=0)
 
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
-        pin_memory=True, num_workers=12)
+        pin_memory=True, num_workers=0)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, int(epochs))
