@@ -17,7 +17,7 @@ def SEEMutationV1(code, args):
         newCode[newCode < 0] = np.random.randint(
             0, 9, size=np.sum(newCode < 0))
         if j == 0:
-            newCode[i, j, 1] = np.random.randint(4, 7)
+            newCode[i, j, 1] = np.random.randint(3, 5)
     return newCode
 
 

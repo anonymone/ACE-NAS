@@ -37,17 +37,11 @@ parser.add_argument('--seed', type=int, default=0, help='random seed')
 parser.add_argument('--generation', type=int, default=30, help='random seed')
 
 # Embedding model setting
-parser.add_argument('--EmbeddingTrainPath', action='store', dest='train_path', default='./Dataset/encodeData/data.txt',
-                    help='Path to train data')
-parser.add_argument('--EmbeddingDevPath', action='store', dest='dev_path', default='./Dataset/encodeData/data_val.txt',
-                    help='Path to dev data')
-parser.add_argument('--EmbeddingExptDir', action='store', dest='expt_dir', default='./Dataset/encodeData',
-                    help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
-parser.add_argument('--EmbeddingLoadCheckpoint', action='store', dest='load_checkpoint', default='2019_08_26_07_35_34',
-                    help='The name of the checkpoint to load, usually an encoded time string')
-parser.add_argument('--EmbeddingResume', action='store_true', dest='resume',
-                    default=False,
-                    help='Indicates if training has to be resumed from the latest checkpoint')
+parser.add_argument('--Embedding_TrainPath', action='store', dest='train_path', default='./Dataset/encodeData/data.txt',help='Path to train data')
+parser.add_argument('--Embedding_DevPath', action='store', dest='dev_path', default='./Dataset/encodeData/data_val.txt',help='Path to dev data')
+parser.add_argument('--Embedding_ExptDir', action='store', dest='expt_dir', default='./Dataset/encodeData',help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
+parser.add_argument('--Embedding_LoadCheckpoint', action='store', dest='load_checkpoint', default='2019_08_26_07_35_34',help='The name of the checkpoint to load, usually an encoded time string')
+parser.add_argument('--Embedding_Resume', action='store_true', dest='resume',default=False,help='Indicates if training has to be resumed from the latest checkpoint')
 
 # Predictor model setting 
 parser.add_argument('--PredictorModelDataset', dest='predictDataset', default='./Dataset/encodeData/surrogate.txt')
@@ -57,40 +51,34 @@ parser.add_argument('--PredictorSelectNumberofIndividuals', dest='predictSelectN
 parser.add_argument('--PredictorSearchEpoch', dest='predictSearchEpoch', default= 100)
 
 # population setting
-parser.add_argument('--popSize', type=int, default=30,
-                    help='The size of population.')
-parser.add_argument('--objSize', type=int, default=2,
-                    help='The number of objectives.')
-parser.add_argument('--blockLength', type=tuple, default=(2, 15, 3),
-                    help='A tuple containing (phase, unit number, length of unit)')
-parser.add_argument('--valueBoundary', type=tuple,
-                    default=(0, 9), help='Decision value bound.')
-parser.add_argument('--crossoverRate', type=float, default=0.1,
-                    help='The propability rate of crossover.')
-parser.add_argument('--mutationRate', type=float, default=1,
-                    help='The propability rate of crossover.')
+parser.add_argument('--popSize', type=int, default=30, help='The size of population.')
+parser.add_argument('--objSize', type=int, default=2,help='The number of objectives.')
+parser.add_argument('--blockLength', type=tuple, default=(2, 15, 3),help='A tuple containing (phase, unit number, length of unit)')
+parser.add_argument('--valueBoundary', type=tuple,default=(0, 9), help='Decision value bound.')
+parser.add_argument('--crossoverRate', type=float, default=0.1,help='The propability rate of crossover.')
+parser.add_argument('--mutationRate', type=float, default=1,help='The propability rate of crossover.')
 
 # train search method setting.
-parser.add_argument('--trainSearch_preLoad', type=bool, default=True)
-parser.add_argument('--trainSearch_epoch', type=int, default=30,help='# of epochs to train during architecture search')
-parser.add_argument('--trainSearch_save', type=str,default='SEE_#id', help='the filename including each model.')
+parser.add_argument('--dataRoot', type=str,default='./Dataset', help='The root path of dataset.')
 parser.add_argument('--trainSearch_exprRoot', type=str,default='./Experiments/model', help='the root path of experiments.')
 parser.add_argument('--trainSearch_initChannel', type=int,default=16, help='# of filters for first cell')
-parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
-parser.add_argument('--trainSearch_layers', type=int, default=1)
+parser.add_argument('--trainSearch_layers', type=int, default=3)
+parser.add_argument('--trainSearch_epoch', type=int, default=30,help='# of epochs to train during architecture search')
 parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=8.0)
-parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
-parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
-parser.add_argument('--trainSearch_dropPathProb',type=float, default=0.0, help='')
-parser.add_argument('--dataRoot', type=str,default='./Dataset', help='The root path of dataset.')
+parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
 parser.add_argument('--trainSearchDataset', type=str,default='cifar10', help='The name of dataset.')
 parser.add_argument('--trainSearchDatasetClassNumber', type=int,default=10, help='The classes number of dataset.')
+parser.add_argument('--trainSearch_save', type=str,default='SEE_#id', help='the filename including each model.')
+parser.add_argument('--trainSearch_preLoad', type=bool, default=True, help='load the fixed population.')
+parser.add_argument('--trainSearch_dropPathProb',type=float, default=0.0, help='')
+parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
 parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',default=5, help='the frequence of evaluation by surrogate.')
+
+parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
 # testing setting
 # DEBUG is replace all evaluation 
 # FAST is load prepared Data
-parser.add_argument('--evalMode', type=str, default='FAST',
-                    help='Evaluating mode for testing usage.')
+parser.add_argument('--evalMode', type=str, default='FAST', help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
 args.save = './Experiments/search-{}-{}'.format(
@@ -151,7 +139,7 @@ for generation in range(args.generation):
     logging.info("===========================Generatiion {0}===========================".format(generation))
     if generation in realTrainPoint:
         # the real evaluation 
-        if generation == 0 and args.evalMode == "FAST":
+        if args.evalMode == "FAST" and os.path.exists('./Dataset/initialization/Generation-{0}.csv'.format(generation)):
             population.load(path='./Dataset/initialization/Generation-0.csv',
                             objSize=args.objSize,
                             blockLength=args.blockLength,

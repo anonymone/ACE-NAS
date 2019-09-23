@@ -253,7 +253,7 @@ class SEEIndividual(code):
         self.dec[0, 0, 1] = np.random.randint(3, 9)
         for i in range(blockLength[0]):
             # backbone need 4~6 nodes.
-            self.dec[i, 0, 1] = np.random.randint(4,7)
+            self.dec[i, 0, 1] = np.random.randint(3,5)
         self.fitness = np.zeros(objSize)
         # the surrogate predicting value
         self.fitness_SG = np.zeros(1)
