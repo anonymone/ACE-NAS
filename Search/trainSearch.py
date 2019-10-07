@@ -93,8 +93,8 @@ def main(code, args, complement=False, **kwargs):
 
     logging.info("param size = %fMB", n_params)
 
-    criterion = nn.CrossEntropyLoss()
-    criterion = criterion.cuda()
+    train_criterion = nn.CrossEntropyLoss().to(device)
+    eval_criterion = nn.CrossEntropyLoss().to(device)
 
     parameters = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = torch.optim.SGD(
@@ -110,14 +110,12 @@ def main(code, args, complement=False, **kwargs):
     train_transform = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
-        transforms.ToTensor()
+        transforms.ToTensor()，
+        transforms.Normalize(CIFAR_MEAN, CIFAR_STD)
     ])
 
     if cutout:
         train_transform.transforms.append(utils.Cutout(cutout_length))
-
-    train_transform.transforms.append(
-        transforms.Normalize(CIFAR_MEAN, CIFAR_STD))
 
     valid_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -144,12 +142,12 @@ def main(code, args, complement=False, **kwargs):
     train_queue = torch.utils.data.DataLoader(
         train_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
-        pin_memory=True, num_workers=0)
+        pin_memory=True, num_workers=12)
 
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=batch_size,
         # sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
-        pin_memory=True, num_workers=0)
+        pin_memory=True, num_workers=12)
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, int(epochs))
@@ -160,10 +158,10 @@ def main(code, args, complement=False, **kwargs):
         model.droprate = dropPathProb * epoch / epochs
 
         train_err, train_obj = train(
-            train_queue, model, criterion, optimizer, train_params)
+            train_queue, model, train_criterion, optimizer, train_params)
         logging.info('train_err %f', train_err)
 
-    valid_err, valid_obj = infer(valid_queue, model, criterion)
+    valid_err, valid_obj = infer(valid_queue, model, eval_criterion)
     logging.info('valid_error %f', valid_err)
 
     # calculate for flopss1

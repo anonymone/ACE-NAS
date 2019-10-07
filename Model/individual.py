@@ -183,6 +183,8 @@ class population:
         if index is None:
             return self.individuals
         else:
+            if not isinstance(index,list):
+                index = [index]
             return [self.individuals[i] for i in index]
 
     def remove(self, index):
@@ -344,6 +346,19 @@ class SEEPopulation(population):
             self.popSize = len(individuals)
             self.individuals = individuals
 
+    def getTopk(self, k=0, limitation=0, order='INC'):
+        '''
+        limitation : sorted by limitaion (st/ed/th) fitness. 
+        INC : increase
+        DEC : decrease
+        '''
+        inds = pd.DataFrame(self.toMatrix()[:,1:].astype('float'))
+        if order == 'INC':
+            bestIndex = inds[limitation].idxmin()
+        elif order == 'DEC':
+            bestIndex = inds[limitation].idxmax()
+        return deepcopy(self.getInd(bestIndex))
+
 
     def toMatrix(self, needDec=False):
         '''
@@ -392,15 +407,16 @@ if __name__ == "__main__":
                         default=0.2, help='The propability rate of crossover.')
     args = parser.parse_args()
     pop = SEEPopulation(popSize=30, objSize=2, args=args)
-    pop.load(path='./Dataset/initialization/population.csv',objSize=2,blockLength=(3,15,3),valueBoundary=(0,9))
-    # ind = pop.individuals[0]
-    # ind.setFitness([1.4314, 2.342])
-    # pop.add(ind)
-    # ind.setFitness([3.34, 4.4231])
-    # pop.add([ind, ind])
-    # print(pop.toMatrix())
-    # print(ind.toString())
-    # # print(ind.toVector())
-    # print(pop.toMatrix())
-    # pop.save('./Experiments/hi')
+    pop.load(path='./Dataset/initialization/Generation-0.csv',objSize=2,blockLength=(2,15,3),valueBoundary=(0,9))
+    ind = pop.individuals[0]
+    ind.setFitness([1.4314, 2.342])
+    pop.add(ind)
+    ind.setFitness([3.34, 4.4231])
+    pop.add([ind, ind])
+    print(pop.toMatrix())
+    print(ind.toString())
+    # print(ind.toVector())
+    print(pop.toMatrix())
+    pop.save('./Experiments/hi')
+    print(pop.getTopk())
     print(pop.toString())
