@@ -339,6 +339,7 @@ class SEEPopulation(population):
             ind.setFitnessSG(fitnessSG)
             individuals.append(ind)
             ind.ID = ID
+            ind.evaluated = True
         if addMode:
             self.popSize = self.popSize + len(individuals)
             self.individuals.extend(individuals)
