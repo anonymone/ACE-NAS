@@ -132,6 +132,9 @@ predicDataset.addData(enCodeNumpy[:,:-1])
 predictor = Predictor(encoder=embedModel, args= args,modelSavePath=args.predictPath)
 # predictor.trian(dataset=predicDataset, trainEpoch=args.predictEpoch)
 
+# used for recording hv
+hv = []
+
 for generation in range(args.generation):
     # record the generation where is applying the real evaluation method.
     realTrainPoint = [ x for x in range(0, args.generation + 1, args.trainSGF)]
@@ -174,12 +177,21 @@ for generation in range(args.generation):
         theBestInd = surrogatePop.evaluation(individuals=theBestInd)
         population.add(theBestInd)
     popValue = population.toMatrix()
+    ##########################
+    # -1 : use acc and param.#
+    # -2 : only use acc.     #
+    ##########################
     popValue = popValue[:,:-1]
     index = Engine.enviromentalSeleection(popValue, args.popSize)
     index2 = [x for x in range(population.popSize) if x not in index]
     population.remove(index2)
     # static the best middle and worrse.
     popValue = population.toMatrix(needDec=False)
+    try:
+        hv.append(utils.hv_2d(popValue[:,:-1]))
+        logging.info("POPULATION Hyper-Volume : {0}".format(hv))
+    except:
+        logging.warn("Hyper-Volume calculating failed.")
     # best, middle, worrse = np.min(popValue[:,1]),np.min(popValue[:,2])
     population.save(os.path.join(
         args.save, 'Generation-{0}'.format(generation)))

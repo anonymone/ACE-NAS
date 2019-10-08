@@ -273,3 +273,26 @@ class AuxHeadCIFAR(nn.Module):
 
 def normalization(data):
     return (data - np.min(data,0))/(np.max(data,0)-np.min(data,0))
+
+def hv_2d(pop_obj, ref_point=None):
+    if ref_point is None:
+        ref_point = np.ones(shape=(1,2))
+
+    pop_obj = pop_obj[:,1:]
+    # normalization data
+    obj_min = pop_obj.min(0)
+    obj_max = pop_obj.max(0) * 1.1
+    pop_obj = (pop_obj - obj_min)/(obj_max - obj_min)
+
+    # calculate HV
+    pop_obj = pop_obj[np.argsort(pop_obj[:,0]),:]
+    hv  = 0.0
+    for i in range(1, pop_obj.shape[0]):
+        obj_1 = pop_obj[i,0] - pop_obj[i-1,0]
+        obj_2 = pop_obj[i,1] + pop_obj[i-1,1]
+        hv += obj_2*obj_1*0.5
+    return hv
+
+if __name__ == "__main__":
+    pop = np.random.randint(0,9,(10,3))
+    print(hv_2d(pop))  

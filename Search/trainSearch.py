@@ -110,7 +110,7 @@ def main(code, args, complement=False, **kwargs):
     train_transform = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
-        transforms.ToTensor()，
+        transforms.ToTensor(),
         transforms.Normalize(CIFAR_MEAN, CIFAR_STD)
     ])
 
