@@ -138,11 +138,11 @@ class population:
     def newPop(self, individuals=None, index=None, inplace=True):
         assert self.mutate != None, 'mutating method is not defined.'
         if index is not None and individuals is None:
-            subPop = deepcopy(self.individuals[index])
+            subPop = deepcopy([self.individuals[ind] for ind in index])
         elif index is None and individuals is None:
             subPop = deepcopy(self.individuals)
         elif index is not None and individuals is not None:
-            subPop = deepcopy(individuals[index])
+            subPop = deepcopy([self.individuals[ind] for ind in index])
         else:
             subPop = deepcopy(individuals)
         newPop = []
@@ -183,24 +183,32 @@ class population:
         if index is None:
             return self.individuals
         else:
+            if isinstance(index, np.ndarray):
+                index = index.astype('int')
+                index = index.tolist()
             if not isinstance(index,list):
                 index = [index]
             return [self.individuals[i] for i in index]
 
-    def remove(self, index):
+    def remove(self, index=None):
         '''
         remove individuals in index.
         '''
         assert self.popSize > 0, 'Population has no individual.'
-        # make sure that del is start from tail of list.
-        index.sort(reverse=True)
-        for i in index:
-            try:
-                del self.individuals[i]
-            except:
-                raise Exception(
-                    'delete the {0}(st/rd/th) individual in population with size {1} failed.'.format(i, self.popSize))
-            self.popSize = self.popSize - 1
+        # clear all
+        if index is None:
+            self.individuals = list()
+            self.popSize = 0
+        else:
+            # make sure that del is start from tail of list.
+            index.sort(reverse=True)
+            for i in index:
+                try:
+                    del self.individuals[i]
+                except:
+                    raise Exception(
+                        'delete the {0}(st/rd/th) individual in population with size {1} failed.'.format(i, self.popSize))
+                self.popSize = self.popSize - 1
 
     def add(self, ind):
         '''
@@ -353,11 +361,15 @@ class SEEPopulation(population):
         INC : increase
         DEC : decrease
         '''
-        inds = pd.DataFrame(self.toMatrix()[:,1:].astype('float'))
+        pop_value = self.toMatrix()[:,1:].astype('float')
+        col, row = pop_value.shape
+        ori_index = np.array([x for x in range(col)]).reshape(-1,1)
+        pop_value = np.hstack((ori_index, pop_value))
+        pop_value = pop_value[np.argsort(pop_value[:,limitation+1]),:]
         if order == 'INC':
-            bestIndex = inds[limitation].idxmin()
+            bestIndex = pop_value[0:k,0]
         elif order == 'DEC':
-            bestIndex = inds[limitation].idxmax()
+            bestIndex = pop_value[-k:,0]
         return deepcopy(self.getInd(bestIndex))
 
 

@@ -10,6 +10,7 @@ python3 Search/evolutionSearch.py --save=Run_$evalMode \
                                   --Embedding_LoadCheckpoint=$Embedding_Checke_Point_Path \
                                   --PredictorModelEpoch=20 \
                                   --PredictorModelPath=./Dataset/encodeData/RankModel/ \
+                                  --PredictorSearchEpoch=100 \
                                   --popSize=30 \
                                   --mutationRate=1 \
                                   --trainSearch_epoch=30 \

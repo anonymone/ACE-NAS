@@ -48,7 +48,7 @@ parser.add_argument('--PredictorModelDataset', dest='predictDataset', default='.
 parser.add_argument('--PredictorModelPath', dest='predictPath', default='./Dataset/encodeData/RankModel/')
 parser.add_argument('--PredictorModelEpoch', dest='predictEpoch', default= 20)
 parser.add_argument('--PredictorSelectNumberofIndividuals', dest='predictSelectNum', default= 2)
-parser.add_argument('--PredictorSearchEpoch', dest='predictSearchEpoch', default= 100)
+parser.add_argument('--PredictorSearchEpoch', dest='predictSearchEpoch', default= 10)
 
 # population setting
 parser.add_argument('--popSize', type=int, default=30, help='The size of population.')
@@ -158,7 +158,14 @@ for generation in range(args.generation):
         predicDataset.updateData(enCodeNumpy[:,:-1])
         predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True)
     else:
+        # select best k inds
         surrogatePop = deepcopy(population)
+        bestind = surrogatePop.getTopk(k=2)
+        surrogatePop.remove()
+        surrogatePop.add(bestind)
+        for _ in range(int(args.popSize/2)):
+            # index  need to match with k
+            surrogatePop.newPop(inplace=True,index=[0,1])
         # individuals = surrogatePop.individuals
         for surrogateRunTimes in range(args.predictSearchEpoch):
             if (surrogateRunTimes+1)%10 == 0:
