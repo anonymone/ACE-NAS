@@ -288,7 +288,7 @@ def hv_2d(pop_obj, ref_point=None):
     pop_obj = pop_obj[np.argsort(pop_obj[:,0]),:]
     hv  = 0.0
     for i in range(1, pop_obj.shape[0]):
-        obj_1 = pop_obj[i,0] - pop_obj[i-1,0]
+        obj_1 = np.abs(pop_obj[i,0] - pop_obj[i-1,0])
         obj_2 = pop_obj[i,1] + pop_obj[i-1,1]
         hv += obj_2*obj_1*0.5
     return hv
