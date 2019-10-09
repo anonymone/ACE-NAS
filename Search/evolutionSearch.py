@@ -71,7 +71,7 @@ parser.add_argument('--trainSearchDatasetClassNumber', type=int,default=10, help
 parser.add_argument('--trainSearch_save', type=str,default='SEE_#id', help='the filename including each model.')
 parser.add_argument('--trainSearch_preLoad', type=bool, default=True, help='load the fixed population.')
 parser.add_argument('--trainSearch_dropPathProb',type=float, default=0.0, help='')
-parser.add_argument('--trainSearch_cutout', type=bool, default=True, help='')
+parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
 parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',default=5, help='the frequence of evaluation by surrogate.')
 
 parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
