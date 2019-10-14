@@ -211,7 +211,10 @@ class Node_Cell(nn.Module):
             if action == 'change_connection_A_B':
                 node_id1, node_id2 = param1%(len(node_graph)-1)+1, param2%(len(node_graph)-1)+1
                 if node_id1 == node_id2:
-                    node_id2 = node_id2 - 1
+                    if node_id2 == 1:
+                        node_id2 += 1
+                    else:
+                        node_id2 = node_id2 - 1
                 is_loop,_  = utils.isLoop(node_graph, (node_id1, node_id2), (0, node_id2))
                 if is_loop:
                     node_id1, node_id2 = node_id2, node_id1
@@ -306,21 +309,22 @@ if __name__ == "__main__":
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     ind = SEEIndividual(2, (1, 10, 3))
     code = ind.getDec()[0]
-    # code = np.array([[3,3,3],
-    #         [8,0,4],
-    #         [0,5,3],
-    #         [0,5,8],
-    #         [7,2,3],
-    #         [4,6,1],
-    #         [1,1,5],
-    #         [5,2,8],
-    #         [1,1,8],
-    #         [5,7,2],
-    #         [2,8,3],
-    #         [6,5,4],
-    #         [2,2,1],
-    #         [4,2,7],
-    #         [2,5,8]])
+    code = np.array([
+            [3,4,2],
+            [1,3,5],
+            [4,3,2],
+            [4,0,2],
+            [2,7,2],
+            [7,0,1],
+            [8,0,5],
+            [1,9,1],
+            [4,0,3],
+            [8,1,6],
+            [4,6,6],
+            [4,7,2],
+            [7,9,7],
+            [6,2,6],
+            [5,3,7]])
     model = Node_Cell(
         code = code,
         prev_layers= [[32,32,3], [32,32,3]],

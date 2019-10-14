@@ -10,7 +10,7 @@ import numpy as np
 import logging
 import os
 
-from Model import layers,NAOlayer
+from Model import layers, NAOlayer, Network_Constructor
 from Model import embeddingModel
 from misc.flops_counter import add_flops_counting_methods
 from misc import utils
@@ -210,22 +210,22 @@ class Predictor:
                                                 classes=CIFAR_CLASSES,
                                                 layers=args.trainSearch_layers,
                                                 channels=initChannel,
-                                                code= code.getDec(), 
+                                                code= ind.getDec(), 
                                                 keepProb=args.trainSearch_keep_prob, 
                                                 dropPathKeepProb=args.trainSearch_drop_path_keep_prob,
                                                 useAuxHead=auxiliary, 
-                                                steps=steps)
+                                                steps=steps).to(device)
             elif args.trainSearch_search_space == 'Node_Cell':
                 model = Network_Constructor.Node_based_Network_cifar(args=args,
-                                                                    code= code.getDec(), 
+                                                                    code= ind.getDec(), 
                                                                     cell_type='node',
                                                                     classes=CIFAR_CLASSES,
                                                                     layers=args.trainSearch_layers,
                                                                     channels=initChannel,
                                                                     keep_prob=args.trainSearch_keep_prob, 
                                                                     drop_path_keep_prob=args.trainSearch_drop_path_keep_prob,
-                                                                    use_aux_head=auxiliary, 
-                                                                    steps=steps)
+                                                                    use_aux_head=args.trainSearch_auxiliary, 
+                                                                    steps=steps).to(device)
             else:
                 raise Exception('Search space {0} is vailed.'.format(args.trainSearch_search_space))
             # calculate for flopss1

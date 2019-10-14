@@ -217,7 +217,7 @@ class FinalCombine(nn.Module):
         for i in concat:
             hw = layers[i][0]
             if hw > out_hw:
-                assert hw == 2 * out_hw and i in [0,1]
+                assert hw == 2 * out_hw, 'hw is {0}\n out_hw is {1}\n i is {2}'.format(hw, out_hw, i)
                 self.concat_fac_op_dict[i] = len(self.ops)
                 self.ops.append(FactorizedReduce(layers[i][-1], channels, affine))
                 self.multi_adds += 1 * 1 * layers[i][-1] * channels * out_hw * out_hw
