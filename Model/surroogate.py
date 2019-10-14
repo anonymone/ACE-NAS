@@ -205,15 +205,29 @@ class Predictor:
             
             steps = int(np.ceil(40000 / 96)) * args.trainSearch_epoch
 
-            model = NAOlayer.SEEArchitecture(args=args,
-                                     classes=CIFAR_CLASSES,
-                                     layers=2,
-                                     channels=initChannel,
-                                     code= ind.getDec(), 
-                                     keepProb=args.trainSearch_keep_prob, 
-                                     dropPathKeepProb=args.trainSearch_dropPathProb,
-                                     useAuxHead=False, 
-                                     steps=steps).to(device)
+            if args.trainSearch_search_space == 'NAO_Cell':
+                model = NAOlayer.SEEArchitecture(args=args,
+                                                classes=CIFAR_CLASSES,
+                                                layers=args.trainSearch_layers,
+                                                channels=initChannel,
+                                                code= code.getDec(), 
+                                                keepProb=args.trainSearch_keep_prob, 
+                                                dropPathKeepProb=args.trainSearch_drop_path_keep_prob,
+                                                useAuxHead=auxiliary, 
+                                                steps=steps)
+            elif args.trainSearch_search_space == 'Node_Cell':
+                model = Network_Constructor.Node_based_Network_cifar(args=args,
+                                                                    code= code.getDec(), 
+                                                                    cell_type='node',
+                                                                    classes=CIFAR_CLASSES,
+                                                                    layers=args.trainSearch_layers,
+                                                                    channels=initChannel,
+                                                                    keep_prob=args.trainSearch_keep_prob, 
+                                                                    drop_path_keep_prob=args.trainSearch_drop_path_keep_prob,
+                                                                    use_aux_head=auxiliary, 
+                                                                    steps=steps)
+            else:
+                raise Exception('Search space {0} is vailed.'.format(args.trainSearch_search_space))
             # calculate for flopss1
             model = add_flops_counting_methods(model)
             model.eval()
