@@ -11,7 +11,7 @@ import torch.utils
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
 
-from Model import layers, individual, NAOlayer
+from Model import layers, individual, NAOlayer, Network_Constructor
 
 from Dataset import cifar10Search as Cifar10
 from Dataset import cifar100Search as Cifar100
@@ -67,15 +67,29 @@ def main(code, args, complement=False, **kwargs):
 
     steps = int(np.ceil(40000 / batch_size)) * args.trainSearch_epoch
 
-    model = NAOlayer.SEEArchitecture(args=args,
-                                     classes=CIFAR_CLASSES,
-                                     layers=args.trainSearch_layers,
-                                     channels=initChannel,
-                                     code= code.getDec(), 
-                                     keepProb=args.trainSearch_keep_prob, 
-                                     dropPathKeepProb=args.trainSearch_drop_path_keep_prob,
-                                     useAuxHead=auxiliary, 
-                                     steps=steps)
+    if args.trainSearch_search_space == 'NAO_Cell':
+        model = NAOlayer.SEEArchitecture(args=args,
+                                        classes=CIFAR_CLASSES,
+                                        layers=args.trainSearch_layers,
+                                        channels=initChannel,
+                                        code= code.getDec(), 
+                                        keepProb=args.trainSearch_keep_prob, 
+                                        dropPathKeepProb=args.trainSearch_drop_path_keep_prob,
+                                        useAuxHead=auxiliary, 
+                                        steps=steps)
+    elif args.trainSearch_search_space == 'Node_Cell':
+        model = Network_Constructor.Node_based_Network_cifar(args=args,
+                                                            code= code.getDec(), 
+                                                            cell_type='node',
+                                                            classes=CIFAR_CLASSES,
+                                                            layers=args.trainSearch_layers,
+                                                            channels=initChannel,
+                                                            keep_prob=args.trainSearch_keep_prob, 
+                                                            drop_path_keep_prob=args.trainSearch_drop_path_keep_prob,
+                                                            use_aux_head=auxiliary, 
+                                                            steps=steps)
+    else:
+        raise Exception('Search space {0} is vailed.'.format(args.trainSearch_search_space))
 
     # logging.info("Genome = %s", genome)
     logging.info("Architecture ID = %s", code.ID)
@@ -87,7 +101,7 @@ def main(code, args, complement=False, **kwargs):
     cudnn.enabled = True
     torch.cuda.manual_seed(seed)
 
-    n_params = (np.sum(np.prod(v.size()) for v in filter(
+    n_params = (sum(np.prod(v.size()) for v in filter(
         lambda p: p.requires_grad, model.parameters())) / 1e6)
     model = model.to(device)
 
@@ -282,29 +296,22 @@ if __name__ == "__main__":
     parser.add_argument('--mutationRate', type=float, default=1,
                         help='The propability rate of crossover.')
     # train search method setting.
-    parser.add_argument('--trainSearch_epoch', type=int, default=30,
-                    help='# of epochs to train during architecture search')
-    parser.add_argument('--trainSearch_save', type=str,
-                        default='SEE_#id', help='the filename including each model.')
-    parser.add_argument('--trainSearch_exprRoot', type=str,
-                        default='./Experiments/model', help='the root path of experiments.')
-    parser.add_argument('--trainSearch_initChannel', type=int,
-                        default=32, help='# of filters for first cell')
+    parser.add_argument('--dataRoot', type=str,default='./Dataset', help='The root path of dataset.')
+    parser.add_argument('--trainSearch_exprRoot', type=str,default='./Experiments/model', help='the root path of experiments.')
+    parser.add_argument('--trainSearch_initChannel', type=int,default=32, help='# of filters for first cell')
+    parser.add_argument('--trainSearch_layers', type=int, default=3)
+    parser.add_argument('--trainSearch_epoch', type=int, default=30,help='# of epochs to train during architecture search')
+    parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=8.0)
     parser.add_argument('--trainSearch_keep_prob', type=float, default=0.8)
-    parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=1.0)
-    parser.add_argument('--trainSearch_auxiliary',
-                        type=bool, default=False, help='')
+    parser.add_argument('--trainSearchDataset', type=str,default='cifar10', help='The name of dataset.')
+    parser.add_argument('--trainSearchDatasetClassNumber', type=int,default=10, help='The classes number of dataset.')
+    parser.add_argument('--trainSearch_save', type=str,default='SEE_#id', help='the filename including each model.')
+    parser.add_argument('--trainSearch_preLoad', type=bool, default=True, help='load the fixed population.')
+    parser.add_argument('--trainSearch_dropPathProb',type=float, default=0.0, help='')
     parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
-    parser.add_argument('--trainSearch_dropPathProb',
-                        type=float, default=0.0, help='')
-    parser.add_argument('--dataRoot', type=str,
-                        default='./Dataset', help='The root path of dataset.')
-    parser.add_argument('--trainSearchDataset', type=str,
-                        default='cifar10', help='The name of dataset.')
-    parser.add_argument('--trainSearchDatasetClassNumber', type=int,
-                        default=10, help='The classes number of dataset.')
-    parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',
-                    default=5, help='the frequence of evaluation by surrogate.')
+    parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',default=5, help='the frequence of evaluation by surrogate.')
+    parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
+    parser.add_argument('--trainSearch_search_space', type=str, default='Node_Cell')
     # testing setting
     parser.add_argument('--evalMode', type=str, default='EXP',
                         help='Evaluating mode for testing usage.')
