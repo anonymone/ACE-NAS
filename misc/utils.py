@@ -124,7 +124,7 @@ def create_exp_dir(path, scripts_to_save=None):
             shutil.copyfile(script, dst_file)
 
 
-def isLoop(graph, newEdge=None):
+def isLoop(graph, newEdge=None, deleteEdge=None):
     '''
     to check if graph is including loops and return topological sort. if not.
     '''
@@ -136,6 +136,10 @@ def isLoop(graph, newEdge=None):
         #     return False,None
         if a not in graph[b]:
             graph[b].append(a)
+    if newEdge is not None:
+        a,b = deleteEdge
+        if a in graph[b]:
+            graph[b].remove(a)
     # find root
     for i in graph:
         F = False
@@ -201,6 +205,32 @@ class FactorizedReduce(nn.Module):
         out = self.bn(out)
         return out
 
+class FinalCombine(nn.Module):
+    def __init__(self, layers, out_hw, channels, concat, affine=True):
+        super(FinalCombine, self).__init__()
+        self.out_hw = out_hw
+        self.channels = channels
+        self.concat = concat
+        self.ops = nn.ModuleList()
+        self.concat_fac_op_dict = {}
+        self.multi_adds = 0
+        for i in concat:
+            hw = layers[i][0]
+            if hw > out_hw:
+                assert hw == 2 * out_hw and i in [0,1]
+                self.concat_fac_op_dict[i] = len(self.ops)
+                self.ops.append(FactorizedReduce(layers[i][-1], channels, affine))
+                self.multi_adds += 1 * 1 * layers[i][-1] * channels * out_hw * out_hw
+        
+    def forward(self, states, bn_train=False):
+        for i in self.concat:
+            if i in self.concat_fac_op_dict:
+                states[i] = self.ops[self.concat_fac_op_dict[i]](states[i], bn_train)
+        out = torch.cat([states[i] for i in self.concat], dim=1)
+        return out
+
+
+
 # Used to adjust the size of multi-inputs.
 class MaybeCalibrateSize(nn.Module):
     def __init__(self, layers, channels, affine=True):
@@ -241,13 +271,24 @@ class MaybeCalibrateSize(nn.Module):
         out = torch.add(s0,s1)
         return out
 
+def apply_drop_path(x, drop_path_keep_prob, layer_id, layers, step, steps):
+    layer_ratio = float(layer_id+1) / (layers)
+    drop_path_keep_prob = 1.0 - layer_ratio * (1.0 - drop_path_keep_prob)
+    step_ratio = float(step + 1) / steps
+    drop_path_keep_prob = 1.0 - step_ratio * (1.0 - drop_path_keep_prob)
+    if drop_path_keep_prob < 1.:
+        mask = torch.FloatTensor(x.size(0), 1, 1, 1).bernoulli_(drop_path_keep_prob).cuda()
+        #x.div_(drop_path_keep_prob)
+        #x.mul_(mask)
+        x = x / drop_path_keep_prob * mask
+    return x
 
 class AuxHeadCIFAR(nn.Module):
     def __init__(self, C_in, classes):
         """assuming input size 8x8"""
         super(AuxHeadCIFAR, self).__init__()
         self.relu1 = nn.ReLU(inplace=False)
-        self.avg_pool = nn.AvgPool2d(5, stride=3, padding=0, count_include_pad=False)
+        self.avg_pool = nn.AvgPool2d(5, stride=2, padding=0, count_include_pad=False)
         self.conv1 = nn.Conv2d(C_in, 128, 1, bias=False)
         self.bn1 = nn.BatchNorm2d(128)
         self.relu2 = nn.ReLU(inplace=False)
