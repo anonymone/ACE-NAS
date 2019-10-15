@@ -196,7 +196,11 @@ def main(code, args, complement=False, **kwargs):
         file.write("flops = {}MB\n".format(n_flops))
         file.write("valid_error = {}\n".format(valid_err))
     with open(os.path.join(save_pth, 'network.dot'), "w") as file:
-        file.write(model.toDot())
+        try:
+            file.write(model.toDot())
+        except:
+            logging.warn('There is an issue in saving DOT file.')
+            file.write('model save Dot failed!')
 
     # logging.info("Architecture = %s", genotype))
     if complement:
