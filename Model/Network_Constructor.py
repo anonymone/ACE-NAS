@@ -82,11 +82,6 @@ class Node_based_Network_cifar(nn.Module):
         
         self.init_parameters()
     
-    def init_parameters(self):
-        for w in self.parameters():
-            if w.data.dim() >= 2:
-                nn.init.kaiming_normal_(w.data)
-    
     def forward(self, inputs, step=None):
         aux_logits = None
         s0 = s1 = self.stem(inputs)
@@ -99,6 +94,39 @@ class Node_based_Network_cifar(nn.Module):
         out = self.dropout(out)
         logits = self.classifier(out.view(out.size(0), -1))
         return logits, aux_logits
+    
+    def init_parameters(self):
+        for w in self.parameters():
+            if w.data.dim() >= 2:
+                nn.init.kaiming_normal_(w.data)
+    
+    def toDot(self):
+        final_graph = "digraph final{\n#cells\n#edges#inner_cells}\n"
+        cell_temp = "cell_#id[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#cell_type];\n"
+        edge_temp = "cell_#id_pre -> cell_#id;\n"
+        cells_list = "" + cell_temp.replace("#id", str(0)).replace("#cell_type", "CONV3x3")
+        edges_list = ""
+        cells_inner_list = [None,None]
+        for i,cell in enumerate(self.cells,start=1):
+            if cell.reduction:
+                cells_list += cell_temp.replace("#id", str(i)).replace("#cell_type", "Reduction_Cell")
+            else:
+                cells_list += cell_temp.replace("#id", str(i)).replace("#cell_type", "Normall_Cell")
+            # try:
+            if cell.reduction and cells_inner_list[1] == None:
+                cells_inner_list[1] = cell.toDot()
+            elif not cell.reduction and cells_inner_list[0] == None:
+                cells_inner_list[0] = cell.toDot()
+            # except:
+                # pass
+            pre_pre_id, pre_id = i-2 if i > 1 else 0, i-1
+            if pre_pre_id != 0:
+                edges_list += edge_temp.replace("#id_pre", str(pre_pre_id)).replace("#id", str(i))
+            edges_list += edge_temp.replace("#id_pre", str(pre_id)).replace("#id", str(i))
+        final_graph = final_graph.replace("#cells", cells_list).replace("#edges", edges_list)
+        cells_inner_list = set(cells_inner_list)
+        return final_graph.replace("#inner_cells","\n".join(cells_inner_list))
+    
 
 if __name__ == "__main__":
     import sys
@@ -122,4 +150,4 @@ if __name__ == "__main__":
     inputs = torch.Tensor(np.random.rand(32, 3, 32, 32))
     model, inputs = model.to(device), inputs.to(device)
     y,aux = model(inputs, 1)
-    print(y.shape)
+    print(model.toDot())

@@ -9,6 +9,7 @@ from collections import OrderedDict
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+from copy import deepcopy
 
 class Conv(nn.Module):
     def __init__(self, C_in, C_out, kernel_size, stride, padding, affine=True):
@@ -119,6 +120,7 @@ class Node(nn.Module):
         self.steps =  steps
         self.drop_path_keep_prob = drop_path_keep_prob
         self.multi_adds = 0
+        self.node_name = "Node"
 
         if node_type == 0:
             pass
@@ -131,37 +133,47 @@ class Node(nn.Module):
         elif node_type == 4:
             # Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True, padding_mode='zeros')
             self.op = OPERATIONS_large[node_type](self.channels, self.channels, 1, stride, 0)
+            self.node_name = "CONV1x1"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
             self.multi_adds += 1 * 1 * channels * channels * (input_shape[0] // stride) * (input_shape[1] // stride)
         elif node_type == 5:
             self.op = OPERATIONS_large[node_type](self.channels, self.channels, 3, stride, 1)
+            self.node_name = "CONV3x3"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
             self.multi_adds += 3 * 3 * channels * channels * (input_shape[0] // stride) * (input_shape[1] // stride)
         elif node_type == 6:
             self.op = OPERATIONS_large[node_type](self.channels, self.channels, (1,3), stride, ((0,1),(1,0)))
+            self.node_name = "CONV1x3"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
             self.multi_adds += 2 * 1 * 3 * channels * channels * (input_shape[0] // stride) * (input_shape[1] // stride)
         elif node_type == 7:
             self.op = OPERATIONS_large[node_type](self.channels, self.channels, (1,7), stride, ((0,3),(3,0)))
+            self.node_name = "CONV1x7"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
             self.multi_adds += 2 * 1 * 7 * channels * channels * (input_shape[0] // stride) * (input_shape[1] // stride)
         elif node_type == 8:
             self.op = OPERATIONS_large[node_type](2, stride=stride, padding = 0)
+            self.node_name = "MAXPOOL2x2"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
         elif node_type == 9:
             self.op = OPERATIONS_large[node_type](3, stride=stride, padding = 1)
+            self.node_name = "MAXPOOL3x3"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
         elif node_type == 10:
             self.op = OPERATIONS_large[node_type](5, stride=stride, padding = 2)
+            self.node_name = "MAXPOOL5x5"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
         elif node_type == 11:
             self.op = OPERATIONS_large[node_type](2, stride=stride, padding = 0)
+            self.node_name = "AVGPOOL2x2"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
         elif node_type == 12:
             self.op = OPERATIONS_large[node_type](3, stride=stride, padding = 1)
+            self.node_name = "AVGPOOL3x3"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
         elif node_type == 13:
             self.op = OPERATIONS_large[node_type](5, stride=stride, padding = 2)
+            self.node_name = "AVGPOOL5x5"
             input_shape = [input_shape[0] // stride, input_shape[1] // stride, channels]
         self.out_shape = list(input_shape)
 
@@ -185,8 +197,20 @@ class Node_Cell(nn.Module):
         self.steps =  steps
         self.drop_path_keep_prob = drop_path_keep_prob
         self.ops = nn.ModuleDict()
+
+        # init in code_parser()
+        # self.node_type_tokens = None
+        # self.nodes_reduction = None
+        # self.nodes_used = None
+        # self.concat_nodes = None
+        # self.node_order = None
+        # self.final_combine = None
+        # self.out_shape = None
+        # self.multi_adds = None
+
         self.parser = code_parser()
         self.multi_adds = 0
+
         # self.input_shape = list(input_shape)
         
         # calibrate size 
@@ -300,6 +324,27 @@ class Node_Cell(nn.Module):
             x = self.ops[str(i)](inputs, step)
             states[i] = x
         return self.final_combine(states)
+    
+    def toDot(self):
+        node_temp = "node_#id[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#node_type];\n"
+        edge_temp = "node_#pre_node_id -> node_#node_id;\n"
+        graph_temp = "subgraph #name {\n#node_list\n#edge_list}"
+        dependence_temp = deepcopy(self.dependence_graph)
+        dependence_temp[len(dependence_temp)] = deepcopy(self.concat_nodes)
+        nodes_list = ""
+        edges_list = ""
+        name = "Reduction" if self.reduction else "Normal"
+        for node_id, pre_nodes in dependence_temp.items():
+            if node_id == 0:
+                nodes_list += node_temp.replace("#id", name + str(node_id)).replace("#node_type", "INPUT")
+                continue
+            elif node_id == len(self.dependence_graph):
+                nodes_list += node_temp.replace("#id", name + str(node_id)).replace("#node_type", "CONCAT")
+            else:
+                nodes_list += node_temp.replace("#id", name + str(node_id)).replace("#node_type", self.ops[str(node_id)].node_name)
+            for edge in pre_nodes:
+                edges_list += edge_temp.replace("#pre_node_id",name+str(edge)).replace("#node_id",name+str(node_id))
+        return graph_temp.replace("#node_list", nodes_list).replace("#edge_list", edges_list).replace("#name", name)
 
 if __name__ == "__main__":
     import sys
