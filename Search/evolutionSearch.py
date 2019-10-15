@@ -46,9 +46,9 @@ parser.add_argument('--Embedding_Resume', action='store_true', dest='resume',def
 # Predictor model setting 
 parser.add_argument('--PredictorModelDataset', dest='predictDataset', default='./Dataset/encodeData/surrogate.txt')
 parser.add_argument('--PredictorModelPath', dest='predictPath', default='./Dataset/encodeData/RankModel/')
-parser.add_argument('--PredictorModelEpoch', dest='predictEpoch', default= 20)
-parser.add_argument('--PredictorSelectNumberofIndividuals', dest='predictSelectNum', default= 2)
-parser.add_argument('--PredictorSearchEpoch', dest='predictSearchEpoch', default= 100)
+parser.add_argument('--PredictorModelEpoch', type=int,dest='predictEpoch', default= 20)
+parser.add_argument('--PredictorSelectNumberofIndividuals', type=int,dest='predictSelectNum', default= 2)
+parser.add_argument('--PredictorSearchEpoch', type=int, dest='predictSearchEpoch', default= 10)
 
 # population setting
 parser.add_argument('--popSize', type=int, default=30, help='The size of population.')
@@ -61,7 +61,7 @@ parser.add_argument('--mutationRate', type=float, default=1,help='The propabilit
 # train search method setting.
 parser.add_argument('--dataRoot', type=str,default='./Dataset', help='The root path of dataset.')
 parser.add_argument('--trainSearch_exprRoot', type=str,default='./Experiments/model', help='the root path of experiments.')
-parser.add_argument('--trainSearch_initChannel', type=int,default=16, help='# of filters for first cell')
+parser.add_argument('--trainSearch_initChannel', type=int,default=32, help='# of filters for first cell')
 parser.add_argument('--trainSearch_layers', type=int, default=3)
 parser.add_argument('--trainSearch_epoch', type=int, default=30,help='# of epochs to train during architecture search')
 parser.add_argument('--trainSearch_drop_path_keep_prob', type=float, default=8.0)
@@ -71,10 +71,10 @@ parser.add_argument('--trainSearchDatasetClassNumber', type=int,default=10, help
 parser.add_argument('--trainSearch_save', type=str,default='SEE_#id', help='the filename including each model.')
 parser.add_argument('--trainSearch_preLoad', type=bool, default=True, help='load the fixed population.')
 parser.add_argument('--trainSearch_dropPathProb',type=float, default=0.0, help='')
-parser.add_argument('--trainSearch_cutout', type=bool, default=True, help='')
+parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
 parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',default=5, help='the frequence of evaluation by surrogate.')
-
 parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
+parser.add_argument('--trainSearch_search_space', type=str, default='Node_Cell')
 # testing setting
 # DEBUG is replace all evaluation 
 # FAST is load prepared Data
@@ -158,7 +158,14 @@ for generation in range(args.generation):
         predicDataset.updateData(enCodeNumpy[:,:-1])
         predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True)
     else:
+        # select best k inds
         surrogatePop = deepcopy(population)
+        bestind = surrogatePop.getTopk(k=2)
+        surrogatePop.remove()
+        surrogatePop.add(bestind)
+        for _ in range(int(args.popSize/2)):
+            # index  need to match with k
+            surrogatePop.newPop(inplace=True,index=[0,1])
         # individuals = surrogatePop.individuals
         for surrogateRunTimes in range(args.predictSearchEpoch):
             if (surrogateRunTimes+1)%10 == 0:
