@@ -19,4 +19,5 @@ python3 Search/evolutionSearch.py --save=Run_$evalMode \
                                   --trainSearchDatasetClassNumber=10 \
                                   --trainSearchSurrogate=5 \
                                   --trainSearch_layers=1 \
+                                  --trainSearch_stage_change=20 \
                                   --evalMode=$evalMode

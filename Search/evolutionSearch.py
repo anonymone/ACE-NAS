@@ -75,6 +75,7 @@ parser.add_argument('--trainSearch_cutout', type=bool, default=False, help='')
 parser.add_argument('--trainSearchSurrogate', type=int, dest='trainSGF',default=5, help='the frequence of evaluation by surrogate.')
 parser.add_argument('--trainSearch_auxiliary',type=bool, default=False, help='')
 parser.add_argument('--trainSearch_search_space', type=str, default='Node_Cell')
+parser.add_argument('--trainSearch_stage_change', type=int, default=0, help='When generations are equal or greater than the number, change to two object stage.')
 # testing setting
 # DEBUG is replace all evaluation 
 # FAST is load prepared Data
@@ -188,7 +189,10 @@ for generation in range(args.generation):
     # -1 : use acc and param.#
     # -2 : only use acc.     #
     ##########################
-    popValue = popValue[:,:-1]
+    if generation >= args.trainSearch_stage_change:
+        popValue = popValue[:,:-1]
+    else:
+        popValue = popValue[:,:-2]
     index = Engine.enviromentalSeleection(popValue, args.popSize)
     index2 = [x for x in range(population.popSize) if x not in index]
     population.remove(index2)
