@@ -29,6 +29,7 @@ parser.add_argument('--dataset', type=str, default='cifar10', help='the dataset:
 parser.add_argument('--eport', type=str, help='the path to save the output file.')
 
 parser.add_argument('--search_space', default='Node_Cell', type=str)
+parser.add_argument('--code_str', type=str, default='Phase:565-942-627-465-742-441-262-663-208-711-065-861-284-788-325-Phase:645-703-557-802-760-512-294-012-232-585-161-526-622-286-341')
 parser.add_argument('--layers', default=6, type=int, help='total number of layers (equivalent w/ N=6)')
 parser.add_argument('--init_channels', type=int, default=16, help='num of init channels')
 
@@ -101,8 +102,7 @@ def main():
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True, num_workers=args.data_worker)
 
-    indDec = 'Phase:565-942-627-465-742-441-262-663-208-711-065-861-284-788-325-Phase:645-703-557-802-760-512-294-012-232-585-161-526-622-286-341'
-    
+    indDec = args.code_str
 
     # Model
     ind = individual.SEEIndividual(objSize=2, blockLength=(2,15,3))
