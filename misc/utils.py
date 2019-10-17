@@ -115,10 +115,11 @@ def drop_path(x, drop_prob):
 def create_exp_dir(path, scripts_to_save=None):
     if not os.path.exists(path):
         os.mkdir(path)
-    print('Experiment dir : {}'.format(path))
+        print('Experiment dir : {}'.format(path))
 
     if scripts_to_save is not None:
-        os.mkdir(os.path.join(path, 'scripts'))
+        if not os.path.exists(os.path.join(path, 'scripts')):
+            os.mkdir(os.path.join(path, 'scripts'))
         for script in scripts_to_save:
             dst_file = os.path.join(path, 'scripts', os.path.basename(script))
             shutil.copyfile(script, dst_file)
@@ -136,7 +137,7 @@ def isLoop(graph, newEdge=None, deleteEdge=None):
         #     return False,None
         if a not in graph[b]:
             graph[b].append(a)
-    if newEdge is not None:
+    if deleteEdge is not None:
         a,b = deleteEdge
         if a in graph[b]:
             graph[b].remove(a)
