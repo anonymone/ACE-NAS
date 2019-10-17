@@ -1,0 +1,21 @@
+#!/bin/sh
+nvidia-smi
+
+Embedding_Checke_Point_Path=2019_08_26_07_35_34
+search_space=Node_Cell
+
+python3 Validation/trainCifar.py  --save=ValidationCifar_$search_space \
+                                  --seed=0 \
+                                  --data_worker=12 \
+                                  --dataset=cifar10 \
+                                  --search_space=$search_space \
+                                  --batch_size=128 \
+                                  --eval_batch_size=250 \
+                                  --epoch=600 \
+                                  --learning_rate=0.025 \
+                                  --keep_prob=0.6 \
+                                  --drop_path_keep_prob=0.8 \
+                                  --weight_decay=3e-4 \
+                                  --auxiliary_weight=0.4 \
+                                  --layers=6 \
+                                  --init_channels=39
