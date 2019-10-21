@@ -79,7 +79,7 @@ parser.add_argument('--trainSearch_stage_change', type=int, default=0, help='Whe
 # testing setting
 # DEBUG is replace all evaluation 
 # FAST is load prepared Data
-parser.add_argument('--evalMode', type=str, default='FAST', help='Evaluating mode for testing usage.')
+parser.add_argument('--evalMode', type=str, default='DEBUG', help='Evaluating mode for testing usage.')
 
 args = parser.parse_args()
 args.save = './Experiments/search-{}-{}'.format(
@@ -105,7 +105,7 @@ logging.info("args = %s", args)
 Engine = NSGA2.NSGA2()
 population = SEEPopulation(popSize=args.popSize, crossover=evo_operator.SEE_Cell_CrossoverV1,
                            objSize=args.objSize, blockLength=args.blockLength,
-                           valueBoundary=args.valueBoundary, mutation=evo_operator.SEEMutationV1,
+                           valueBoundary=args.valueBoundary, mutation=evo_operator.SEE_Mutation_V2,
                            evaluation=trainSearch.main,args=args)
 
 # init the encoder mdoel
