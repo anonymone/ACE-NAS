@@ -172,8 +172,8 @@ def main():
         _, valid_err = infer(valid_queue, net, eval_criterion)
 
         if valid_err < best_err:
-            utils.save(net, os.path.join(args.save, 'weights_err_{0:.2f}.pt'.format(train_err)))
             best_err = valid_err
+            utils.save(net, os.path.join(args.save, 'weights_err_{0:.2f}.pt'.format(best_err)))
     logging.info("The best Test Error: {0}".format(best_err))
 
 
