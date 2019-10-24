@@ -157,7 +157,7 @@ for generation in range(args.generation):
         popValue = popValue[:,:-1]
         enCodeNumpy  =  embedModel.encode2numpy(population.toString())
         predicDataset.updateData(enCodeNumpy[:,:-1])
-        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True)
+        predictor.trian(dataset=predicDataset, trainEpoch=int(args.predictEpoch), newModel=True, generation=generation)
     else:
         # select best k inds
         surrogatePop = deepcopy(population)

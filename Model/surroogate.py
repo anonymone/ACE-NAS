@@ -243,7 +243,7 @@ class Predictor:
             result.append(np.hstack([[Id], fitnessSG, [n_flops]]))
         return np.array(result)
 
-    def trian(self, dataset=None, trainEpoch=50, printFreqence=100, newModel=False):
+    def trian(self, dataset=None, trainEpoch=50, printFreqence=100, newModel=False,generation=0):
         if newModel:
             self.model = RankNet(self.modelSize)
             parameters = filter(lambda p: p.requires_grad,
@@ -299,8 +299,9 @@ class Predictor:
                                                                                         step+1,
                                                                                         train_loss/total,
                                                                                         100.*correct/total))
+            utils.create_exp_dir(os.path.join(self.args.save,"SG_Model"))
             torch.save(self.model.state_dict(), os.path.join(
-                self.saveModelPath, "model.ckpt"))
+                self.args.save,"SG_Model","SGmodel_Gen{0}.ckpt".format(generation)))
 
 
 if __name__ == "__main__":
