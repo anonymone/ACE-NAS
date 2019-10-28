@@ -103,13 +103,14 @@ def main():
         valid_data, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True, num_workers=args.data_worker)
 
     indDec = args.code_str
-
+    # indDec = 'Phase:5.5.1-5.3.2-8.2.5-8.2.4-6.1.2-6.2.0-0.6.6-2.3.2-0.6.1-4.4.2-4.3.2-3.2.7-2.4.7-2.2.4-7.3.4-Phase:8.4.3-3.7.2-2.0.7-0.5.4-8.6.4-0.5.4-8.7.4-2.2.0-1.4.4-3.0.5-8.8.7-2.5.1-5.2.1-2.6.7-4.6.1'
     # Model
     ind = individual.SEEIndividual(objSize=2, blockLength=(2,15,3))
     logging.info("Code dec: {0}".format(indDec))
     indDec = indDec.replace('Phase:',"").split('-')
     code = []
     for unit in indDec:
+        unit = unit.split('.')
         for bit in unit:
             code.append(int(bit))
     ind.setDec(code)
