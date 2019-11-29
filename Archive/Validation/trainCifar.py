@@ -18,18 +18,20 @@ import numpy as np
 import random   
 
 from misc import utils
-from Model import individual, NAOlayer
+from Model import individual, NAOlayer, Network_Constructor
 
 parser = argparse.ArgumentParser(description='Final Validation of Searched Architecture')
 parser.add_argument('--save', type=str, default='ValidationCifar10', help='experiment name')
 parser.add_argument('--seed', type=int, default=0, help='random seed')
-parser.add_argument('--data_worker', type=int, default=12, help='the number of the data worker.')
+parser.add_argument('--data_worker', type=int, default=4, help='the number of the data worker.')
 parser.add_argument('--data', type=str, default='./Dataset', help='location of the data corpus')
 parser.add_argument('--dataset', type=str, default='cifar10', help='the dataset: cifar10, cifar100 ...')
 parser.add_argument('--eport', type=str, help='the path to save the output file.')
 
+parser.add_argument('--search_space', default='Node_Cell', type=str)
+parser.add_argument('--code_str', type=str, default='Phase:565-942-627-465-742-441-262-663-208-711-065-861-284-788-325-Phase:645-703-557-802-760-512-294-012-232-585-161-526-622-286-341')
 parser.add_argument('--layers', default=6, type=int, help='total number of layers (equivalent w/ N=6)')
-parser.add_argument('--init_channels', type=int, default=36, help='num of init channels')
+parser.add_argument('--init_channels', type=int, default=16, help='num of init channels')
 
 parser.add_argument('--batch_size', type=int, default=128, help='batch size')
 parser.add_argument('--eval_batch_size', type=int, default=250, help='eval batch size')
@@ -51,7 +53,7 @@ parser.add_argument('--auxiliary_weight', type=float, default=0.4, help='weight 
 parser.add_argument('--report_freq', type=float, default=100, help='report frequency')
 args = parser.parse_args()
 
-args.save = './Experiments/{0}-{1}'.format(args.save, time.strftime("%Y-%m-%d-%m-%S"))
+args.save = './Experiments/{0}-{1}'.format(args.save, time.strftime("%Y-%m-%d-%m"))
 utils.create_exp_dir(args.save, scripts_to_save=glob.glob('./Validation/*Cifar*.py'))
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -100,15 +102,15 @@ def main():
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=args.eval_batch_size, shuffle=False, pin_memory=True, num_workers=args.data_worker)
 
-    indDec = 'Phase:565-942-627-465-742-441-262-663-208-711-065-861-284-788-325-Phase:645-703-557-802-760-512-294-012-232-585-161-526-622-286-341'
-    
-
+    indDec = args.code_str
+    # indDec = 'Phase:5.5.1-5.3.2-8.2.5-8.2.4-6.1.2-6.2.0-0.6.6-2.3.2-0.6.1-4.4.2-4.3.2-3.2.7-2.4.7-2.2.4-7.3.4-Phase:8.4.3-3.7.2-2.0.7-0.5.4-8.6.4-0.5.4-8.7.4-2.2.0-1.4.4-3.0.5-8.8.7-2.5.1-5.2.1-2.6.7-4.6.1'
     # Model
     ind = individual.SEEIndividual(objSize=2, blockLength=(2,15,3))
     logging.info("Code dec: {0}".format(indDec))
     indDec = indDec.replace('Phase:',"").split('-')
     code = []
     for unit in indDec:
+        unit = unit.split('.')
         for bit in unit:
             code.append(int(bit))
     ind.setDec(code)
@@ -119,15 +121,30 @@ def main():
 
     steps = int(np.ceil(50000 / args.batch_size)) * args.epochs
 
-    net = NAOlayer.SEEArchitecture(args=args,
-                                     classes=class_num,
-                                     layers=args.layers,
-                                     channels=initChannel,
-                                     code= ind.getDec(), 
-                                     keepProb=args.keep_prob, 
-                                     dropPathKeepProb=args.drop_path_keep_prob,
-                                     useAuxHead=args.auxiliary, 
-                                     steps=steps)
+    if args.search_space == 'NAO_Cell':
+        net = NAOlayer.SEEArchitecture(args=args,
+                                        code= ind.getDec(), 
+                                        classes=class_num,
+                                        layers=args.layers,
+                                        channels=initChannel,
+                                        keepProb=args.keep_prob, 
+                                        dropPathKeepProb=args.drop_path_keep_prob,
+                                        useAuxHead=args.auxiliary, 
+                                        steps=steps)
+    elif args.search_space == 'Node_Cell':
+        net = Network_Constructor.Node_based_Network_cifar(args=args,
+                                                            code= ind.getDec(), 
+                                                            cell_type='node',
+                                                            classes=class_num,
+                                                            layers=args.layers,
+                                                            channels=initChannel,
+                                                            keep_prob=args.keep_prob, 
+                                                            drop_path_keep_prob=args.drop_path_keep_prob,
+                                                            use_aux_head=args.auxiliary, 
+                                                            steps=steps)
+    else:
+        raise Exception('Search space {0} is vailed.'.format(args.search_space))
+
 
     # logging.info("{}".format(net))
     logging.info("param size = %fMB", utils.count_parameters_in_MB(net))
@@ -154,12 +171,10 @@ def main():
 
         train_loss, train_err, step = train(train_queue, net, train_criterion, optimizer, step)
         _, valid_err = infer(valid_queue, net, eval_criterion)
-        logging.info('train_err %f', train_err)
-        logging.info('valid_err %f', valid_err)
 
         if valid_err < best_err:
-            utils.save(net, os.path.join(args.save, 'weights.pt'))
             best_err = valid_err
+            utils.save(net, os.path.join(args.save, 'weights_err_{0:.2f}.pt'.format(best_err)))
     logging.info("The best Test Error: {0}".format(best_err))
 
 

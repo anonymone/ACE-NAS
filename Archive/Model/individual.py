@@ -279,14 +279,10 @@ class SEEIndividual(code):
 
     def toString(self, showFitness=False, displayUsed= True):
         dec = self.dec.reshape(self.blockLength)
-        str_dec = ''
+        str_dec = 'Phase:'
         if displayUsed:
-            for phase in dec:
-                str_dec = str_dec + 'Phase:'
-                for i in phase:
-                    str_dec = str_dec + \
-                        str(i).replace('[', '').replace(
-                            ']', '').replace(' ', '') + '-'
+            # for phase in dec:
+            str_dec = str_dec + '-Phase:'.join(['-'.join(['.'.join([str(j) for j in i]) for i in phase]) for phase in dec])
             if showFitness:
                 fitnessString = '--> {0}'.format(self.fitness)
             else:
