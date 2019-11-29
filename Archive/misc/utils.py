@@ -6,6 +6,7 @@ from copy import deepcopy
 import shutil
 import torchvision.transforms as transforms
 from torch.autograd import Variable
+import torch.utils.data as data
 import torch.nn.functional as F
 
 
@@ -334,6 +335,90 @@ def hv_2d(pop_obj, ref_point=None):
         obj_2 = pop_obj[i,1] + pop_obj[i-1,1]
         hv += obj_2*obj_1*0.5
     return hv
+
+
+class AvgrageMeter(object):
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.avg = 0
+        self.sum = 0
+        self.cnt = 0
+
+    def update(self, val, n=1):
+        self.sum += val * n
+        self.cnt += n
+        self.avg = self.sum / self.cnt
+
+class InMemoryDataset(data.Dataset):
+    def __init__(self, path, transform=None, num_workers=1):
+        super(InMemoryDataset, self).__init__()
+        self.path = path
+        self.transform = transform
+        self.samples = []
+        classes, class_to_idx = self.find_classes(self.path)
+        dir = os.path.expanduser(self.path)
+        for target in sorted(os.listdir(dir)):
+            d = os.path.join(dir, target)
+            if not os.path.isdir(d):
+                continue
+            for root, _, fnames in sorted(os.walk(d)):
+                if num_workers == 1:
+                    for fname in sorted(fnames):
+                        if has_file_allowed_extension(fname, IMG_EXTENSIONS):
+                            path = os.path.join(root, fname)
+                            with open(path, 'rb') as f:
+                                image = f.read()
+                            item = (image, class_to_idx[target])
+                            self.samples.append(item)
+                else:
+                    fnames = sorted(fnames)
+                    num_files = len(fnames)
+                    threads = []
+                    res = [[] for i in range(num_workers)]
+                    num_per_worker = num_files // num_workers
+                    for i in range(num_workers):
+                        start_index = num_per_worker * i
+                        end_index = num_files if i == num_workers - 1 else num_per_worker * (i+1)
+                        thread = ReadImageThread(root, fnames[start_index:end_index], class_to_idx[target], res[i])
+                        threads.append(thread)
+                    for thread in threads:
+                        thread.start()
+                    for thread in threads:
+                        thread.join()
+                    for item in res:
+                        self.samples += item
+                    del res, threads
+                    gc.collect()
+        
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, index):
+        sample, target = self.samples[index]
+        sample = convert_to_pil(sample)
+        if self.transform is not None:
+            sample = self.transform(sample)
+        return sample, target
+    
+    def __repr__(self):
+        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
+        fmt_str += '    Number of datapoints: {}\n'.format(self.__len__())
+        fmt_str += '    Root Location: {}\n'.format(self.path)
+        tmp = '    Transforms (if any): '
+        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        tmp = '    Target Transforms (if any): '
+        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        return fmt_str
+
+    @staticmethod
+    def find_classes(root):
+        classes = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+        classes.sort()
+        class_to_idx = {classes[i]: i for i in range(len(classes))}
+        return classes, class_to_idx
+  
 
 if __name__ == "__main__":
     pop = np.random.randint(0,9,(10,3))
