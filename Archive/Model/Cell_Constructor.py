@@ -1,5 +1,5 @@
 import sys
-sys.path.append("./")
+sys.path.append("./Archive")
 import logging
 import numpy as np
 from misc import utils
