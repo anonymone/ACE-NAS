@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from Coder.Code_Interface import code
 import Coder.Network.utils as net_tools
-from Coder.Network.nn import SepConv, Conv, FinalCombine, MaybeCalibrateSize
+from Coder.Network.nn import SepConv, Conv, FinalCombine, MaybeCalibrateSize, Network_CIFAR
 
 # use small search space
 OPERATIONS = {
@@ -71,9 +71,16 @@ class code_parser:
 
 class ACE(code):
     def __init__(self,
-                 fitness_size=2,
-                 unit_number_range=(10, 15),
-                 value_boundary=(0, 15)):
+                fitness_size=2,
+                unit_number_range=(10, 15),
+                value_boundary=(0, 15),
+                classes = 10,
+                layers = 3,
+                channels = 32,
+                keep_prob = 0.8,
+                drop_path_keep_prob = 0.8,
+                use_aux_head = True,
+                **kwargs):
         super(ACE, self).__init__()
         self.fitness = np.zeros(fitness_size)
         self.vb = value_boundary
@@ -85,6 +92,16 @@ class ACE(code):
         self.shape = (self.normal_dec.shape, self.reduct_dec.shape)
         # surrogate fitness
         self.fitness_SG = np.zeros(1)
+        # model parameters
+        self.classes = classes
+        self.layers = layers
+        self.channels = channels
+        self.keep_prob = keep_prob
+        self.drop_path_keep_prob = drop_path_keep_prob
+        self.use_aux_head = use_aux_head
+
+        for name in kwargs.keys():
+            exec("self.{0} = kwargs['{0}']".format(str(name)))
 
     def to_string(self) -> str:
         normal_string = "-".join([".".join([str(t) for t in unit])
@@ -102,12 +119,30 @@ class ACE(code):
     def set_dec(self, dec: (np.ndarray, np.ndarray)):
         self.normal_dec = dec[0].astype("int").reshape(-1, 3)
         self.reduct_dec = dec[1].astype("int").reshape(-1, 3)
+        self.shape = (self.normal_dec.shape, self.reduct_dec.shape)
 
     def get_fitnessSG(self):
         return self.fitness_SG
 
     def set_fitnessSG(self, sg_fitness):
         self.fitness_SG = np.array(sg_fitness).reshape(-1)
+
+    def get_model(self, steps, **kwargs):
+        if len(kwargs) != 0:
+            classes = kwargs.pop('classes')
+            layers = kwargs.pop('layers')
+            channels = kwargs.pop('channels')
+            keep_prob = kwargs.pop('keep_prob')
+            drop_path_keep_prob = kwargs.pop('drop_path_keep_prob')
+            use_aux_head = kwargs.pop('use_aux_head')
+        else:
+            classes = self.classes
+            layers = self.layers
+            channels = self.channels
+            keep_prob = self.keep_prob
+            drop_path_keep_prob = self.drop_path_keep_prob
+            use_aux_head = self.use_aux_head
+        return Network_CIFAR(ACE_Cell, self.get_dec(), classes, layers, channels, keep_prob, drop_path_keep_prob, use_aux_head, steps)
 
 
 class Node(nn.Module):
@@ -352,7 +387,7 @@ class ACE_Cell(nn.Module):
         self.multi_adds += self.final_combine.multi_adds
         return node_graph
 
-    def toDot(self):
+    def to_dot(self):
         node_temp = "node_#id[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#node_type];\n"
         edge_temp = "node_#pre_node_id -> node_#node_id;\n"
         graph_temp = "subgraph #name {\n#node_list\n#edge_list}"
@@ -376,5 +411,3 @@ class ACE_Cell(nn.Module):
                 edges_list += edge_temp.replace("#pre_node_id", name+str(
                     edge)).replace("#node_id", name+str(node_id))
         return graph_temp.replace("#node_list", nodes_list).replace("#edge_list", edges_list).replace("#name", name)
-
-    

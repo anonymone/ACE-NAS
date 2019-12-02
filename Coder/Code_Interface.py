@@ -32,6 +32,9 @@ class code():
     def set_fitness(self, fitness):
         self.fitness = np.array(fitness).reshape(-1)
         self.evaluated = True
+    
+    def get_model(self) -> 'network model':
+        print("This interface need to be modified defore use it.")
 
     def toString(self):
         return "".join(self.dec)

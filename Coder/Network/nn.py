@@ -184,7 +184,7 @@ class Network_CIFAR(nn.Module):
                 keep_prob,
                 drop_path_keep_prob,
                 use_aux_head,
-                steps):
+                steps:'the total training steps equs to (trainset_size / batchsize) * epochs'):
         super(Network_CIFAR, self).__init__()
         self.classes = classes
         self.layers = layers
@@ -265,7 +265,7 @@ class Network_CIFAR(nn.Module):
             if w.data.dim() >= 2:
                 nn.init.kaiming_normal_(w.data)
     
-    def toDot(self):
+    def to_dot(self):
         final_graph = "digraph final{\n#cells\n#edges#inner_cells}\n"
         cell_temp = "cell_#id[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#cell_type];\n"
         edge_temp = "cell_#id_pre -> cell_#id;\n"
@@ -279,9 +279,9 @@ class Network_CIFAR(nn.Module):
                 cells_list += cell_temp.replace("#id", str(i)).replace("#cell_type", "Normall_Cell")
             # try:
             if cell.reduction and cells_inner_list[1] == None:
-                cells_inner_list[1] = cell.toDot()
+                cells_inner_list[1] = cell.to_dot()
             elif not cell.reduction and cells_inner_list[0] == None:
-                cells_inner_list[0] = cell.toDot()
+                cells_inner_list[0] = cell.to_dot()
             # except:
                 # pass
             pre_pre_id, pre_id = i-2 if i > 1 else 0, i-1

@@ -26,18 +26,18 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # cell, inputs = cell.to(device), inputs.to(device)
 # y = cell(inputs, inputs, 1)
 # final netowrk 
-
-model = Network_CIFAR(
-    cell_decoder=ACE_Cell,
-    code= ind.get_dec(),
-    classes =10,
-    layers=3,
-    channels=32,
-    keep_prob=0.8,
-    drop_path_keep_prob=0.8,
-    use_aux_head=True,
-    steps=1
-)
+model = ind.get_model(10,3,32,0.8,0.8,True,1)
+# model = Network_CIFAR(
+#     cell_decoder=ACE_Cell,
+#     code= ind.get_dec(),
+#     classes =10,
+#     layers=3,
+#     channels=32,
+#     keep_prob=0.8,
+#     drop_path_keep_prob=0.8,
+#     use_aux_head=True,
+#     steps=1
+# )
 inputs = torch.Tensor(np.random.rand(32, 3, 32, 32))
 model, inputs = model.to(device), inputs.to(device)
 y,aux = model(inputs, 1)
