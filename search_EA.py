@@ -25,7 +25,7 @@ parser.add_argument('--unit_num', default=(10, 20))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=3)
-parser.add_argument('--channels', type=int, default=36)
+parser.add_argument('--channels', type=int, default=16)
 parser.add_argument('--keep_prob', type=float, default=0.8)
 parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=True)
