@@ -17,7 +17,6 @@ python3 search_EA.py --seed=0 \
                     --crossover_rate=0.8 \
                     --mode= $MODE \
                     --data_path=./Dataset/ \
-                    --cutout_size=16 \
                     --num_work=10 \
                     --train_batch_size=96 \
                     --eval_batch_size=96 \

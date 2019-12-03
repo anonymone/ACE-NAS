@@ -38,7 +38,7 @@ parser.add_argument('--crossover_rate', type=float, default=0.8)
 # eval setting
 parser.add_argument('--mode', type=str, default='EXPERIMENT')
 parser.add_argument('--data_path', type=str, default='./Dataset/')
-parser.add_argument('--cutout_size', type=int, default=16)
+parser.add_argument('--cutout_size', type=int, default=None)
 parser.add_argument('--num_work', type=int, default=0)
 parser.add_argument('--train_batch_size', type=int, default=128)
 parser.add_argument('--eval_batch_size', type=int, default=96)
