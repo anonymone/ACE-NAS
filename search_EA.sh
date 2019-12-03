@@ -24,4 +24,5 @@ python3 search_EA.py --seed=0 \
                     --momentum=0.9 \
                     --lr_min=0.001 \
                     --lr_max=0.025 \
-                    --epochs=25
+                    --epochs=25 \
+                    --split_train_for_valid=0.8
