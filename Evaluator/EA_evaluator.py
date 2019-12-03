@@ -88,7 +88,7 @@ class EA_eval(evaluator):
             scheduler.step()
             train_loss, train_top1, train_top5, step = train.train(
                 trainset, model, optimizer, step, train_criterion, device)
-            logging.debug("[Epoch {0:>5d}] [Train] loss {1:.3f} lr {2:.3f} error Top1 {3:.2f} error Top5 {4:.2f}".format(
+            logging.debug("[Epoch {0:>5d}] [Train] loss {1:.3f} lr {2:.5f} error Top1 {3:.2f} error Top5 {4:.2f}".format(
                 epoch, train_loss, scheduler.get_lr()[0], train_top1, train_top5))
 
         valid_loss, valid_top1, valid_top5 = train.valid(

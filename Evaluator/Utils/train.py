@@ -19,7 +19,7 @@ def build_train_utils(model,
                     epoch: 'the dataset is modified from crash down epoch.' = -1,
                     optimizer_state_dict: 'used to restore the optimizer state.' = None):
     optimizer = torch.optim.SGD(
-        model.parameters(),
+        filter(lambda p: p.requires_grad, model.parameters()),
         lr_max,
         momentum=momentum,
         weight_decay=l2_reg,
@@ -48,6 +48,7 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
     criterion = criterion.to(device)
 
     model.train()
+
     for step, (input, target) in enumerate(trainset):
         print('\r[Training {0:>2d}/{1:>2d}]'.format(step+1, total)+'['+'*'*np.floor(bar_length*((step+1)/total)).astype('int') +
                   '-'*(bar_length-np.floor(bar_length*((step+1)/total)).astype('int'))+']',end='')
