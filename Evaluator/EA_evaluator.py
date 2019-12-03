@@ -81,15 +81,15 @@ class EA_eval(evaluator):
         n_params = recoder.count_parameters(model)
 
         train_criterion, eval_criterion, optimizer, scheduler = train.build_train_utils(
-            model, epochs=self.epochs)
+            model, epochs=self.epochs, l2_reg=self.l2_reg, momentum=self.momentum, lr_min=self.lr_min, lr_max=self.lr_max)
         # train procedures
         step = 0
         for epoch in range(self.epochs):
+            scheduler.step()
             train_loss, train_top1, train_top5, step = train.train(
                 trainset, model, optimizer, step, train_criterion, device)
             logging.debug("[Epoch {0:>5d}] [Train] loss {1:.3f} lr {2:.3f} error Top1 {3:.2f} error Top5 {4:.2f}".format(
                 epoch, train_loss, scheduler.get_lr()[0], train_top1, train_top5))
-            scheduler.step()
 
         valid_loss, valid_top1, valid_top5 = train.valid(
             validset, model, eval_criterion, device)
