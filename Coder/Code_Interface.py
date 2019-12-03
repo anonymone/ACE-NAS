@@ -33,6 +33,10 @@ class code():
         self.fitness = np.array(fitness).reshape(-1)
         self.evaluated = True
     
+    def reset_fitness(self):
+        self.fitness = np.zeros(self.fitness.shape)
+        self.evaluated = False
+    
     def get_model(self) -> 'network model':
         print("This interface need to be modified defore use it.")
 

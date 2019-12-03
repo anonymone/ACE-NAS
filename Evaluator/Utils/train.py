@@ -64,9 +64,6 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
         loss_rec.update(loss.data.item(), n)
         top1_rec.update(prec1.data.item(), n)
         top5_rec.update(prec5.data.item(), n)
-    
-        if (step+1) % 100 == 0:
-            print('[Train {0:>5d}] loss: {1:.3f} top1: {2:.2f} top5: {3:.2f}'.format(step+1, loss_rec.avg, top1_rec.avg, top5_rec.avg))
 
     return loss_rec.avg, top1_rec.avg, top5_rec.avg, global_step
 
@@ -92,8 +89,6 @@ def valid(evalset, model, criterion, device) -> 'loss, top1, top5,':
             loss_rec.update(loss.data.item(), n)
             top1_rec.update(prec1.data.item(), n)
             top5_rec.update(prec5.data.item(), n)
-        
-        print('[Eval {0:>5d}] loss: {1:.3f} top1: {2:.2f} top5: {3:.2f}'.format(step+1, loss_rec.avg, top1_rec.avg, top5_rec.avg))
 
     return loss_rec.avg, top1_rec.avg, top5_rec.avg
 

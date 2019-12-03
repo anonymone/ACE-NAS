@@ -2,24 +2,25 @@ import random
 from copy import deepcopy
 import numpy as np
 
-from Engine_Interface import population
-from Utils.EA_tools import ACE_CrossoverV1, ACE_Mutation_V2
+from SearchEngine.Engine_Interface import population
+from SearchEngine.Utils.EA_tools import ACE_CrossoverV1, ACE_Mutation_V2
 
 
 class EA_population(population):
     def __init__(self,
                  obj_number,
                  pop_size,
-                 mutation: 'muatation callback function' = ACE_Mutation_V2,
-                 crossover: 'crossover callback function' = ACE_CrossoverV1,
+                 ind_params,
                  mutation_rate=1,
                  crossover_rate=0.2,
-                 ind_generator: 'the class of individual' = None
-                 ):
+                 mutation: 'muatation callback function' = ACE_Mutation_V2,
+                 crossover: 'crossover callback function' = ACE_CrossoverV1,
+                 ind_generator: 'the class of individual' = None):
         super(EA_population, self).__init__(
             obj_number=obj_number,
             pop_size=pop_size,
-            ind_generator=ind_generator)
+            ind_generator=ind_generator,
+            ind_params=ind_params)
         # population update strategy
         self.mutate = mutation
         self.crossover = crossover
@@ -44,7 +45,7 @@ class EA_population(population):
         # crossover
         for ind1, ind2 in zip(pop1, pop2):
             new_ind1, new_ind2 = self.ind_generator(
-                self.obj_number), self.ind_generator(self.obj_number)
+                self.obj_number, self.ind_params), self.ind_generator(self.obj_number, self.ind_params)
             new_ind1.set_dec(ind1.get_dec())
             new_ind2.set_dec(ind2.get_dec())
             if random.random() < self.crossover_rate:

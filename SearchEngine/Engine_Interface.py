@@ -3,21 +3,26 @@ import pandas as pd
 from pandas import DataFrame
 import random
 from copy import deepcopy
+import os
+
+from Evaluator.Utils.recoder import create_exp_dir
 
 class population:
     def __init__(self,
                 obj_number,
                 pop_size,
+                ind_params,
                 ind_generator:'the class of individual'=None):
         self.obj_number = obj_number
         self.pop_size = pop_size
         self.ind_generator = ind_generator
+        self.ind_params = ind_params
         if self.ind_generator is None:
             self.individuals = dict()
         else:
             self.individuals = dict()
             for i in range(self.pop_size):
-                ind = self.ind_generator(self.obj_number)
+                ind = self.ind_generator(fitness_size = self.obj_number, ind_params=ind_params)
                 self.individuals[ind.get_Id()] = ind
 
     
@@ -60,7 +65,8 @@ class population:
                         'delete the {0}(st/rd/th) individual in population with size {1} failed.'.format(i, self.pop_size))
                 self.pop_size = self.pop_size - 1
     
-    def save(self, save_path='./data/', file_format='csv'):
+    def save(self, save_path='./data/', file_name='population', file_format='csv'):
+        create_exp_dir(save_path)
         table = {
             'ID': list(),
             'Encoding string' : list()
@@ -75,8 +81,8 @@ class population:
                 table['Fitness{0}'.format(i)].append(fitness[i])
         table = DataFrame(table)
         if file_format == 'csv':
-            table.to_csv(save_path+'.csv')
+            table.to_csv(os.path.join(save_path,'{0}.csv'.format(file_name)))
         elif file_format == 'json':
-            table.to_json(save_path+'.json')
+            table.to_json(os.path.join(save_path,'{0}.json'.format(file_name)))
         else:
             raise Exception('Error file format is specified!') 

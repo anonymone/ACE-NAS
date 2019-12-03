@@ -69,18 +69,30 @@ class code_parser:
         return self.act_search_space[code_type]
 
 
+def build_ACE(fitness_size, ind_params):
+    return ACE(fitness_size=fitness_size,
+               unit_number_range=ind_params.unit_num,
+               value_boundary=ind_params.value_boundary,
+               classes=ind_params.classes,
+               layers=ind_params.layers,
+               channels=ind_params.channels,
+               keep_prob=ind_params.keep_prob,
+               drop_path_keep_prob=ind_params.drop_path_keep_prob,
+               use_aux_head=ind_params.use_aux_head)
+
+
 class ACE(code):
     def __init__(self,
-                fitness_size=2,
-                unit_number_range=(10, 15),
-                value_boundary=(0, 15),
-                classes = 10,
-                layers = 3,
-                channels = 32,
-                keep_prob = 0.8,
-                drop_path_keep_prob = 0.8,
-                use_aux_head = True,
-                **kwargs):
+                 fitness_size=2,
+                 unit_number_range=(10, 20),
+                 value_boundary=(0, 15),
+                 classes=10,
+                 layers=6,
+                 channels=48,
+                 keep_prob=0.8,
+                 drop_path_keep_prob=0.8,
+                 use_aux_head=True,
+                 **kwargs):
         super(ACE, self).__init__()
         self.fitness = np.zeros(fitness_size)
         self.vb = value_boundary

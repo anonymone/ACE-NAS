@@ -1,5 +1,6 @@
 import os
 import shutil
+import numpy as np
 
 def create_exp_dir(path, scripts_to_save=None):
     if not os.path.exists(path):
@@ -60,3 +61,6 @@ def error_rate(output, target, topk=(1,)):
         correct_k = correct[:k].view(-1).float().sum(0)
         res.append(100.0 - correct_k.mul_(100.0/batch_size))
     return res
+
+def count_parameters(model):
+    return np.sum(np.prod(v.size()) for name, v in model.named_parameters() if "auxiliary" not in name)/1e6

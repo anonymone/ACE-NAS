@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn 
 import torchvision.transforms as transforms
-# from torch.autograd import Variable
 import torch.nn.functional as F
+import functools
 from copy import deepcopy
 
 def apply_drop_path(x, drop_path_keep_prob, layer_id, layers, step, steps):

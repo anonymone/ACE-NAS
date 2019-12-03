@@ -1,26 +1,45 @@
 import os
+import time
 import numpy as np
+
 from Evaluator.Utils.recoder import create_exp_dir
 
 
 class evaluator:
-    def __init__(self, save_root='./Experiments/', **kwargs):
+    def __init__(self, save_root='./Experiments/', mode='EXPERIMENT', **kwargs):
+        create_exp_dir(save_root)
         self.save_root = save_root
+        self.mode = mode
         create_exp_dir(save_root)
         for name in kwargs.keys():
             exec("self.{0} = kwargs['{0}']".format(str(name)))
 
-    def evaluate(self, samples: 'an iterable collection of code class'):
+    def set_mode(self, mode):
+        '''
+        Set the evaluate mode.
+        '''
+        self.mode = mode
+
+    def evaluate(self, samples: 'an iterable collection of code class', **kwargs):
         total = len(samples)
+        time_cost = 0
         bar_length = 30
+        have_evaluated = 0
         for i,s in enumerate(samples):
-            print('[{0}/{1}]'.format(i, total)+'*'*np.ceil(bar_length*(i/total)).astype('int') +
-                  '-'*np.ceil(bar_length*(1-i/total)).astype('int'))
+            print('\r[{0:>2d}/{1:>2d}]'.format(i+1, total)+'['+'*'*np.floor(bar_length*((i+1)/total)).astype('int') +
+                  '-'*(bar_length-np.floor(bar_length*((i+1)/total)).astype('int'))+']'+ 
+                  "{0:.2f} mins/ps, {1:.2f} mins left".format(time_cost/(i+1), (time_cost/(i+1)*(total-(i+1)))), end='')
+            if s.is_evaluated():
+                have_evaluated += 1
+                continue
+            used_t = time.time()
             results = self.eval_model(s)
             s.set_fitness(results['fitness'])
             self.save(s, results=results)
+            time_cost += (time.time() - used_t)/60
+        print('\nTotal Evaluated {0:>2d} new samples in {1:.2f} mins'.format(total-have_evaluated, time_cost))
 
-    def eval_model(self, individual):
+    def eval_model(self, individual, **kwargs):
         print("This method needs to be modified before using it.")
 
     def to_string(self, individual, results=None) -> 'string, file format':
