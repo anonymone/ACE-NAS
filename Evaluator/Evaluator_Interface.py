@@ -26,9 +26,9 @@ class evaluator:
         bar_length = 30
         have_evaluated = 0
         for i,s in enumerate(samples):
-            print('\r[{0:>2d}/{1:>2d}]'.format(i+1, total)+'['+'*'*np.floor(bar_length*((i+1)/total)).astype('int') +
+            print('[{0:>2d}/{1:>2d}]'.format(i+1, total)+'['+'*'*np.floor(bar_length*((i+1)/total)).astype('int') +
                   '-'*(bar_length-np.floor(bar_length*((i+1)/total)).astype('int'))+']'+ 
-                  "{0:.2f} mins/ps, {1:.2f} mins left".format(time_cost/(i+1), (time_cost/(i+1)*(total-(i+1)))), end='')
+                  "{0:.2f} mins/ps, {1:.2f} mins left".format(time_cost/(i+1), (time_cost/(i+1)*(total-(i+1)))))
             if s.is_evaluated():
                 have_evaluated += 1
                 continue

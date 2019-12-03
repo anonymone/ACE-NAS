@@ -93,7 +93,7 @@ class EA_eval(evaluator):
 
         valid_loss, valid_top1, valid_top5 = train.valid(
             validset, model, eval_criterion, device)
-        logging.debug("[Valid Error] [{0}] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f} Params {4:.2f}M".format(
+        logging.info("[Valid Error] [{0}] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f} Params {4:.2f}M".format(
             individual.get_Id(), valid_loss, valid_top1, valid_top5, n_params))
         # calculate for flopss1
         model = train.add_flops_counting_methods(model)
