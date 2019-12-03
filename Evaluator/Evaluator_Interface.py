@@ -1,6 +1,7 @@
 import os
 import time
 import numpy as np
+import logging
 
 from Evaluator.Utils.recoder import create_exp_dir
 
@@ -37,7 +38,7 @@ class evaluator:
             s.set_fitness(results['fitness'])
             self.save(s, results=results)
             time_cost += (time.time() - used_t)/60
-        print('\nTotal Evaluated {0:>2d} new samples in {1:.2f} mins'.format(total-have_evaluated, time_cost))
+        logging.info('\nTotal Evaluated {0:>2d} new samples in {1:.2f} mins'.format(total-have_evaluated, time_cost))
 
     def eval_model(self, individual, **kwargs):
         print("This method needs to be modified before using it.")

@@ -87,14 +87,14 @@ class EA_eval(evaluator):
         for epoch in range(self.epochs):
             train_loss, train_top1, train_top5, step = train.train(
                 trainset, model, optimizer, step, train_criterion, device)
-            logging.debug("[Epoch {0:>5d}] [Train] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f}".format(
-                epoch, train_loss, train_top1, train_top5))
+            logging.debug("[Epoch {0:>5d}] [Train] loss {1:.3f} lr {2:.3f} error Top1 {3:.2f} error Top5 {4:.2f}".format(
+                epoch, train_loss, scheduler.get_lr()[0], train_top1, train_top5))
             scheduler.step()
 
         valid_loss, valid_top1, valid_top5 = train.valid(
             validset, model, eval_criterion, device)
-        logging.info("[Valid Error] [{0}] loss {1:.3f} lr {2:.3f} error Top1 {3:.2f} error Top5 {4:.2f} Params {5:.2f}M".format(
-            individual.get_Id(), valid_loss, scheduler.get_lr()[0], valid_top1, valid_top5, n_params))
+        logging.info("[Valid Error] [{0}] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f} Params {4:.2f}M".format(
+            individual.get_Id(), valid_loss, valid_top1, valid_top5, n_params))
         # calculate for flopss1
         model = train.add_flops_counting_methods(model)
         model.eval()
