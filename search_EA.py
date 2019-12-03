@@ -67,8 +67,9 @@ ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.addHandler(fh)
-# logging.basicConfig(filename=os.path.join(args.save_root, 'experiments.log'),level=logging.DEBUG,
-#                     format=log_format, datefmt="%m/%d %I:%M:%S %p")
+
+# record settings
+logging.info("[Experiments Setting]\n"+"".join(["[{0}]: {1}\n".format(name, value) for name, value in args.__dict__.items()]))
 
 # fix seed
 random.seed(args.seed)
