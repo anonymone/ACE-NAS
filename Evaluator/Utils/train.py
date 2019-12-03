@@ -6,6 +6,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torch.backends.cudnn as cudnn
 import numpy as np
+import logging
 
 from Evaluator.Utils.recoder import AvgrageMeter, error_rate
 
@@ -37,6 +38,9 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
     loss_rec = AvgrageMeter()
     top1_rec = AvgrageMeter()
     top5_rec = AvgrageMeter()
+    # process bar
+    bar_length = 30
+    total = len(trainset)
     # stable parameters
     grad_bound = 5.0
     # load to device
@@ -45,6 +49,8 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
 
     model.train()
     for step, (input, target) in enumerate(trainset):
+        print('\r[Training {0:>2d}/{1:>2d}]'.format(step+1, total)+'['+'*'*np.floor(bar_length*((step+1)/total)).astype('int') +
+                  '-'*(bar_length-np.floor(bar_length*((step+1)/total)).astype('int'))+']',end='')
         input = input.to(device).requires_grad_()
         target = target.to(device)
     

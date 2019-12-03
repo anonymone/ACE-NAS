@@ -9,6 +9,7 @@
 *.zip
 
 # folder 
+/Experiments/
 /Dataset/*-py
 /Dataset/*.gz
 /Dataset/*/*-py

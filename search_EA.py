@@ -6,6 +6,7 @@ import torch
 import random
 import sys
 import os
+import glob
 from quotes import Quotes
 
 from Coder.ACE import build_ACE
@@ -25,9 +26,9 @@ parser.add_argument('--unit_num', default=(10, 20))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
-parser.add_argument('--channels', type=int, default=16)
-parser.add_argument('--keep_prob', type=float, default=0.8)
-parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
+parser.add_argument('--channels', type=int, default=24)
+parser.add_argument('--keep_prob', type=float, default=1.0)
+parser.add_argument('--drop_path_keep_prob', type=float, default=0.0)
 parser.add_argument('--use_aux_head', type=bool, default=False)
 parser.add_argument('--classes', type=int, default=10)
 # population setting
@@ -40,20 +41,20 @@ parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
 parser.add_argument('--num_work', type=int, default=0)
-parser.add_argument('--train_batch_size', type=int, default=128)
-parser.add_argument('--eval_batch_size', type=int, default=96)
+parser.add_argument('--train_batch_size', type=int, default=196)
+parser.add_argument('--eval_batch_size', type=int, default=196)
 parser.add_argument('--split_train_for_valid', type=float, default=None)
 parser.add_argument('--l2_reg', type=float, default=3e-4)
 parser.add_argument('--momentum', type=float, default=0.9)
-parser.add_argument('--lr_min', type=float, default=0)
+parser.add_argument('--lr_min', type=float, default=0.001)
 parser.add_argument('--lr_max', type=float, default=0.025)
-parser.add_argument('--epochs', type=int, default=30)
+parser.add_argument('--epochs', type=int, default=25)
 
 args = parser.parse_args()
 
 recoder.create_exp_dir(args.save_root)
 args.save_root = os.path.join(args.save_root, 'EA_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H")))
-recoder.create_exp_dir(args.save_root)
+recoder.create_exp_dir(args.save_root,, scripts_to_save=glob.glob('*_EA.*'))
 
 # logging setting
 logger = logging.getLogger()
