@@ -33,11 +33,11 @@ class evaluator:
             if s.is_evaluated():
                 have_evaluated += 1
                 continue
-            used_t = time.time()
+            used_t = time.perf_counter()
             results = self.eval_model(s)
             s.set_fitness(results['fitness'])
             self.save(s, results=results)
-            time_cost += (time.time() - used_t)/60
+            time_cost += (time.perf_counter() - used_t)/60
         logging.info('\nTotal Evaluated {0:>2d} new samples in {1:.2f} mins'.format(total-have_evaluated, time_cost))
 
     def eval_model(self, individual, **kwargs):
