@@ -115,10 +115,10 @@ for gen in range(args.generations):
     population.new_pop()
     evaluator.evaluate(population.get_ind())
     _, rm_inds = engine.enviromentalSeleection(population.to_matrix(), args.pop_size)
-    logging.info('[Removed Individuals]\n'+"".join([str(i)+'\n' for i in rm_inds]))
+    logging.info('[Removed Individuals]'+"".join(['\n'+str(i) for i in rm_inds]))
     population.remove_ind(rm_inds)
     population.save(save_path=os.path.join(args.save_root,'populations'), file_name='population_{0:_>2d}'.format(gen))
 
-    s_time = time.time() - s_time
+    s_time = (time.time() - s_time)/360.0
     total_time += s_time
-    logging.info("[Generation{0:>2d} END] time cost {1:.2f}h total cost {2:.2f}d".format(gen, s_time, total_time))
+    logging.info("[Generation{0:>2d} END] time cost {1:.2f}h total time cost {2:.2f}d time left {3:.2f}h\n".format(gen, s_time, total_time/24.0, (total_time/(gen+1))*(args.generations-gen-1)))
