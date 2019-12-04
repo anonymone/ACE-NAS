@@ -27,17 +27,20 @@ class evaluator:
         bar_length = 30
         have_evaluated = 0
         for i,s in enumerate(samples):
-            print('[{0:>2d}/{1:>2d}]'.format(i+1, total)+'['+'*'*np.floor(bar_length*((i+1)/total)).astype('int') +
-                  '-'*(bar_length-np.floor(bar_length*((i+1)/total)).astype('int'))+']'+ 
-                  "{0:.2f} mins/ps, {1:.2f} mins left".format(time_cost/(i+1), (time_cost/(i+1)*(total-(i+1)))))
             if s.is_evaluated():
                 have_evaluated += 1
                 continue
-            used_t = time.perf_counter()
+            used_t = time.time()
             results = self.eval_model(s)
             s.set_fitness(results['fitness'])
             self.save(s, results=results)
-            time_cost += (time.perf_counter() - used_t)/60
+            time_cost += (time.time() - used_t)/60
+            # process bar
+            ave_time = time_cost/(i+1-have_evaluated)
+            left_time = ave_time*(total-(i+1))
+            print('[{0:>2d}/{1:>2d}]'.format(i+1, total)+'['+'*'*np.floor(bar_length*((i+1)/total)).astype('int') +
+                  '-'*(bar_length-np.floor(bar_length*((i+1)/total)).astype('int'))+']'+ 
+                  "{0:.2f} mins/ps, {1:.2f} mins left".format(ave_time, left_time))
         logging.info('\nTotal Evaluated {0:>2d} new samples in {1:.2f} mins'.format(total-have_evaluated, time_cost))
 
     def eval_model(self, individual, **kwargs):

@@ -85,16 +85,14 @@ class EA_eval(evaluator):
         # train procedures
         step = 0
         for epoch in range(self.epochs):
-            scheduler.step()
             train_loss, train_top1, train_top5, step = train.train(
                 trainset, model, optimizer, step, train_criterion, device)
             logging.debug("[Epoch {0:>5d}] [Train] loss {1:.3f} lr {2:.5f} error Top1 {3:.2f} error Top5 {4:.2f}".format(
                 epoch, train_loss, scheduler.get_lr()[0], train_top1, train_top5))
+            scheduler.step()
 
         valid_loss, valid_top1, valid_top5 = train.valid(
             validset, model, eval_criterion, device)
-        logging.info("[Valid Error] [{0}] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f} Params {4:.2f}M".format(
-            individual.get_Id(), valid_loss, valid_top1, valid_top5, n_params))
         # calculate for flopss1
         model = train.add_flops_counting_methods(model)
         model.eval()
@@ -102,6 +100,9 @@ class EA_eval(evaluator):
         random_data = torch.randn(1, 3, 32, 32)
         model(torch.autograd.Variable(random_data).to(device))
         n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
+
+        logging.info("[Valid Error] [{0}] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f} FLOPs {4:.3f} Params {5:.2f}M".format(
+            individual.get_Id(), valid_loss, valid_top1, valid_top5, n_flops, n_params))
 
         return {
             'fitness': np.array([valid_top1, n_flops]).reshape(-1),

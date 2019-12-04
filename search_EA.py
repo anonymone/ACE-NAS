@@ -27,8 +27,8 @@ parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
 parser.add_argument('--channels', type=int, default=24)
-parser.add_argument('--keep_prob', type=float, default=1.0)
-parser.add_argument('--drop_path_keep_prob', type=float, default=0.0)
+parser.add_argument('--keep_prob', type=float, default=0.6)
+parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=False)
 parser.add_argument('--classes', type=int, default=10)
 # population setting
