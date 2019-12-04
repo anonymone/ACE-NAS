@@ -106,7 +106,11 @@ engine = NSGA2
 # Expelliarmus
 q = Quotes()
 
+total_time = 0
 for gen in range(args.generations):
+    # record time cost
+    s_time = time.time()
+
     logging.info("[Generation{0:>2d}] {2} -- {1}".format(gen, *q.random()) )
     population.new_pop()
     evaluator.evaluate(population.get_ind())
@@ -114,3 +118,7 @@ for gen in range(args.generations):
     logging.info('[Removed Individuals]\n'+"".join([str(i)+'\n' for i in rm_inds]))
     population.remove_ind(rm_inds)
     population.save(save_path=os.path.join(args.save_root,'populations'), file_name='population_{0:_>2d}'.format(gen))
+
+    s_time = time.time() - s_time
+    total_time += s_time
+    logging.info("[Generation{0:>2d} END] time cost {1:.2f}h total cost {2:.2f}d".format(gen, s_time, total_time))

@@ -4,7 +4,7 @@
 -This area will not execute which only used to record the experiment description.
 Experiment_NOTE
 
-MODE = EXPERIMENT
+MODE=EXPERIMENT
 
 python3 search_EA.py --seed=0 \
                     --save_root=./Experiments/ \
@@ -18,7 +18,7 @@ python3 search_EA.py --seed=0 \
                     --obj_num=2 \
                     --mutate_rate=1 \
                     --crossover_rate=0.8 \
-                    --mode= $MODE \
+                    --mode=$MODE \
                     --data_path=./Dataset/ \
                     --num_work=10 \
                     --train_batch_size=196 \
