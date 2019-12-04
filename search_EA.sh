@@ -1,5 +1,8 @@
 #!/bin/sh
-nvidia-smi
+:<<Experiment_NOTE
+[Experiment NOTE]
+-This area will not execute which only used to record the experiment description.
+Experiment_NOTE
 
 MODE = EXPERIMENT
 
@@ -23,6 +26,6 @@ python3 search_EA.py --seed=0 \
                     --l2_reg=3e-4 \
                     --momentum=0.9 \
                     --lr_min=0.001 \
-                    --lr_max=0.025 \
+                    --lr_max=0.1 \
                     --epochs=25 \
                     --split_train_for_valid=0.8
