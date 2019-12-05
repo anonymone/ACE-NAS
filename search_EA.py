@@ -119,6 +119,6 @@ for gen in range(args.generations):
     population.remove_ind(rm_inds)
     population.save(save_path=os.path.join(args.save_root,'populations'), file_name='population_{0:_>2d}'.format(gen))
 
-    s_time = (time.time() - s_time)/360.0
+    s_time = (time.time() - s_time)/3600.0
     total_time += s_time
     logging.info("[Generation{0:>2d} END] time cost {1:.2f}h total time cost {2:.2f}d time left {3:.2f}h\n".format(gen, s_time, total_time/24.0, (total_time/(gen+1))*(args.generations-gen-1)))

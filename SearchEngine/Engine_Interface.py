@@ -86,3 +86,7 @@ class population:
             table.to_json(os.path.join(save_path,'{0}.json'.format(file_name)))
         else:
             raise Exception('Error file format is specified!') 
+    
+    def to_matrix(self):
+        print("This method needs to be modified before using it.")
+        return None
