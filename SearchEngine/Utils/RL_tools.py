@@ -1,4 +1,30 @@
 import math
+import numpy as np
+
+
+class ACE_parser_tool(object):
+    @staticmethod
+    def states_to_numpy(state_list:list):
+        for i in range(len(state_list)):
+            if state_list[i].action == -1:
+                break
+        normal_string = np.array(
+            [np.array(s.to_list()).astype("int") for s in state_list[0:i]])
+        reduct_string = np.array(
+            [np.array(s.to_list()).astype("int") for s in state_list[i+1:-1]])
+        return (normal_string, reduct_string)
+    
+    @staticmethod
+    def numpy_to_states(state_numpy, state_format:'specify the state type'):
+        state_list = [state_format(-2, 0, 0)]
+        normal_encoding, reduct_encoding = state_numpy
+        for action, p1, p2 in normal_encoding:
+            state_list.append(state_format(action, p1, p2))
+        state_list.append(state_format(-1, 0, 0))
+        for action, p1, p2 in reduct_encoding:
+            state_list.append(state_format(action, p1, p2))
+        state_list.append(state_format(-1, 0, 0))
+        return state_list
 
 class State:
     def __init__(self, **kwargs):
@@ -18,3 +44,13 @@ class State:
         s = self.s
         del self.s
         return s
+
+class State_Enumerator:
+    def __init__(self, state_space):
+        self.state_space = state_space
+
+    def enumerate_state(self, state, q_value):
+        pass
+
+    def state_action_transition(self, start_s, action):
+        pass
