@@ -33,17 +33,25 @@ class RL_population(population):
     def is_exist(self, ind):
         ind_string = ind.to_string()
         if ind_string in self.existed_model['Encoding string'].values:
-            valid_Top1 = self.existed_model[self.existed_model['Encoding string']
+            valid_top1 = self.existed_model[self.existed_model['Encoding string']
                                             == ind_string]['Valid accuracy Top1'].values[0]
-            valid_Top5 = self.existed_model[self.existed_model['Encoding string']
+            valid_top5 = self.existed_model[self.existed_model['Encoding string']
                                             == ind_string]['Valid accuracy Top5'].values[0]
-            param_size = self.existed_model[self.existed_model['Encoding string']
-                                            == ind_string]['Parameters size'].values[0]
-            flops = self.existed_model[self.existed_model['Encoding string']
-                                       == ind_string]['FLOPs'].values[0]
+            n_params = self.existed_model[self.existed_model['Encoding string']
+                                          == ind_string]['Parameters size'].values[0]
+            n_flops = self.existed_model[self.existed_model['Encoding string']
+                                         == ind_string]['FLOPs'].values[0]
             epsilon = self.existed_model[self.existed_model['Encoding string']
                                          == ind_string]['epsilon'].values[0]
-            return (valid_Top1, valid_Top5, param_size, flops, epsilon)
+            model = ind.get_model(1)
+            return {
+                'FLOPs': n_flops,
+                'accTop1': valid_top1,
+                'accTop5': valid_top5,
+                'params': (n_params, model.channels),
+                'architecture': model.to_dot(),
+                'fitness': np.array([valid_top1, n_flops]).reshape(-1)
+            }
         else:
             return None
 

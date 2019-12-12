@@ -8,7 +8,7 @@ import torch.backends.cudnn as cudnn
 import numpy as np
 import logging
 
-from Evaluator.Utils.recoder import AvgrageMeter, error_rate
+from Evaluator.Utils.recoder import AvgrageMeter, error_rate, accuracy
 
 def build_train_utils(model, 
                     l2_reg = 3e-4,
@@ -34,7 +34,7 @@ def build_train_utils(model,
     eval_criterion = nn.CrossEntropyLoss()
     return train_criterion, eval_criterion, optimizer, scheduler
 
-def train(trainset, model, optimizer, global_step:'recent epoch', criterion, device) -> 'loss, top1, top5,':
+def train(trainset, model, optimizer, global_step:'recent epoch', criterion, device, rate_static=error_rate) -> 'loss, top1, top5,':
     loss_rec = AvgrageMeter()
     top1_rec = AvgrageMeter()
     top5_rec = AvgrageMeter()
@@ -66,7 +66,7 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
         nn.utils.clip_grad_norm_(model.parameters(), grad_bound)
         optimizer.step()
     
-        prec1, prec5 = error_rate(logits, target, topk=(1, 5))
+        prec1, prec5 = rate_static(logits, target, topk=(1, 5))
         n = input.size(0)
         loss_rec.update(loss.data.item(), n)
         top1_rec.update(prec1.data.item(), n)
@@ -74,7 +74,7 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
 
     return loss_rec.avg, top1_rec.avg, top5_rec.avg, global_step
 
-def valid(evalset, model, criterion, device) -> 'loss, top1, top5,':
+def valid(evalset, model, criterion, device, rate_static=error_rate) -> 'loss, top1, top5,':
     loss_rec = AvgrageMeter()
     top1_rec = AvgrageMeter()
     top5_rec = AvgrageMeter()
@@ -91,7 +91,7 @@ def valid(evalset, model, criterion, device) -> 'loss, top1, top5,':
             logits, _ = model(input)
             loss = criterion(logits, target)
         
-            prec1, prec5 = error_rate(logits, target, topk=(1, 5))
+            prec1, prec5 = rate_static(logits, target, topk=(1, 5))
             n = input.size(0)
             loss_rec.update(loss.data.item(), n)
             top1_rec.update(prec1.data.item(), n)
