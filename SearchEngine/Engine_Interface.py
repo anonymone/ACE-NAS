@@ -81,9 +81,9 @@ class population:
                 table['Fitness{0}'.format(i)].append(fitness[i])
         table = DataFrame(table)
         if file_format == 'csv':
-            table.to_csv(os.path.join(save_path,'{0}.csv'.format(file_name)))
+            table.to_csv(os.path.join(save_path,'{0}.csv'.format(file_name)), index=False)
         elif file_format == 'json':
-            table.to_json(os.path.join(save_path,'{0}.json'.format(file_name)))
+            table.to_json(os.path.join(save_path,'{0}.json'.format(file_name)), index=False)
         else:
             raise Exception('Error file format is specified!') 
     

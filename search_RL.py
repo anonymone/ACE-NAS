@@ -31,7 +31,7 @@ parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=False)
 parser.add_argument('--classes', type=int, default=10)
 # eval setting
-parser.add_argument('--mode', type=str, default='EXPERIMENT')
+parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
 parser.add_argument('--num_work', type=int, default=0)
@@ -93,7 +93,8 @@ engine = Q_learning(epsilon=1,
                     state_format=Q_State_Enumerator(args.value_boundary),
                     q_lr=args.q_lr,
                     q_discount_factor=args.q_discount_factor,
-                    q_table=None)
+                    q_table=None,
+                    max_actions=args.unit_num[1]*2) # we have two cells.
 
 model_gallery = RL_population(obj_number=1,
                               ind_params=args,
@@ -146,8 +147,13 @@ for epsilon, samples_num in args.epsilon_list.items():
         epsilon_total_time += s_time
         logging.debug("[Epsilon {0:.1f}][{1:>2d}/{2:>2d}] time cost {3:.2f}mins time left {4:.2f}mins".format(
             epsilon, s+1, samples_num, s_time, epsilon_total_time/(s+1)*(samples_num - (s+1))))
-    
-    model_gallery.save(save_path=os.path.join(args.save_root,'samples'), file_name='samples_after_epsilon{0:_>1f}'.format(epsilon))
+
+    model_gallery.save(save_path=os.path.join(args.save_root, 'samples'),
+                       file_name='samples_after_epsilon{0:_>1f}'.format(epsilon), epsilon=epsilon)
 
     total_time += epsilon_total_time
-    logging.info("[Epsilon {0:.1f} End] total Cost {1:.2f}h".format(epsilon, total_time/60.0))
+    logging.info("[Epsilon {0:.1f} End] total Cost {1:.2f}h".format(
+        epsilon, total_time/60.0))
+
+# save final q_values
+engine.save_q_table(args.save_root, 'q_value_fianl_', 'csv')

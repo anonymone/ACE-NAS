@@ -113,8 +113,8 @@ class RL_eval(evaluator):
 
         return {
             'FLOPs': n_flops,
-            'accTop1': valid_top1.item(),
-            'accTop5': valid_top5.item(),
+            'accTop1': valid_top1,
+            'accTop5': valid_top5,
             'params': (n_params, model.channels),
             'architecture': model.to_dot(),
             'fitness': np.array([valid_top1, n_flops]).reshape(-1)
