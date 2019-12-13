@@ -22,7 +22,7 @@ parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 # encoding setting
 parser.add_argument('--unit_num', default=(12, 17))
-parser.add_argument('--value_boundary', default=(0, 15))
+parser.add_argument('--value_boundary', default=(0, 10))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
 parser.add_argument('--channels', type=int, default=24)
