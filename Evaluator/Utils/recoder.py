@@ -1,6 +1,7 @@
 import os
 import shutil
 import numpy as np
+import torch
 
 def create_exp_dir(path, scripts_to_save=None):
     if not os.path.exists(path):
@@ -13,6 +14,10 @@ def create_exp_dir(path, scripts_to_save=None):
         for script in scripts_to_save:
             dst_file = os.path.join(path, 'scripts', os.path.basename(script))
             shutil.copyfile(script, dst_file)
+
+def model_save(model, model_path, file_name):
+    create_exp_dir(model_path)
+    torch.save(model.state_dict(), os.path.join(model_path, file_name+".pt"))
 
 class AvgrageMeter(object):
     '''
