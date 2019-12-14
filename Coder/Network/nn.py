@@ -145,6 +145,35 @@ class Conv(nn.Module):
         x = self.ops(x)
         return x
 
+class AuxHeadImageNet(nn.Module):
+    def __init__(self, C_in, classes):
+        """input should be in [B, C, 7, 7]"""
+        super(AuxHeadImageNet, self).__init__()
+        self.relu1 = nn.ReLU(inplace=True)
+        self.avg_pool = nn.AvgPool2d(5, stride=2, padding=0, count_include_pad=False)
+        self.conv1 = nn.Conv2d(C_in, 128, 1, bias=False)
+        self.bn1 = nn.BatchNorm2d(128)
+        self.relu2 = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(128, 768, 2, bias=False)
+        self.bn2 = nn.BatchNorm2d(768)
+        self.relu3 = nn.ReLU(inplace=True)
+        self.classifier = nn.Linear(768, classes)
+    
+    def forward(self, x, bn_train=False):
+        if bn_train:
+            self.bn1.train()
+            self.bn2.train()
+        x = self.relu1(x)
+        x = self.avg_pool(x)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu2(x)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu3(x)
+        x = self.classifier(x.view(x.size(0), -1))
+        return x
+
 class AuxHeadCIFAR(nn.Module):
     def __init__(self, C_in, classes):
         """assuming input size 8x8"""
@@ -173,6 +202,105 @@ class AuxHeadCIFAR(nn.Module):
         x = self.relu3(x)
         x = self.classifier(x.view(x.size(0), -1))
         return x
+
+class Network_IMAGENET(nn.Module):
+    def __init__(self,
+                cell_decoder:'a function used to decode the cell.',
+                code,
+                classes, 
+                layers, 
+                channels,
+                keep_prob,
+                drop_path_keep_prob,
+                use_aux_head,
+                steps:'the total training steps equs to (trainset_size / batchsize) * epochs'):
+        super(Network_IMAGENET, self).__init__()
+        self.classes = classes
+        self.layers = layers
+        self.channels = channels
+        self.keep_prob = keep_prob
+        self.drop_path_keep_prob = drop_path_keep_prob
+        self.use_aux_head = use_aux_head
+        self.steps = steps
+        self.normal_code, self.reduct_code = code
+        self.Cell = cell_decoder
+
+        self.reduction_layers = [self.layers, 2*self.layers +1]
+        self.layers = self.layers*3
+        self.multi_adds = 0
+
+        if self.use_aux_head:
+            self.aux_head_index = self.reduction_layers[-1]
+        channels = self.channels
+        self.stem0 = nn.Sequential(
+            nn.Conv2d(3, channels // 2, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(channels // 2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels // 2, channels, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(channels),
+        )
+        self.multi_adds += 3 * 3 * 3 * channels // 2 * 112 * 112 + 3 * 3 * channels // 2 * channels * 56 * 56
+        self.stem1 = nn.Sequential(
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels, channels, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(channels),
+        )
+        self.multi_adds += 3 * 3 * channels * channels * 56 * 56
+        outs = [[56, 56, channels], [28, 28, channels]]
+        channels = self.channels
+        self.cells = nn.ModuleList()
+        for i in range(self.layers+2):
+            if i not in self.reduction_layers:
+                cell = self.Cell(code = self.normal_code, 
+                                 prev_layers=outs, 
+                                 channels=self.channels, 
+                                 reduction=False, 
+                                 layer_id=i,
+                                 init_layers=self.layers + 2,
+                                 steps= self.steps,
+                                 drop_path_keep_prob=self.drop_path_keep_prob)
+            else:
+                channels *= 2
+                cell = self.Cell(code = self.reduct_code, 
+                                 prev_layers=outs, 
+                                 channels=self.channels, 
+                                 reduction=True, 
+                                 layer_id=i,
+                                 init_layers=self.layers + 2,
+                                 steps= self.steps,
+                                 drop_path_keep_prob=self.drop_path_keep_prob)
+            self.multi_adds += cell.multi_adds
+            self.cells.append(cell)
+            outs = [outs[-1], cell.out_shape]
+
+            if self.use_aux_head and i == self.aux_head_index:
+                self.auxiliary_head = AuxHeadImageNet(outs[-1][-1], classes)
+
+        self.global_pooling = nn.AdaptiveAvgPool2d(1)
+        self.dropout = nn.Dropout(1 - self.keep_prob)
+        self.classifier = nn.Linear(outs[-1][-1], classes)
+        
+        self.init_parameters()
+    
+    def init_parameters(self):
+        for w in self.parameters():
+            if w.data.dim() >= 2:
+                nn.init.kaiming_normal_(w.data)
+    
+    def forward(self, input, step=None):
+        aux_logits = None
+        s0 = self.stem0(input)
+        s1 = self.stem1(s0)
+        for i, cell in enumerate(self.cells):
+            s0, s1 = s1, cell(s0, s1, step)
+            if self.use_aux_head and i == self.aux_head_index and self.training:
+                aux_logits = self.auxiliary_head(s1)
+        
+        out = s1
+        out = self.global_pooling(out)
+        out = self.dropout(out)
+        logits = self.classifier(out.view(out.size(0), -1))
+        return logits, aux_logits
 
 class Network_CIFAR(nn.Module):
     def __init__(self,
@@ -221,7 +349,7 @@ class Network_CIFAR(nn.Module):
                                  channels=self.channels, 
                                  reduction=False, 
                                  layer_id=i,
-                                 init_layers=self.layers,
+                                 init_layers=self.layers + 2,
                                  steps= self.steps,
                                  drop_path_keep_prob=self.drop_path_keep_prob)
             else:
@@ -230,7 +358,7 @@ class Network_CIFAR(nn.Module):
                                  channels=self.channels, 
                                  reduction=True, 
                                  layer_id=i,
-                                 init_layers=self.layers,
+                                 init_layers=self.layers + 2,
                                  steps= self.steps,
                                  drop_path_keep_prob=self.drop_path_keep_prob)
             # CAUTION cell need multi_adds property

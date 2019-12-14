@@ -8,7 +8,10 @@ import numpy as np
 from Coder.ACE import ACE, ACE_Cell
 from Coder.Network.nn import Network_CIFAR
 
-ind = ACE()
+ind = ACE(fitness_size=2,
+             classes=1000,
+             layers=6,
+             channels=8)
 print(ind.to_string())
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # normal_dec, reduction_dec = ind.get_dec()
@@ -26,7 +29,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # cell, inputs = cell.to(device), inputs.to(device)
 # y = cell(inputs, inputs, 1)
 # final netowrk 
-model = ind.get_model(10,3,32,0.8,0.8,True,1)
+model = ind.get_model(steps=1, imagenet=False)
 # model = Network_CIFAR(
 #     cell_decoder=ACE_Cell,
 #     code= ind.get_dec(),
@@ -38,7 +41,7 @@ model = ind.get_model(10,3,32,0.8,0.8,True,1)
 #     use_aux_head=True,
 #     steps=1
 # )
-inputs = torch.Tensor(np.random.rand(32, 3, 32, 32))
+inputs = torch.Tensor(np.random.rand(32, 3, 256, 256))
 model, inputs = model.to(device), inputs.to(device)
 y,aux = model(inputs, 1)
 print(y.shape)

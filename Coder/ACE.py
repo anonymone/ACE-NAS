@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from Coder.Code_Interface import code
 import Coder.Network.utils as net_tools
-from Coder.Network.nn import SepConv, Conv, FinalCombine, MaybeCalibrateSize, Network_CIFAR
+from Coder.Network.nn import SepConv, Conv, FinalCombine, MaybeCalibrateSize, Network_CIFAR, Network_IMAGENET
 
 # use small search space
 OPERATIONS = {
@@ -139,7 +139,7 @@ class ACE(code):
     def set_fitnessSG(self, sg_fitness):
         self.fitness_SG = np.array(sg_fitness).reshape(-1)
 
-    def get_model(self, steps, **kwargs):
+    def get_model(self, steps, imagenet=False,**kwargs):
         if len(kwargs) != 0:
             classes = kwargs.pop('classes')
             layers = kwargs.pop('layers')
@@ -154,7 +154,10 @@ class ACE(code):
             keep_prob = self.keep_prob
             drop_path_keep_prob = self.drop_path_keep_prob
             use_aux_head = self.use_aux_head
-        return Network_CIFAR(ACE_Cell, self.get_dec(), classes, layers, channels, keep_prob, drop_path_keep_prob, use_aux_head, steps)
+        if imagenet:
+            return Network_IMAGENET(ACE_Cell, self.get_dec(), classes, layers, channels, keep_prob, drop_path_keep_prob, use_aux_head, steps)
+        else:
+            return Network_CIFAR(ACE_Cell, self.get_dec(), classes, layers, channels, keep_prob, drop_path_keep_prob, use_aux_head, steps)
 
 
 class Node(nn.Module):

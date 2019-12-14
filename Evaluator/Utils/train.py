@@ -10,11 +10,30 @@ import logging
 
 from Evaluator.Utils.recoder import AvgrageMeter, error_rate, accuracy
 
+class CrossEntropyLabelSmooth(nn.Module):
+
+    def __init__(self, num_classes, epsilon):
+        super(CrossEntropyLabelSmooth, self).__init__()
+        self.num_classes = num_classes
+        self.epsilon = epsilon
+        self.logsoftmax = nn.LogSoftmax(dim=1)
+
+    def forward(self, inputs, targets):
+        log_probs = self.logsoftmax(inputs)
+        targets = torch.zeros_like(log_probs).scatter_(1, targets.unsqueeze(1), 1)
+        targets = (1 - self.epsilon) * targets + self.epsilon / self.num_classes
+        loss = (-targets * log_probs).mean(0).sum()
+        return loss
+
 def build_train_utils(model, 
                     l2_reg = 3e-4,
                     momentum = 0.9,
                     lr_min=0.0,
                     lr_max = 0.025,
+                    decay_period:'used ONLY ImageNet'=1,
+                    gamma:'used ONLY ImageNet'=0.97,
+                    label_smooth:'used ONLY ImageNet'=0.1,
+                    dataset:str='CIFAR10',
                     epochs: 'the number of total train epochs' = 600,
                     epoch: 'the dataset is modified from crash down epoch.' = -1,
                     optimizer_state_dict: 'used to restore the optimizer state.' = None):
@@ -27,11 +46,14 @@ def build_train_utils(model,
     if optimizer_state_dict is not None:
         optimizer.load_state_dict(optimizer_state_dict)
     
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, float(epochs), lr_min, epoch)
-
-    train_criterion = nn.CrossEntropyLoss()
-    eval_criterion = nn.CrossEntropyLoss()
+    if dataset in ['CIFAR10', 'CIFAR100']:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, float(epochs), lr_min, epoch)
+        train_criterion = nn.CrossEntropyLoss()
+        eval_criterion = nn.CrossEntropyLoss()
+    elif dataset in ['IMAGENET', 'ImageNet']:
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, decay_period, gamma, epoch)
+        train_criterion = CrossEntropyLabelSmooth(1000, label_smooth)
+        eval_criterion = nn.CrossEntropyLoss()
     return train_criterion, eval_criterion, optimizer, scheduler
 
 def train(trainset, model, optimizer, global_step:'recent epoch', criterion, device, rate_static=error_rate) -> 'loss, top1, top5,':
