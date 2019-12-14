@@ -25,4 +25,5 @@ python3 search_RL.py --seed=0 \
                     --epochs=25 \
                     --split_train_for_valid=0.8 \
                     --q_lr=0.1 \
-                    --q_discount_factor=1
+                    --q_discount_factor=1 \
+                    --q_random_sample=100

@@ -5,6 +5,8 @@ https://github.com/SAGNIKMJR/MetaQNN_ImageClassification_PyTorch
 
 import pandas as pd
 import numpy as np
+import random
+import logging
 import os
 
 from Coder.ACE import ACTION
@@ -31,6 +33,22 @@ class RL_population(population):
                                                    'Parameters size',
                                                    'FLOPs',
                                                    'epsilon'])
+
+    def random_sample(self, sample_num=100):
+        samples_reward = list()
+        samples = [self.existed_model['Encoding string'].values[random.randint(
+            0, self.pop_size-1)] for _ in range(sample_num)]
+        for s in samples:
+            if s in self.existed_model['Encoding string'].values:
+                valid_top1 = self.existed_model[self.existed_model['Encoding string']
+                                                == s]['Valid accuracy Top1'].values[0]
+                valid_top5 = self.existed_model[self.existed_model['Encoding string']
+                                                == s]['Valid accuracy Top5'].values[0]
+                samples_reward.append({
+                    'encoding_string' : s,
+                    'accTop1': valid_top1,
+                    'accTop5': valid_top5})
+        return samples_reward
 
     def is_exist(self, ind) -> 'if exist return result else return None':
         ind_string = ind.to_string()
@@ -195,10 +213,12 @@ class Q_learning:
                  state_format: 'class used to generate the state',
                  q_lr: 'q learning rate' = 0.1,
                  q_discount_factor=1.0,
+                 min_actions=10,
                  max_actions=40,
                  #  state_space_params=Q_ACTION,
                  q_table=None):
         self.max_actions = max_actions
+        self.min_actions = min_actions
         self.epsilon = epsilon
         self.q_learning_rate = q_lr
         self.q_discount_factor = q_discount_factor
@@ -272,16 +292,29 @@ class Q_learning:
         self.q_table.save(
             save_path, file_name+'{0}'.format(self.q_value_update_times), file_format=file_format)
 
+    def update_q_table_seqence(self, sample_seqence: '[(state_seqence, reward)]' = None):
+        if sample_seqence is None:
+            logging.warn(
+                "[WARN] Update Q table FAILED (>﹏<), sample_seqence is None.")
+            return
+        for state_seqence, reward in sample_seqence:
+            self.update_q_table(state_seqence, reward)
+
+    def __normalize_reward(self, reward):
+        if reward > 1: # if reward lager than 1, it may assume as using hundred-mark
+            return reward/100.0
+        else:
+            return reward
+
     def update_q_table(self, state_seqence, reward):
         self.state_change = True
-        self.__update_q_value(state_seqence[-2], state_seqence[-1], reward)
+        self.__update_q_value(state_seqence[-2], state_seqence[-1], self.__normalize_reward(reward))
         self.state_change = False
         for i in reversed(range(len(state_seqence)-2)):
             self.__update_q_value(state_seqence[i], state_seqence[i+1], 0)
         self.q_value_update_times += 1
 
-        # save q_value per 10 times
-        if self.q_value_update_times % 50 == 0:
+        if self.q_value_update_times % 100 == 0:
             self.save_q_table(save_path=self.save_path,
                               file_name='q_values_', file_format='csv')
 
@@ -304,3 +337,4 @@ class Q_learning:
             (reward + self.q_discount_factor *
              max_over_next_states -
              values[actions.index(action_between_states)])
+        self.q_table.q[start_state.to_tuple()] = {'action': actions, 'q_value': values}

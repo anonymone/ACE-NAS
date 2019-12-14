@@ -94,7 +94,7 @@ class RL_eval(evaluator):
         for epoch in range(self.epochs):
             train_loss, train_top1, train_top5, step = train.train(
                 trainset, model, optimizer, step, train_criterion, device, rate_static=accuracy)
-            logging.debug("[Epoch {0:>5d}] [Train] loss {1:.3f} lr {2:.5f} Accuracy Top1 {3:.2f} Accuracy Top5 {4:.2f}".format(
+            logging.debug("[Epoch {0:>4d}] [Train] loss {1:.3f} lr {2:.5f} Accuracy Top1 {3:.2f} Accuracy Top5 {4:.2f}".format(
                 epoch, train_loss, scheduler.get_lr()[0], train_top1, train_top5))
             scheduler.step()
 

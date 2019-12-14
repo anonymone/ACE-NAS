@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.utils
 import torch.nn.functional as F
 import torchvision.datasets as dset
+import torch.utils.data as data
 import torchvision.transforms as transforms
 import torch.backends.cudnn as cudnn
 import numpy as np

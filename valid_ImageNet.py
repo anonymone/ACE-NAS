@@ -16,7 +16,7 @@ import time
 from quotes import Quotes
 
 from Coder.ACE import ACE
-from Coder.Network.utils import ACE_string_to_numpy
+from Coder.Network.utils import ACE_parser_tool
 from Evaluator.Utils.train import train, valid, build_train_utils
 from Evaluator.Utils.dataset import build_imagenet
 from Evaluator.Utils.recoder import create_exp_dir, model_save, count_parameters, count_parameters
@@ -100,7 +100,7 @@ sample = ACE(fitness_size=2,
              keep_prob=args.keep_prob,
              drop_path_keep_prob=args.drop_path_keep_prob,
              use_aux_head=args.use_aux_head)
-sample.set_dec(ACE_string_to_numpy(args.encoding_str))
+sample.set_dec(ACE_parser_tool.string_to_numpy(args.encoding_str))
 model = sample.get_model(steps=steps, imagenet=True)
 
 n_params = count_parameters(model)

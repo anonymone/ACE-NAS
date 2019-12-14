@@ -1,8 +1,9 @@
 import math
 import numpy as np
+from Coder.Network.utils import ACE_parser_tool as ACE_parser
 
 
-class ACE_parser_tool(object):
+class ACE_parser_tool_RL(object):
     @staticmethod
     def states_to_numpy(state_list:list):
         for i in range(len(state_list)):
@@ -13,7 +14,11 @@ class ACE_parser_tool(object):
         reduct_string = np.array(
             [np.array(s.to_list()).astype("int") for s in state_list[i+1:-1]])
         return (normal_string, reduct_string)
-    
+
+    @staticmethod
+    def string_to_states(encoding_str, state_format:'specify the state type'):
+        return ACE_parser_tool_RL.numpy_to_states(ACE_parser.string_to_numpy(encoding_str), state_format)
+
     @staticmethod
     def numpy_to_states(state_numpy, state_format:'specify the state type'):
         state_list = [state_format(-2, 0, 0)]

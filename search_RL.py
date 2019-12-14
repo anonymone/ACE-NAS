@@ -13,7 +13,7 @@ from Coder.ACE import build_ACE
 from Evaluator.Utils import recoder
 from Evaluator.RL_evaluator import RL_eval
 from SearchEngine.RL_Engine import RL_population, Q_State_Enumerator, Q_learning, Q_State
-from SearchEngine.Utils.RL_tools import ACE_parser_tool as ACE_parser_tool
+from SearchEngine.Utils.RL_tools import ACE_parser_tool_RL as ACE_parser_tool
 
 # Experiments parameter settings
 parser = argparse.ArgumentParser(
@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 # encoding setting
-parser.add_argument('--unit_num', default=(12, 17))
+parser.add_argument('--unit_num', default=(12, 30))
 parser.add_argument('--value_boundary', default=(0, 10))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
@@ -56,6 +56,7 @@ parser.add_argument('--epsilon_list', type=dict, default={1.0: 250,
                                                           0.1: 50})
 parser.add_argument('--q_lr', type=float, default=0.1)
 parser.add_argument('--q_discount_factor', type=float, default=1.0)
+parser.add_argument('--q_random_sample', type=int, default=100)
 
 args = parser.parse_args()
 
@@ -131,7 +132,6 @@ for epsilon, samples_num in args.epsilon_list.items():
         model.set_dec(encoding)
         results = model_gallery.is_exist(model)
         if results is None:
-
             results = evaluator.evaluate(model)
             model_gallery.add_ind(model,
                                   epsilon,
@@ -139,8 +139,14 @@ for epsilon, samples_num in args.epsilon_list.items():
                                   results['accTop5'],
                                   results['params'][0],
                                   results['FLOPs'])
-        engine.update_q_table(ACE_parser_tool.numpy_to_states(
-            model.get_dec(), state_format=Q_State), reward=results['accTop1'])
+        # random sample from existed samples.
+        results_seqence = [(ACE_parser_tool.numpy_to_states(model.get_dec(), state_format=Q_State), results['accTop1'])]
+        if epsilon < 1:
+            for sample_dict in model_gallery.random_sample(sample_num=args.q_random_sample):
+                encoding_string, reward = sample_dict['encoding_string'], sample_dict['accTop1']
+                results_seqence.append((ACE_parser_tool.string_to_states(encoding_string,state_format=Q_State), reward))
+
+        engine.update_q_table_seqence(results_seqence)
 
         # time record
         s_time = (time.time() - s_time)/60.0
