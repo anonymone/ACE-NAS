@@ -278,7 +278,7 @@ class Q_learning:
                 max_actions = [action_values['action'][i]
                                for i in max_q_indexes]
                 action = Q_State(
-                    state_list=max_actions[np.random.randint(len(max_actions))])
+                    param_list=max_actions[np.random.randint(len(max_actions))])
         self.state_action_transition(self.state, action)
 
     def state_action_transition(self, state, action) -> 'update self.state and inset state into state list.':
