@@ -5,11 +5,10 @@
 Experiment_NOTE
 
 DATASET=CIFAR10
-ENCODE=
+ENCODE=""
 
 python3 valid_CIFAR.py  --seed=0 \
                         --save_root=./Experiments/ \
-                        --encode_str=$ENCODE
                         --data_path=./Dataset/ \
                         --num_work=10 \
                         --train_batch_size=128 \
