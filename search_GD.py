@@ -180,19 +180,21 @@ for i in range(4):
 
     # Generate new encoding
     new_archs = []
-    max_step_size = 50
+    max_step_size = 100
     predict_step_size = 0
-    top100_archs = arch_pool[:100]
-    infer_queue = dataset_utils.get_data_loader(train_dataset=top100_archs)
+    top100_archs = (inputs[:100], labels[:100])
+    infer_queue, _ = dataset_utils.get_data_loader(train_dataset=top100_archs)
 
     while len(new_archs) < args.controller_new_arch:
         predict_step_size += 1
-        new_arch = nao_infer(nao_infer_queue, nao,
+        new_arch = nao_infer(infer_queue, engine,
                              predict_step_size, direction='+')
         for arch in new_arch:
             if arch not in arch_pool and arch not in new_archs:
                 new_archs.append(arch)
             if len(new_archs) >= args.controller_new_arch:
+                break
+        if predict_step_size > max_step_size:
                 break
     population.add_new_inds(new_archs)
 

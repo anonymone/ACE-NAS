@@ -27,7 +27,8 @@ class GD_population(population):
     def add_new_inds(self, dec_list):
         for dec in dec_list:
             ind = self.ind_generator(self.obj_number, self.ind_params)
-            ind.set_dec(dec)
+            dec = np.array(dec).reshape(2,-1)
+            ind.set_dec((dec[0,:], dec[1,:]))
             self.add_ind(ind)
 
     def __parser(self, code: 'code'):
