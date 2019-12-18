@@ -314,7 +314,7 @@ class Q_learning:
             self.__update_q_value(state_seqence[i], state_seqence[i+1], 0)
         self.q_value_update_times += 1
 
-        if self.q_value_update_times % 100 == 0:
+        if self.q_value_update_times % 10000 == 0:
             self.save_q_table(save_path=self.save_path,
                               file_name='q_values_', file_format='csv')
 
