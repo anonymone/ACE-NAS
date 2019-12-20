@@ -20,7 +20,6 @@ parser = argparse.ArgumentParser(
     "GD based Neural Architecture Search Experiments")
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
-parser.add_argument('--generations', type=int, default=30)
 # encoding setting
 parser.add_argument('--unit_num', default=(10, 10))
 parser.add_argument('--value_boundary', default=(0, 15))
@@ -65,10 +64,10 @@ parser.add_argument('--controller_encoder_dropout', type=float, default=0)
 parser.add_argument('--controller_mlp_dropout', type=float, default=0.1)
 parser.add_argument('--controller_decoder_dropout', type=float, default=0)
 parser.add_argument('--controller_l2_reg', type=float, default=0)
-parser.add_argument('--controller_encoder_vocab_size', type=int, default=20)
-parser.add_argument('--controller_decoder_vocab_size', type=int, default=20)
+parser.add_argument('--controller_encoder_vocab_size', type=int, default=15)
+parser.add_argument('--controller_decoder_vocab_size', type=int, default=15)
 parser.add_argument('--controller_trade_off', type=float, default=0.8)
-parser.add_argument('--controller_epochs', type=int, default=1000)
+parser.add_argument('--controller_epochs', type=int, default=5)
 parser.add_argument('--controller_batch_size', type=int, default=100)
 parser.add_argument('--controller_lr', type=float, default=0.001)
 parser.add_argument('--controller_grad_bound', type=float, default=5.0)
@@ -147,13 +146,24 @@ engine = NAO(
 # Expelliarmus
 q = Quotes()
 
+total_time = []
 for i in range(4):
+    # time cost record
+    s_time = time.time()
+
+    logging.info("[Search Epoch {0:>2d}] {2} -- {1}".format(i, *q.random()))
     evaluator.evaluate(population.get_ind())
     population.save(save_path=os.path.join(
         args.save_root, 'archs'), file_name='arch_{0:_>2d}'.format(i))
 
+    s_time = time.time() - s_time
+    total_time += [s_time]
+    logging.info("[Evaluating End] time cost {0:.2f}h".format(s_time/3600.0))
+
     if i == 3:
         break
+
+    s_time = time.time()
 
     arch_pool, arch_pool_valid_acc = population.to_matrix()
     arch_pool, arch_pool_valid_acc = dataset_utils.sort(
@@ -168,6 +178,7 @@ for i in range(4):
     optimizer = torch.optim.Adam(
         engine.parameters(), lr=args.controller_lr, weight_decay=args.controller_l2_reg)
 
+    logging.info("[Train Engine] {1} -- {0}".format(*q.random()))
     for epoch in range(1, args.controller_epochs+1):
         loss, mse, ce = nao_train(train_queue, engine, optimizer, controller_trade_off=args.controller_trade_off,
                                   controller_grad_bound=args.controller_grad_bound)
@@ -177,8 +188,14 @@ for i in range(4):
             pa, hs = nao_valid(valid_queue, engine)
             logging.info("[Engine Valid] [{0:>3d}/{1:>3d}] pairwise accuracy {2:.6f} hamming distance {3:.6f}".format(
                 epoch, args.controller_epochs, pa, hs))
+    
+    s_time = time.time() - s_time
+    total_time += [s_time]
+    logging.info("[Train Engine End] time cost {0:.2f}mins".format(s_time/60.0))
 
     # Generate new encoding
+    s_time = time.time()
+
     new_archs = []
     max_step_size = 100
     predict_step_size = 0
@@ -197,6 +214,11 @@ for i in range(4):
         if predict_step_size > max_step_size:
                 break
     population.add_new_inds(new_archs)
+
+    s_time = time.time() - s_time
+    total_time += [s_time]
+    logging.info("[Generate New Encoding] {0:>2d} new samples are added. in {1:.2f}min".format(len(new_archs), s_time/60.0))
+    logging.info("[Search Epoch {0:>2d} End] time cost {1:.2f}h total time cost {2:.2f}d".format(i, sum(total_time[-3:])/60.0, sum(total_time)/3600.0))
 
 # Select the final Top 5 models
 # arch_pool, arch_pool_valid_acc = population.to_matrix()

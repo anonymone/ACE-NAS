@@ -29,6 +29,7 @@ class GD_population(population):
             ind = self.ind_generator(self.obj_number, self.ind_params)
             dec = np.array(dec).reshape(2,-1)
             ind.set_dec((dec[0,:], dec[1,:]))
+            logging.info("[New sample] [{0}] {1}".format(ind.get_Id(), ind.to_string()))
             self.add_ind(ind)
 
     def __parser(self, code: 'code'):
