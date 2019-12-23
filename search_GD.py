@@ -33,6 +33,7 @@ parser.add_argument('--classes', type=int, default=10)
 # population setting
 parser.add_argument('--pop_size', type=int, default=300)
 parser.add_argument('--obj_num', type=int, default=2)
+parser.add_argument('--search_pop_num', type=int, default=1000)
 # eval setting
 parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Dataset/')
@@ -147,20 +148,22 @@ engine = NAO(
 q = Quotes()
 
 total_time = []
-for i in range(4):
+total_run_time = 0
+while total_run_time < 100:
     # time cost record
     s_time = time.time()
 
-    logging.info("[Search Epoch {0:>2d}] {2} -- {1}".format(i, *q.random()))
+    logging.info("[Search Epoch {0:>2d}] {2} -- {1}".format(total_run_time, *q.random()))
     evaluator.evaluate(population.get_ind())
     population.save(save_path=os.path.join(
-        args.save_root, 'archs'), file_name='arch_{0:_>2d}'.format(i))
+        args.save_root, 'archs'), file_name='arch_{0:_>2d}'.format(total_run_time))
 
     s_time = time.time() - s_time
     total_time += [s_time]
     logging.info("[Evaluating End] time cost {0:.2f}h".format(s_time/3600.0))
 
-    if i == 3:
+    if population.pop_size > args.search_pop_num:
+        logging.info("[All Finished in {0:.2f}d]".format(sum(total_time)/(3600.0*24)))
         break
 
     s_time = time.time()
@@ -218,7 +221,8 @@ for i in range(4):
     s_time = time.time() - s_time
     total_time += [s_time]
     logging.info("[Generate New Encoding] {0:>2d} new samples are added. in {1:.2f}min".format(len(new_archs), s_time/60.0))
-    logging.info("[Search Epoch {0:>2d} End] time cost {1:.2f}h total time cost {2:.2f}d".format(i, sum(total_time[-3:])/60.0, sum(total_time)/3600.0))
+    logging.info("[Search Epoch {0:>2d} End] time cost {1:.2f}h total time cost {2:.2f}d".format(total_run_time, sum(total_time[-3:])/3600.0, sum(total_time)/(3600.0*24)))
+    total_run_time += 1
 
 # Select the final Top 5 models
 # arch_pool, arch_pool_valid_acc = population.to_matrix()

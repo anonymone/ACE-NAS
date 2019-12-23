@@ -35,14 +35,14 @@ class GD_population(population):
     def __parser(self, code: 'code'):
         unit_list = list()
         for action, p1, p2 in code:
-            action = self.code_parser.get_action_token(action)
-            if self.code_parser.get_action(action) == ACTION[1]:  # add_node_C
-                p1, p2 = self.code_parser.get_op_token(p1), p2
-            # substitute_node_B_for_type
-            elif self.code_parser.get_action(action) == ACTION[3]:
-                p1, p2 = p1, self.code_parser.get_op_token(p2)
-            else:
-                pass
+            # action = self.code_parser.get_action_token(action)
+            # if self.code_parser.get_action(action) == ACTION[1]:  # add_node_C
+            #     p1, p2 = self.code_parser.get_op_token(p1), p2
+            # # substitute_node_B_for_type
+            # elif self.code_parser.get_action(action) == ACTION[3]:
+            #     p1, p2 = p1, self.code_parser.get_op_token(p2)
+            # else:
+            #     pass
             unit_list.extend([action, p1, p2])
         return unit_list
 
