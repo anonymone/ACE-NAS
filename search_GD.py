@@ -163,7 +163,7 @@ while total_run_time < 100:
     logging.info("[Evaluating End] time cost {0:.2f}h".format(s_time/3600.0))
 
     if population.pop_size > args.search_pop_num:
-        logging.info("[All Finished in {0:.2f}d]".format(sum(total_time)/(3600.0*24)))
+        logging.info("[All Finished in {0:.2f}d Total evaluate {1:4>d} samples]".format(sum(total_time)/(3600.0*24), population.pop_size))
         break
 
     s_time = time.time()

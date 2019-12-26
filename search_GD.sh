@@ -7,11 +7,11 @@ Experiment_NOTE
 MODE=EXPERIMENT
 
 python3 search_GD.py --seed=0 \
-                    --total_run_time=100 \
+                    --search_pop_num=1000 \
                     --save_root=./Experiments/ \
                     --data_path=./Dataset/ \
                     --layers=1 \
-                    --channels=16 \
+                    --channels=24 \
                     --keep_prob=0.6 \
                     --drop_path_keep_prob=0.8 \
                     --classes=10 \
