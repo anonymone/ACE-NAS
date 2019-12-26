@@ -7,7 +7,7 @@ Experiment_NOTE
 MODE=EXPERIMENT
 
 python3 search_GD.py --seed=0 \
-                    --total_run_time=100 \
+                    --search_pop_num=100 \
                     --save_root=./Experiments/ \
                     --data_path=./Dataset/ \
                     --layers=1 \

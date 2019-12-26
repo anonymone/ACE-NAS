@@ -67,6 +67,19 @@ class EA_population(population):
             [np.hstack(([ind.get_Id()], ind.get_fitness(), ind.get_fitnessSG())) for ind in self.individuals.values()])
         return matrix
 
+    def to_string(self, callback=None):
+        if callback is None:
+            return [ind.to_string() for ind in self.get_ind()]
+        else:
+            return [callback(ind.to_string()) for ind in self.get_ind()]
+
+    def get_topk(self, k, obj_select=0, order='INC'):
+        pop_value = self.to_matrix()
+        max_index = pop_value[np.argsort(pop_value[:,obj_select+1]),:]
+        if order=='INC':
+            return self.get_ind(IDs=max_index[0:k,0])
+        elif order=='DEC':
+            return self.get_ind(IDs=max_index[-k:,0])
 
 class NSGA2():
     def __init__(self):
