@@ -10,7 +10,7 @@ ENCODE="0.3.1-10.11.9-14.14.4-14.13.11-1.6.0-1.12.2-10.13.5-1.13.11-5.0.12-1.13.
 
 python3 valid_CIFAR.py  --seed=0 \
                         --save_root=./Experiments/ \
-                        --data_path=./Dataset/ \
+                        --data_path=./Res/Dataset/ \
                         --dataset=$DATASET \
                         --num_work=12 \
                         --train_batch_size=128 \

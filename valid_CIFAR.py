@@ -29,7 +29,7 @@ parser.add_argument('--save_root', type=str,
 parser.add_argument('--encoding_str', type=str, default="3.0.7-7.2.1-7.0.7-0.4.9-9.0.3-8.1.4<--->4.3.7-7.0.6-9.1.1-9.9.2-1.1.9-8.5.4-8.1.7-5.0.9-0.9.2")
 
 parser.add_argument('--data_path', type=str,
-                    default='./Dataset/', help='location of the data corpus')
+                    default='./Res/Dataset/', help='location of the data corpus')
 parser.add_argument('--dataset', type=str, default='CIFAR10',
                     help='the dataset: cifar10, cifar100 ...')
 parser.add_argument('--num_work', type=int, default=0,

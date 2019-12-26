@@ -32,7 +32,7 @@ parser.add_argument('--use_aux_head', type=bool, default=False)
 parser.add_argument('--classes', type=int, default=10)
 # eval setting
 parser.add_argument('--mode', type=str, default='DEBUG')
-parser.add_argument('--data_path', type=str, default='./Dataset/')
+parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
 parser.add_argument('--num_work', type=int, default=0)
 parser.add_argument('--train_batch_size', type=int, default=196)

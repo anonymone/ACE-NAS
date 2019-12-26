@@ -36,7 +36,7 @@ parser.add_argument('--obj_num', type=int, default=2)
 parser.add_argument('--search_pop_num', type=int, default=1000)
 # eval setting
 parser.add_argument('--mode', type=str, default='DEBUG')
-parser.add_argument('--data_path', type=str, default='./Dataset/')
+parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
 parser.add_argument('--num_work', type=int, default=0)
 parser.add_argument('--train_batch_size', type=int, default=196)

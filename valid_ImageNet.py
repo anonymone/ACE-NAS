@@ -26,7 +26,7 @@ parser.add_argument('--seed', type=int, default=0, help='random seed')
 parser.add_argument('--save_root', type=str,default='./Experiments/', help='experiment name')
 parser.add_argument('--encoding_str', type=str,default="3.0.7-7.2.1-7.0.7-0.4.9-9.0.3-8.1.4<--->4.3.7-7.0.6-9.1.1-9.9.2-1.1.9-8.5.4-8.1.7-5.0.9-0.9.2")
 
-parser.add_argument('--data_path', type=str, default='./Dataset/', help='location of the data corpus')
+parser.add_argument('--data_path', type=str, default='./Res/Dataset/', help='location of the data corpus')
 parser.add_argument('--dataset', type=str, default='ImageNet',help='the dataset: ImageNet ...')
 parser.add_argument('--feed_num_work', type=int, default=0,help='the number of the data worker.')
 parser.add_argument('--load_num_work', type=int, default=32, help='the number of the data worker.')
