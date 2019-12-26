@@ -9,6 +9,7 @@ import torch.backends.cudnn as cudnn
 import numpy as np
 import threading
 import logging
+import os
 
 
 class Cutout(object):
@@ -257,3 +258,21 @@ def build_imagenet(data_path,
     valid_queue = torch.utils.data.DataLoader(
         valid_data, batch_size=valid_batch_size, shuffle=True, pin_memory=True, num_workers=feed_num_work)
     return train_queue, valid_queue
+
+class auto_data(object):
+    @staticmethod
+    def generate_data(value_range=(0,15), length_range=(10,20), num_samples=500000, data_parser=lambda x: ' '.join(['.'.join([str(j) for j in i]) for i in x.reshape(-1, 3)])):
+        dataset =  list()
+        for i in range(length_range[0], length_range[1], 1):
+            data = np.random.randint(value_range[0], value_range[1], size=(np.ceil(num_samples/(length_range[1]-length_range[0])).astype('int'), i*3))
+            for d in data:
+                dataset.append('{0}\t{1}'.format(data_parser(d), data_parser(d)))
+        return dataset
+    
+    @staticmethod
+    def save_data(data, save_path='./Res/PretrainModel/', file_name='trainset.txt'):
+        file = open(os.path.join(save_path, file_name), 'a')
+        file.write("\n".join(data))
+        file.flush()
+        file.close()
+        
