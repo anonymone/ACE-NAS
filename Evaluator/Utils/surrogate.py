@@ -295,12 +295,12 @@ class auto_seq2seq:
 
         def len_filter(example):
             return len(example.src) <= self.max_length and len(example.tgt) <= self.max_length
-        self.trainset = torchtext.data.TabularDataset(path=os.path.join(self.data_path, 'train.txt'),
+        self.trainset = torchtext.data.TabularDataset(path=os.path.join(self.data_path, 'train'),
                                                       format='tsv',
                                                       fields=[
                                                           ('src', self.src), ('tgt', self.tgt)],
                                                       filter_pred=len_filter)
-        self.devset = torchtext.data.TabularDataset(path=os.path.join(self.data_path, 'eval.txt'), format='tsv',
+        self.devset = torchtext.data.TabularDataset(path=os.path.join(self.data_path, 'eval'), format='tsv',
                                                     fields=[
                                                         ('src', self.src), ('tgt', self.tgt)],
                                                     filter_pred=len_filter)

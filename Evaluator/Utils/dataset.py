@@ -264,9 +264,9 @@ class auto_data(object):
     def generate_data(value_range=(0,15), length_range=(10,20), num_samples=500000, data_parser=lambda x: ' '.join(['.'.join([str(j) for j in i]) for i in x.reshape(-1, 3)])):
         dataset =  list()
         for i in range(length_range[0], length_range[1], 1):
-            data = np.random.randint(value_range[0], value_range[1], size=(np.ceil(num_samples/(length_range[1]-length_range[0])).astype('int'), i*3))
-            for d in data:
-                dataset.append('{0}\t{1}'.format(data_parser(d), data_parser(d)))
+            data = np.random.randint(value_range[0], value_range[1], size=(2, np.ceil(num_samples/(length_range[1]-length_range[0])).astype('int'), i*3))
+            for d0, d1 in zip(data[0,:,:], data[1,:,:]):
+                dataset.append('{0} <---> {1}\t{0} <---> {1}'.format(data_parser(d0), data_parser(d1)))
         return dataset
     
     @staticmethod
