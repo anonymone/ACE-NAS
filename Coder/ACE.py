@@ -115,12 +115,15 @@ class ACE(code):
         for name in kwargs.keys():
             exec("self.{0} = kwargs['{0}']".format(str(name)))
 
-    def to_string(self) -> str:
+    def to_string(self, callback=None) -> str:
         normal_string = "-".join([".".join([str(t) for t in unit])
                                   for unit in self.normal_dec])
         reduct_string = "-".join([".".join([str(t) for t in unit])
                                   for unit in self.reduct_dec])
-        return "<--->".join([normal_string, reduct_string])
+        if callback is None:
+            return "<--->".join([normal_string, reduct_string])
+        else:
+            return callback("<--->".join([normal_string, reduct_string]))
 
     def get_dec(self) -> (np.ndarray, np.ndarray):
         return deepcopy((self.normal_dec, self.reduct_dec))

@@ -9,6 +9,7 @@
 *.zip
 
 # folder 
+/Res/PretrainModel/*.txt
 /Experiments/
 /Dataset/*-py
 /Dataset/*.gz
