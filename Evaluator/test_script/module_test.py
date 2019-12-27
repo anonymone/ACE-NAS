@@ -45,4 +45,5 @@ from Evaluator.Utils.recoder import create_exp_dir
 # model = auto_seq2seq('./Res/PretrainModel/', './Experiments/module_test/','./Experiments/module_test/')
 # model.train()
 
-auto_data.save_data(auto_data.generate_data(num_samples=100))
+auto_data.save_data(auto_data.generate_data(num_samples=100), file_name='train')
+auto_data.save_data(auto_data.generate_data(num_samples=100), file_name='eval')

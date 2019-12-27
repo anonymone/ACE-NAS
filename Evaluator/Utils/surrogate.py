@@ -285,7 +285,7 @@ class Seq2Rank:
 
 
 class auto_seq2seq:
-    def __init__(self, data_path, model_save_path, model_load_path, hidden_size=32, device='cuda'):
+    def __init__(self, data_path, model_save_path, model_load_path, hidden_size=32, max_vocab=4000,device='cuda'):
         self.src = SourceField()
         self.tgt = TargetField()
         self.max_length = 90
@@ -304,8 +304,8 @@ class auto_seq2seq:
                                                     fields=[
                                                         ('src', self.src), ('tgt', self.tgt)],
                                                     filter_pred=len_filter)
-        self.src.build_vocab(self.trainset, max_size=1000)
-        self.tgt.build_vocab(self.trainset, max_size=1000)
+        self.src.build_vocab(self.trainset, max_size=max_vocab)
+        self.tgt.build_vocab(self.trainset, max_size=max_vocab)
         weight = torch.ones(len(self.tgt.vocab))
         pad = self.tgt.vocab.stoi[self.tgt.pad_token]
         self.loss = Perplexity(weight, pad)
@@ -323,12 +323,12 @@ class auto_seq2seq:
         for param in self.seq2seq.parameters():
             param.data.uniform_(-0.08, 0.08)
 
-    def train(self, resume=False):
+    def train(self, epoch=20, resume=False):
         t = SupervisedTrainer(loss=self.loss, batch_size=96,
                               checkpoint_every=1000,
                               print_every=1000, expt_dir=self.model_save_path)
         self.seq2seq = t.train(self.seq2seq, self.trainset,
-                               num_epochs=20, dev_data=self.devset,
+                               num_epochs=epoch, dev_data=self.devset,
                                optimizer=self.optimizer,
                                teacher_forcing_ratio=0.5,
                                resume=resume)
