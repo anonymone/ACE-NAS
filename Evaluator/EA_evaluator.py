@@ -117,7 +117,7 @@ class EA_eval(evaluator):
             self.surrogate_model.evaluation([individual])
             valid_top1, n_flops = individual.get_fitness()
             logging.info("[SG Value] [{0}] predict value {1:.3f}".format(
-                individual.get_Id(), individual.get_fitnessSG()[0]))
+                individual.to_string(), individual.get_fitnessSG()[0]))
             return {
                 'fitness': np.array([valid_top1, n_flops]).reshape(-1),
                 'ErrorTop1': valid_top1,
