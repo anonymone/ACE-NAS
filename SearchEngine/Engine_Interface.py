@@ -50,12 +50,13 @@ class population:
     
     def remove_ind(self, IDs=None):
         assert self.pop_size > 0, 'Population has no individual.'
-        if not isinstance(IDs, list):
-            IDs = [IDs]
         # clear all
         if IDs is None:
             self.individuals = dict()
             self.pop_size = 0
+            return None
+        if not isinstance(IDs, list):
+            IDs = [IDs]
         else:
             for i in IDs:
                 try:

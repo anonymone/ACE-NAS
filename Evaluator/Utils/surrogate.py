@@ -51,14 +51,14 @@ class EmbeddingModel:
             vectors.append(hiden_cpu.data.numpy().reshape(-1))
         return np.array(vectors)
 
-    def encode2numpy(self, code, withfitness=True):
-        if withfitness:
+    def encode2numpy(self, code, with_fitness=True):
+        if with_fitness:
             decList = []
             values = []
             for decString, value in code:
                 decList.append(decString)
                 values.append(value)
-            return np.hstack([self.encode(decList), np.array(values)])
+            return np.hstack([self.encode(decList), np.array(values).reshape(-1,1)])
         else:
             decList = []
             for decString in code:
@@ -67,7 +67,7 @@ class EmbeddingModel:
 
 
 class RankNet(nn.Module):
-    def __init__(self, sizeList=[(256, 128), (128, 64), (64, 32), (32, 1)]):
+    def __init__(self, sizeList=[(128, 64), (64, 32), (32, 1)]):
         super(RankNet, self).__init__()
         self.model = nn.Sequential()
         for layerNumber, (inSize, outSize) in enumerate(sizeList[:-1]):
@@ -78,11 +78,12 @@ class RankNet(nn.Module):
             layerNumber+1), nn.Linear(sizeList[-1][0], sizeList[-1][1]))
         self.P_ij = nn.Sigmoid()
 
-    def forward(self, input1, input2):
+    def forward(self, input, global_step):
+        input1, input2 = input[:,0,:], input[:,1,:]
         x_i = self.model(input1)
         x_j = self.model(input2)
         S_ij = torch.add(x_i, -x_j)
-        return self.P_ij(S_ij)
+        return self.P_ij(S_ij), None
 
     def predict(self, inputs):
         outputs = self.model(inputs)
@@ -186,7 +187,7 @@ class RankNetDataset(data.Dataset):
             vector = self.transform(vector)
         if self.target_transform is not None:
             target = self.target_transform(target)
-        return (vector_i, vector_j), target.astype("float32")
+        return np.vstack([vector_i, vector_j]), target.astype("float32")
 
     def __len__(self):
         if self.train:
@@ -213,8 +214,8 @@ class Seq2Rank:
     def __init__(self,
                  encoder,
                  model_save_path,
-                 input_preprocess: 'preprocess function' = lambda x: x,
-                 model_size=[(256, 128), (128, 64), (64, 32), (32, 1)]):
+                 input_preprocess: 'used to format the encoding string' = lambda x: x,
+                 model_size=[(128, 64), (64, 32), (32, 1)]):
         self.save_model_path = model_save_path
         self.model_size = model_size
         self.model = RankNet(model_size)
@@ -224,6 +225,10 @@ class Seq2Rank:
         self.encoder = encoder
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.input_preprocess = input_preprocess
+        self.data_set = RankNetDataset()
+
+    def update_dataset(self, data : '[(input string, label)]'):
+        self.data_set.add_data(self.encoder.encode2numpy(data))
 
     def predict(self, codeString):
         if type(codeString) is not list:
@@ -245,22 +250,23 @@ class Seq2Rank:
             fitnessSG = self.predict(ind.to_string(
                 callback=self.input_preprocess))
             individuals[Id].set_fitnessSG(fitnessSG)
-            # count paramsize
-            n_param = count_parameters(ind.get_model(1))
-            result.append(np.hstack([[ind.get_Id()], fitnessSG, [n_param]]))
-        return np.array(result)
+        
 
-    def trian(self, dataset=None, train_epoch=50, newModel=False, run_time=0):
+    def train(self, dataset=None, train_epoch=50, newModel=False, run_time=0):
         if newModel:
             self.model = RankNet(self.model_size)
             parameters = filter(lambda p: p.requires_grad,
                                 self.model.parameters())
             self.optimizer = torch.optim.Adam(parameters)
         create_exp_dir(self.save_model_path)
+
+        if dataset is None:
+            dataset =self.data_set
+
         data_queue = torch.utils.data.DataLoader(dataset=dataset,
                                                  batch_size=32,
                                                  shuffle=True,
-                                                 num_workers=6)
+                                                 num_workers=0)
 
         def rate_fun(outputs, labels, topk=(1, 1)):
             outputs = outputs.cpu()
@@ -275,8 +281,10 @@ class Seq2Rank:
         # train model
         step = 0
         for epoch in range(train_epoch):
-            loss, top1, _, step = train(
+            train_loss, train_top1, train_top5, step = train(
                 data_queue, self.model, self.optimizer, step, self.criterion, self.device, rate_static=rate_fun)
+            logging.info("[Epoch {0:>4d}] [Train] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f}".format(
+                epoch, train_loss, train_top1, train_top5))
         # save model
         torch.save(self.model.state_dict(), os.path.join(
             self.save_model_path, "Seq2Rank_run_{0:>2d}.ckpt".format(run_time)))

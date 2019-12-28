@@ -1,7 +1,10 @@
 import random
 from copy import deepcopy
 import numpy as np
+import os
+from pandas import DataFrame
 
+from Evaluator.Utils.recoder import create_exp_dir
 from SearchEngine.Engine_Interface import population
 from SearchEngine.Utils.EA_tools import ACE_CrossoverV1, ACE_Mutation_V2
 
@@ -72,6 +75,35 @@ class EA_population(population):
             return [ind.to_string() for ind in self.get_ind()]
         else:
             return [callback(ind.to_string()) for ind in self.get_ind()]
+    
+    def save(self, save_path='./data/', file_name='population', file_format='csv', mode='EXPERIMENT'):
+        create_exp_dir(save_path)
+        table = {
+            'ID': list(),
+            'Encoding string' : list()
+        }
+        if mode in ['EXPERIMENT', 'DEBUG']:
+            for i in range(self.obj_number):
+                table['Fitness{0}'.format(i)] = list()
+            for ID,ind in self.individuals.items():
+                table['ID'].append(ID)
+                table['Encoding string'].append(ind.to_string())
+                fitness = ind.get_fitness()
+                for i in range(self.obj_number):
+                    table['Fitness{0}'.format(i)].append(fitness[i])
+        elif mode == 'SURROGATE':
+            table['SG_value'] = list()
+            for ID,ind in self.individuals.items():
+                table['ID'].append(ID)
+                table['Encoding string'].append(ind.to_string())
+                table['SG_value'].append(ind.get_fitnessSG()[0])
+        table = DataFrame(table)
+        if file_format == 'csv':
+            table.to_csv(os.path.join(save_path,'{0}.csv'.format(file_name)), index=False)
+        elif file_format == 'json':
+            table.to_json(os.path.join(save_path,'{0}.json'.format(file_name)), index=False)
+        else:
+            raise Exception('Error file format is specified!') 
 
     def get_topk(self, k, obj_select=0, order='INC'):
         pop_value = self.to_matrix()
