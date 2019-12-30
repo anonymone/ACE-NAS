@@ -39,6 +39,8 @@ class population:
             return inds
     
     def add_ind(self, ind):
+        # update the pop_size. there is a very tiny possibility that pop_size mismatch with self.individuals and I have not find the bugs yet. Orz.
+        self.pop_size= len(self.individuals)
         if type(ind) != list:
             ind = [ind]
         try:
