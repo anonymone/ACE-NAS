@@ -62,6 +62,7 @@ parser.add_argument('--surrogate_premodel', type=str,
                     default='2019_12_28_06_03_12')
 parser.add_argument('--surrogate_step', type=int, default=5)
 parser.add_argument('--surrogate_search_times', type=int, default=10)
+parser.add_argument('--surrogate_preserve_topk', type=int, default=5)
 
 args = parser.parse_args()
 
@@ -145,7 +146,7 @@ for gen in range(args.generations):
     if gen in surrogate_schedule:
         evaluator.set_mode('SURROGATE')
         surrogate_pop = deepcopy(population)
-        topk_ind = surrogate_pop.get_topk(k=5)
+        topk_ind = surrogate_pop.get_topk(k=args.surrogate_preserve_topk)
         surrogate_pop.remove_ind()
         surrogate_pop.add_ind(topk_ind)
         for _ in range(int(args.pop_size/5)):
@@ -158,7 +159,7 @@ for gen in range(args.generations):
             surrogate_pop.remove_ind(rm_inds)
             surrogate_pop.save(save_path=os.path.join(
                 args.save_root, 'sg_populations'), file_name='sg_population_gen{0}_s_gen{1}'.format(gen, s_gen),mode='SURROGATE')
-        population.add_ind(surrogate_pop.get_topk(k=5,obj_select=2))
+        population.add_ind(surrogate_pop.get_topk(k=args.surrogate_preserve_topk,obj_select=2))
         evaluator.set_mode(args.mode)
     else:
         population.new_pop()

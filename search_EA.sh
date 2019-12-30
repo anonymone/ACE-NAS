@@ -32,4 +32,5 @@ python3 search_EA.py --seed=0 \
                     --surrogate_path=./Res/PretrainModel/ \
                     --surrogate_premodel=2019_12_28_06_03_12 \
                     --surrogate_step=5 \
-                    --surrogate_search_times=1000 
+                    --surrogate_search_times=1000 \
+                    --surrogate_preserve_topk=2
