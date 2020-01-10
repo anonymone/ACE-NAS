@@ -69,7 +69,7 @@ args = parser.parse_args()
 
 recoder.create_exp_dir(args.save_root)
 args.save_root = os.path.join(
-    args.save_root, 'EA_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H")))
+    args.save_root, 'EA_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H-%S")))
 recoder.create_exp_dir(args.save_root, scripts_to_save=glob.glob('*_EA.*'))
 
 # logging setting
