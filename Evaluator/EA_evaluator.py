@@ -58,7 +58,7 @@ class EA_eval(evaluator):
             model.eval()
             model.start_flops_count()
             random_data = torch.randn(1, 3, 32, 32)
-            model(torch.autograd.Variable(random_data).cuda()
+            model(torch.autograd.Variable(random_data).cuda())
             n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
             logging.debug("[DEBUG MODE] [{0}] valid Top1 {1:.2f} valid Top5 {2:.2f} Params {3:.2f}".format(individual.get_Id(), valid_top1.item(), valid_top5.item(), n_params))
             return {
@@ -99,7 +99,7 @@ class EA_eval(evaluator):
             model.eval()
             model.start_flops_count()
             random_data = torch.randn(1, 3, 32, 32)
-            model(torch.autograd.Variable(random_data).cuda()
+            model(torch.autograd.Variable(random_data).cuda())
             n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
 
             logging.info("[Valid Error] [{0}] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f} FLOPs {4:.3f} Params {5:.2f}M".format(
