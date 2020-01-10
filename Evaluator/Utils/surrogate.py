@@ -44,7 +44,7 @@ class EmbeddingModel:
             seq = seqStr.strip().split()
             src_id_seq = torch.LongTensor(
                 [self.input_vocab.stoi[tok] for tok in seq]).view(1, -1)
-            src_id_seq = src_id_seq.to(self.device)
+            src_id_seq = src_id_seq.cuda()
             with torch.no_grad():
                 output, hiden = self.seq2seq.encoder(src_id_seq, [len(seq)])
             hiden_cpu = hiden.cpu()
@@ -235,8 +235,8 @@ class Seq2Rank:
         if type(codeString) is not list:
             codeString = [codeString]
         vector = self.encoder.encode(codeString)
-        vector = torch.from_numpy(vector).to(self.device)
-        self.model = self.model.to(self.device)
+        vector = torch.from_numpy(vector).cuda()
+        self.model = self.model.cuda()
         with torch.no_grad():
             outputs = self.model.predict(vector)
         outputs = outputs.to('cpu')
@@ -283,7 +283,7 @@ class Seq2Rank:
         step = 0
         for epoch in range(train_epoch):
             train_loss, train_top1, train_top5, step = train(
-                data_queue, self.model, self.optimizer, step, self.criterion, self.device, rate_static=rate_fun)
+                data_queue, self.model, self.optimizer, step, self.criterion, rate_static=rate_fun)
             logging.info("[Epoch {0:>4d}] [Train] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f}".format(
                 epoch, train_loss, train_top1, train_top5))
         # save model
@@ -328,7 +328,7 @@ class auto_seq2seq:
                              dropout_p=0.2, use_attention=True, bidirectional=self.bidirectional,
                              eos_id=self.tgt.eos_id, sos_id=self.tgt.sos_id)
         self.device = device
-        self.seq2seq = Seq2seq(encoder, decoder).to(self.device)
+        self.seq2seq = Seq2seq(encoder, decoder).cuda()
         for param in self.seq2seq.parameters():
             param.data.uniform_(-0.08, 0.08)
 

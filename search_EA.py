@@ -90,6 +90,7 @@ logging.info("[Experiments Setting]\n"+"".join(
     ["[{0}]: {1}\n".format(name, value) for name, value in args.__dict__.items()]))
 
 # fix seed
+torch.cuda.set_device(args.device)
 random.seed(args.seed)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
@@ -117,8 +118,7 @@ evaluator = EA_eval(save_root=args.save_root,
                     momentum=args.momentum,
                     lr_min=args.lr_min,
                     lr_max=args.lr_max,
-                    epochs=args.epochs,
-                    device=args.device)
+                    epochs=args.epochs)
 engine = NSGA2
 
 
