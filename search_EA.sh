@@ -5,6 +5,7 @@
 Experiment_NOTE
 
 MODE=EXPERIMENT
+DEVICE=cuda:0
 
 python3 search_EA.py --seed=0 \
                     --save_root=./Experiments/ \
@@ -33,4 +34,5 @@ python3 search_EA.py --seed=0 \
                     --surrogate_premodel=2019_12_28_06_03_12 \
                     --surrogate_step=5 \
                     --surrogate_search_times=1000 \
-                    --surrogate_preserve_topk=2
+                    --surrogate_preserve_topk=2 \
+                    --device=$DEVICE

@@ -215,7 +215,8 @@ class Seq2Rank:
                  encoder,
                  model_save_path,
                  input_preprocess: 'used to format the encoding string' = lambda x: x,
-                 model_size=[(128, 64), (64, 32), (32, 1)]):
+                 model_size=[(128, 64), (64, 32), (32, 1)],
+                 device='cpu'):
         self.save_model_path = model_save_path
         self.model_size = model_size
         self.model = RankNet(model_size)
@@ -223,7 +224,7 @@ class Seq2Rank:
         parameters = filter(lambda p: p.requires_grad, self.model.parameters())
         self.optimizer = torch.optim.Adam(parameters)
         self.encoder = encoder
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = device
         self.input_preprocess = input_preprocess
         self.data_set = RankNetDataset()
 

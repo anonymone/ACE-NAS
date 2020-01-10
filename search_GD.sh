@@ -5,6 +5,7 @@
 Experiment_NOTE
 
 MODE=EXPERIMENT
+DEVICE=cuda:0
 
 python3 search_GD.py --seed=0 \
                     --search_pop_num=1000 \
@@ -34,4 +35,5 @@ python3 search_GD.py --seed=0 \
                     --controller_encoder_vocab_size=15 \
                     --controller_decoder_vocab_size=15 \
                     --controller_batch_size=100 \
-                    --controller_epochs=500
+                    --controller_epochs=500 \
+                    --device=$DEVICE

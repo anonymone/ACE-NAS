@@ -35,6 +35,7 @@ parser.add_argument('--pop_size', type=int, default=300)
 parser.add_argument('--obj_num', type=int, default=2)
 parser.add_argument('--search_pop_num', type=int, default=1000)
 # eval setting
+parser.add_argument('--device', type=str, default='cpu')
 parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
@@ -105,9 +106,6 @@ torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
 torch.cuda.manual_seed_all(args.seed)
 
-# use cuda
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
 population = GD_population(ind_params=args,
                            ind_generator=build_ACE,
                            obj_number=2,
@@ -125,7 +123,8 @@ evaluator = EA_eval(save_root=args.save_root,
                     momentum=args.momentum,
                     lr_min=args.lr_min,
                     lr_max=args.lr_max,
-                    epochs=args.epochs)
+                    epochs=args.epochs,
+                    device=args.device)
 
 engine = NAO(
     args.controller_encoder_layers,
@@ -142,7 +141,7 @@ engine = NAO(
     args.controller_decoder_vocab_size,
     args.controller_decoder_hidden_size,
     args.controller_decoder_dropout,
-    args.controller_decoder_length).to(device=device)
+    args.controller_decoder_length).to(device=args.device)
 
 # Expelliarmus
 q = Quotes()

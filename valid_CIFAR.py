@@ -41,7 +41,7 @@ parser.add_argument('--eval_batch_size', type=int,
 parser.add_argument('--cutout_size', type=int,
                     default=None, help='cutout length')
 
-parser.add_argument('--layers', default=1, type=int,
+parser.add_argument('--layers', default=6, type=int,
                     help='total number of layers (equivalent w/ N=6)')
 parser.add_argument('--channels', type=int, default=36,
                     help='num of init channels')

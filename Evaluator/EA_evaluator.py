@@ -29,7 +29,8 @@ class EA_eval(evaluator):
                  lr_max=0.025,
                  epochs=30,
                  epoch=-1,
-                 optimizer_state_dict=None):
+                 optimizer_state_dict=None,
+                 device='cpu'):
         super(EA_eval, self).__init__(save_root=save_root,
                                       mode=mode,
                                       data_path=data_path,
@@ -44,14 +45,14 @@ class EA_eval(evaluator):
                                       lr_max=lr_max,
                                       epochs=epochs,
                                       epoch=epoch,
-                                      optimizer_state_dict=optimizer_state_dict  # train parameters
+                                      optimizer_state_dict=optimizer_state_dict,  # train parameters
+                                      device=device
                                       )
 
     def eval_model(self, individual, **kwargs):
-        device = "cuda" if torch.cuda.is_available() else "cpu"
         # DEBUG MODE
         if self.mode == 'DEBUG':
-            model = individual.get_model(2333).to(device)
+            model = individual.get_model(2333).to(self.device)
             n_params = recoder.count_parameters(model)
             valid_top1, valid_top5 = np.random.rand(
                 1)*100, np.random.rand(1)*100
@@ -59,7 +60,7 @@ class EA_eval(evaluator):
             model.eval()
             model.start_flops_count()
             random_data = torch.randn(1, 3, 32, 32)
-            model(torch.autograd.Variable(random_data).to(device))
+            model(torch.autograd.Variable(random_data).to(self.device))
             n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
             logging.debug("[DEBUG MODE] [{0}] valid Top1 {1:.2f} valid Top5 {2:.2f} Params {3:.2f}".format(individual.get_Id(), valid_top1.item(), valid_top5.item(), n_params))
             return {
@@ -88,19 +89,19 @@ class EA_eval(evaluator):
             step = 0
             for epoch in range(self.epochs):
                 train_loss, train_top1, train_top5, step = train.train(
-                    trainset, model, optimizer, step, train_criterion, device)
+                    trainset, model, optimizer, step, train_criterion, self.device)
                 logging.debug("[Epoch {0:>4d}] [Train] loss {1:.3f} lr {2:.5f} error Top1 {3:.2f} error Top5 {4:.2f}".format(
                     epoch, train_loss, scheduler.get_lr()[0], train_top1, train_top5))
                 scheduler.step()
 
             valid_loss, valid_top1, valid_top5 = train.valid(
-                validset, model, eval_criterion, device)
+                validset, model, eval_criterion, self.device)
             # calculate for flopss1
             model = train.add_flops_counting_methods(model)
             model.eval()
             model.start_flops_count()
             random_data = torch.randn(1, 3, 32, 32)
-            model(torch.autograd.Variable(random_data).to(device))
+            model(torch.autograd.Variable(random_data).to(self.device))
             n_flops = np.round(model.compute_average_flops_cost() / 1e6, 4)
 
             logging.info("[Valid Error] [{0}] loss {1:.3f} error Top1 {2:.2f} error Top5 {3:.2f} FLOPs {4:.3f} Params {5:.2f}M".format(
