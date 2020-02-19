@@ -25,4 +25,5 @@ python3 search_RD.py --seed=5 \
                     --lr_min=0.001 \
                     --lr_max=0.1 \
                     --epochs=25 \
-                    --split_train_for_valid=0.8 
+                    --split_train_for_valid=0.8 \
+                    --device=$DEVICE

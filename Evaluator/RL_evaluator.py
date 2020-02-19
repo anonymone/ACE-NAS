@@ -44,7 +44,7 @@ class RL_eval(evaluator):
                                       lr_max=lr_max,
                                       epochs=epochs,
                                       epoch=epoch,
-                                      optimizer_state_dict=optimizer_state_dict  # train parameters
+                                      optimizer_state_dict=optimizer_state_dict,  # train parameters
                                       device=device)
     
     def evaluate(self, samples):
