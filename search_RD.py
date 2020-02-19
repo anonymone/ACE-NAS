@@ -22,11 +22,11 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--seed', type=int, default=5)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 # encoding setting
-parser.add_argument('--unit_num', default=(10, 15))
+parser.add_argument('--unit_num', default=(15, 20))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
-parser.add_argument('--channels', type=int, default=16)
+parser.add_argument('--channels', type=int, default=24)
 parser.add_argument('--keep_prob', type=float, default=0.6)
 parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=False)

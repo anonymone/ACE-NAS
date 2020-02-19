@@ -26,7 +26,7 @@ parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 parser.add_argument('--generations', type=int, default=30)
 # encoding setting
-parser.add_argument('--unit_num', default=(10, 20))
+parser.add_argument('--unit_num', default=(15, 30))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
