@@ -19,7 +19,7 @@ from seq2seq.evaluator import Predictor
 from seq2seq.util.checkpoint import Checkpoint
 
 from Evaluator.Utils.recoder import count_parameters, create_exp_dir
-from Evaluator.Utils.train import train
+from Evaluator.Utils.train import train, valid
 
 
 class EmbeddingModel:
@@ -78,7 +78,7 @@ class RankNet(nn.Module):
             layerNumber+1), nn.Linear(sizeList[-1][0], sizeList[-1][1]))
         self.P_ij = nn.Sigmoid()
 
-    def forward(self, input, global_step):
+    def forward(self, input, global_step=None):
         input1, input2 = input[:,0,:], input[:,1,:]
         x_i = self.model(input1)
         x_j = self.model(input2)
@@ -252,8 +252,32 @@ class Seq2Rank:
                 callback=self.input_preprocess))
             individuals[Id].set_fitnessSG(fitnessSG)
         
+    def eval(self, dataset=None, batch_size=32, num_workers=0):
+        if dataset is None:
+            dataset = self.data_set
+        data_queue = torch.utils.data.DataLoader(dataset=dataset,
+                                                 batch_size=batch_size,
+                                                 shuffle=True,
+                                                 num_workers=num_workers)
+        
+        def rate_fun(outputs, labels, topk=(1, 1)):
+            outputs = outputs.cpu()
+            predicted = outputs.detach().numpy()
+            predicted[predicted >= 0.5] = 1
+            predicted[predicted < 0.5] = 0
+            total = labels.size(0)
+            correct = np.sum(predicted.reshape(1, -1)
+                             == labels.cpu().numpy().reshape(1, -1))
+            return torch.from_numpy(np.array([correct/total])), torch.from_numpy(np.array([correct/total]))
+        valid_loss, valid_top1, valid_top5  = valid(data_queue,
+                                                    self.model, 
+                                                    self.criterion,
+                                                    device='cuda', rate_static=rate_fun)
+        logging.info("[Valid] [Train] loss {0:.3f} error Top1 {1:.2f} error Top5 {2:.2f}".format(
+                valid_loss, valid_top1, valid_top5))
 
-    def train(self, dataset=None, train_epoch=50, newModel=False, run_time=0):
+    def train(self, dataset=None, train_epoch=50, newModel=False, run_time=0,
+                batch_size=32, num_workers=0):
         if newModel:
             self.model = RankNet(self.model_size)
             parameters = filter(lambda p: p.requires_grad,
@@ -265,9 +289,9 @@ class Seq2Rank:
             dataset =self.data_set
 
         data_queue = torch.utils.data.DataLoader(dataset=dataset,
-                                                 batch_size=32,
+                                                 batch_size=batch_size,
                                                  shuffle=True,
-                                                 num_workers=0)
+                                                 num_workers=num_workers)
 
         def rate_fun(outputs, labels, topk=(1, 1)):
             outputs = outputs.cpu()
