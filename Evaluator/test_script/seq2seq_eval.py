@@ -10,11 +10,13 @@ from seq2seq.dataset import SourceField, TargetField
 from seq2seq.evaluator import Predictor
 from seq2seq.util.checkpoint import Checkpoint
 
-checkpoint = Checkpoint.load('./Res/PretrainModel/2019_12_27_08_48_21/')
-seq2seq = checkpoint.model
-input_vocab = checkpoint.input_vocab
-output_vocab = checkpoint.output_vocab
-predictor = Predictor(seq2seq, input_vocab, output_vocab)
-seq_str = "2.2.12 8.12.4 10.2.1 5.0.0 12.13.10 5.6.10 8.12.7 1.9.2 13.13.13 3.11.0"
-seq = seq_str.strip().split()
-print(predictor.predict(seq))
+class eval_tool:
+    def __init__(self, ckpt_path='./Res/PretrainModel/2019_12_27_08_48_21/'):
+        checkpoint = Checkpoint.load(ckpt_path)
+        self.seq2seq = checkpoint.model
+        self.input_vocab = checkpoint.input_vocab
+        self.output_vocab = checkpoint.output_vocab
+        self.predictor = Predictor(self.seq2seq, self.input_vocab, self.output_vocab)
+    
+    def predict(self, input_str):
+        return self.predictor.predict(input_str.strip().split())

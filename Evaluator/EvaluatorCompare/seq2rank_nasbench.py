@@ -32,7 +32,7 @@ for hash_str in hash_models:
     nasbench_value = nasbench423k.get_metrics_from_hash(hash_str)
     matrix, operations, _ = nasbench_value[0].values()
     valid_acc = [nasbench_value[-1][v][-1]['final_validation_accuracy'] for v in nasbench_value[-1].keys()]
-    encoding_string = '{0}-{1}'.format('-'.join([str(bit) for bit in matrix.reshape(-1).tolist()]), '-'.join([ operation_token[op] for op in operations]))
+    encoding_string = '{0} {1}'.format(' '.join([str(bit) for bit in matrix.reshape(-1).tolist()]), ' '.join([ operation_token[op] for op in operations]))
     value_list.append((hash_str, encoding_string, valid_acc))
 
 # free memory
