@@ -60,11 +60,11 @@ del train_input, train_label, valid_input, valid_label
 
 
 seq2rank.update_dataset(data_train)
-seq2rank.train(train_epoch=50, run_time=int(float(args.dataset_name)*423000))
+seq2rank.train(train_epoch=50, run_time=int(float(args.dataset_name)*423000),batch_size=96, num_workers=10)
 
 # prepare dataset
 eval_data = RankNetDataset()
-eval_data.add_data(seq2rank.encoder.encode2numpy(data_train))
+eval_data.add_data(seq2rank.encoder.encode2numpy(data_valid))
 
-seq2rank.eval(eval_data,batch_size=32, num_workers=0)
+valid_loss, valid_top1, valid_top5 = seq2rank.eval(eval_data,batch_size=96, num_workers=10)
 

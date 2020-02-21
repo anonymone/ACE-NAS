@@ -275,6 +275,7 @@ class Seq2Rank:
                                                     device='cuda', rate_static=rate_fun)
         logging.info("[Valid] [Train] loss {0:.3f} error Top1 {1:.2f} error Top5 {2:.2f}".format(
                 valid_loss, valid_top1, valid_top5))
+        return valid_loss, valid_top1, valid_top5
 
     def train(self, dataset=None, train_epoch=50, newModel=False, run_time=0,
                 batch_size=32, num_workers=0):
