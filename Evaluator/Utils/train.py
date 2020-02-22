@@ -100,6 +100,9 @@ def valid(evalset, model, criterion, device='cpu', rate_static=error_rate) -> 'l
     loss_rec = AvgrageMeter()
     top1_rec = AvgrageMeter()
     top5_rec = AvgrageMeter()
+    # process bar
+    bar_length = 30
+    total = len(evalset)
 
     model = model.cuda()
     criterion = criterion.cuda()
@@ -107,6 +110,8 @@ def valid(evalset, model, criterion, device='cpu', rate_static=error_rate) -> 'l
     with torch.no_grad():
         model.eval()
         for step, (input, target) in enumerate(evalset):
+            print('\r[Training {0:>2d}/{1:>2d}]'.format(step+1, total)+'['+'*'*np.floor(bar_length*((step+1)/total)).astype('int') +
+                  '-'*(bar_length-np.floor(bar_length*((step+1)/total)).astype('int'))+']',end='')
             input = input.cuda().requires_grad_()
             target = target.cuda()
         

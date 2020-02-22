@@ -5,6 +5,7 @@ import os
 import argparse
 import pandas as pd
 import logging
+import random
 
 from Evaluator.Utils.surrogate import EmbeddingModel as em
 from Evaluator.Utils.surrogate import RankNetDataset, Seq2Rank
@@ -14,7 +15,7 @@ parser = argparse.ArgumentParser('KTau Calculation.')
 parser.add_argument('--ckpt_root', type=str, default='./Res/nasbench/seq2seq/checkpoints/')
 parser.add_argument('--ckpt_name', type=str, default='2020_02_21_12_50_48')
 parser.add_argument('--dataset_root', type=str, default='./Res/nasbench/')
-parser.add_argument('--dataset_name', type=str, default='0.001')
+parser.add_argument('--dataset_name', type=str, default='0.9')
 parser.add_argument('--exp_path', type=str, default='./Experiments/NASBench/')
 args = parser.parse_args()
 
@@ -58,13 +59,29 @@ data_train = [i for i in zip(train_input, train_label)]
 data_valid = [i for i in zip(valid_input, valid_label)]
 del train_input, train_label, valid_input, valid_label
 
+# random sample 
+# 423,000
+# 423 : 423*9
+selection_sample ={
+    '0.001' : (423,4230*9),
+    '0.01' : (423, 423*9),
+    '0.1' : (int(42300*0.1), int(42300*0.9)),
+    '0.3' : (int(42300*0.3), int(42300*0.7)),
+    '0.5' : (int(42300*0.5), int(42300*0.5)),
+    '0.7' : (int(42300*0.7), int(42300*0.3)),
+    '0.9' : (int(42300*0.9), int(42300*0.1)),
+}
+sample_t, sample_v = selection_sample[args.dataset_name]
+data_train = random.sample(data_train, sample_t)
+data_valid = random.sample(data_valid, sample_v)
 
 seq2rank.update_dataset(data_train)
-seq2rank.train(train_epoch=50, run_time=int(float(args.dataset_name)*423000),batch_size=96, num_workers=10)
+seq2rank.train(train_epoch=1, run_time=int(float(args.dataset_name)*423000),batch_size=128, num_workers=0)
 
 # prepare dataset
 eval_data = RankNetDataset()
 eval_data.add_data(seq2rank.encoder.encode2numpy(data_valid))
 
-valid_loss, valid_top1, valid_top5 = seq2rank.eval(eval_data,batch_size=96, num_workers=10)
+valid_loss, valid_top1, valid_top5 = seq2rank.eval(eval_data,batch_size=1024, num_workers=0)
+logging.info("[Valid] [Train] loss {0} error Top1 {1} error Top5 {2}".format(valid_loss, valid_top1, valid_top5))
 
