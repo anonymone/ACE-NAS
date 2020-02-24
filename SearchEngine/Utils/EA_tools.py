@@ -35,10 +35,30 @@ def ACE_Mutation_V2(code):
             reduction_code[i, j]= (reduction_code[i, j] + random.randint(0,9))%10
         else:
             reduction_code[i, j]= token
+    if random.random()>0.8:
+        if random.random() > 0.5:
+            normal_code = np.insert(normal_code, random.randint(0, normal_code.shape[0]-1), normal_code[random.randint(0, normal_code.shape[0]-1)],0)
+        else:
+            if normal_code.shape[0] >= 15:
+                normal_code = np.delete(normal_code, random.randint(0, normal_code.shape[0]-1),0)
+        if random.random() > 0.5:
+            reduction_code = np.insert(reduction_code, random.randint(0, reduction_code.shape[0]-1), reduction_code[random.randint(0, reduction_code.shape[0]-1)],0)
+        else:
+            if reduction_code.shape[0] >= 15:
+                reduction_code = np.delete(reduction_code, random.randint(0, reduction_code.shape[0]-1),0)
     return (normal_code, reduction_code)
 
 def ACE_CrossoverV1(code1, code2):
-    '''Fixed-length cross'''
+    '''Fixed-length cross over'''
     ind1_code1, ind1_code2 = code1
     ind2_code1, ind2_code2 = code2
+    return ((ind2_code1, ind1_code2), (ind1_code1, ind2_code2))
+
+def ACE_CrossoverV2(code1, code2):
+    '''variable-length cross over'''
+    ind1_code = np.vstack(code1)
+    ind2_code = np.vstack(code2)
+    split_index1, split_index2 = int(ind1_code.shape[0]*random.randint(4,6)*0.1), int(ind2_code.shape[0]*random.randint(4,6)*0.1)
+    ind1_code1, ind1_code2 = ind1_code[:split_index1,:],ind1_code[split_index1:,:]
+    ind2_code1, ind2_code2 = ind2_code[:split_index2,:],ind1_code[split_index2:,:]
     return ((ind2_code1, ind1_code2), (ind1_code1, ind2_code2))

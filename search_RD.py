@@ -37,7 +37,7 @@ parser.add_argument('--obj_num', type=int, default=2)
 parser.add_argument('--mutate_rate', type=float, default=1)
 parser.add_argument('--crossover_rate', type=float, default=0.8)
 # eval setting
-parser.add_argument('--device', type=str, default='cpu')
+parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)

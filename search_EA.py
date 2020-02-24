@@ -30,7 +30,7 @@ parser.add_argument('--unit_num', default=(15, 30))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
-parser.add_argument('--channels', type=int, default=24)
+parser.add_argument('--channels', type=int, default=16)
 parser.add_argument('--keep_prob', type=float, default=0.6)
 parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=False)
@@ -41,7 +41,7 @@ parser.add_argument('--obj_num', type=int, default=2)
 parser.add_argument('--mutate_rate', type=float, default=1)
 parser.add_argument('--crossover_rate', type=float, default=0.8)
 # eval setting
-parser.add_argument('--device', type=str, default='cpu')
+parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
@@ -102,7 +102,7 @@ population = EA_population(obj_number=args.obj_num,
                            mutation_rate=args.mutate_rate,
                            crossover_rate=args.crossover_rate,
                            mutation=EA_tools.ACE_Mutation_V2,
-                           crossover=EA_tools.ACE_CrossoverV1,
+                           crossover=EA_tools.ACE_CrossoverV2,
                            ind_generator=build_ACE,
                            ind_params=args)
 

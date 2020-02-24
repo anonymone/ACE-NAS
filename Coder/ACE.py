@@ -39,10 +39,11 @@ OPERATIONS_large = {
 
 # action defined
 ACTION = {
-    0: 'change_connection_A_B',
+    # 0: 'change_connection_A_B',
+    0: 'add_edge_C',
     1: 'add_node_C',
     2: 'clone_node_A',
-    3: 'substitute_node_B_for_type',  # A will be changed to type
+    # 3: 'substitute_node_B_for_type',  # A will be changed to type
     # 4: 'deldete_connection_A_B'
 }
 
@@ -304,14 +305,14 @@ class ACE_Cell(nn.Module):
         node_graph = {0: []}
         init_action, action_unit = code[0], code[1:]
         node_type_tokens = {0: "Input_Node"}
-        # add init node
+        # initialize the child network
         for i, node_type in zip(range(1, len(init_action)+1), init_action):
             node_graph[i] = [0]
             node_type_tokens[i] = self.__parser.get_op_token(node_type)
         # build node graph
         for act_token, param1, param2 in action_unit:
             action = self.__parser.get_action(act_token)
-            if action == 'change_connection_A_B':
+            if action == 'add_edge_C':
                 node_id1, node_id2 = param1 % (
                     len(node_graph)-1)+1, param2 % (len(node_graph)-1)+1
                 if node_id1 == node_id2:
@@ -353,10 +354,6 @@ class ACE_Cell(nn.Module):
                     node_graph[len(node_graph)] = [0]
                     node_type_tokens[len(node_type_tokens)
                                      ] = node_type_tokens[node_id]
-            elif action == 'substitute_node_B_for_type':
-                node_id1, node_type = param1 % (len(node_graph)) + 1, param2
-                node_type_tokens[node_id1] = self.__parser.get_op_token(
-                    node_type)
             else:
                 raise Exception(
                     'Encountered the unknown action token: {0}'.format(action))
