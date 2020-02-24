@@ -50,11 +50,11 @@ parser.add_argument('--epsilon_list', type=dict, default={1.0: 250,
                                                           0.8: 100,
                                                           0.7: 100,
                                                           0.6: 100,
-                                                          0.5: 50,
-                                                          0.4: 50,
-                                                          0.3: 50,
+                                                          0.5: 100,
+                                                          0.4: 100,
+                                                          0.3: 100,
                                                           0.2: 100,
-                                                          0.1: 50})
+                                                          0.1: 100})
 parser.add_argument('--q_lr', type=float, default=0.1)
 parser.add_argument('--q_discount_factor', type=float, default=1.0)
 parser.add_argument('--q_random_sample', type=int, default=100)
