@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 # encoding setting
-parser.add_argument('--unit_num', default=(15, 30))
+parser.add_argument('--unit_num', default=(15, 25))
 parser.add_argument('--value_boundary', default=(0, 10))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
