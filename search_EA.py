@@ -56,7 +56,7 @@ parser.add_argument('--lr_max', type=float, default=0.025)
 parser.add_argument('--epochs', type=int, default=25)
 
 # surrogate
-parser.add_argument('--surrogate_allowed', type=bool, default=True)
+parser.add_argument('--surrogate_allowed', type=recoder.args_bool, default='False')
 parser.add_argument('--surrogate_path', type=str,
                     default='./Res/PretrainModel/')
 parser.add_argument('--surrogate_premodel', type=str,
