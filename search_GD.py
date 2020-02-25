@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 # encoding setting
-parser.add_argument('--unit_num', default=(10, 10))
+parser.add_argument('--unit_num', default=(25, 25))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
@@ -35,6 +35,7 @@ parser.add_argument('--pop_size', type=int, default=300)
 parser.add_argument('--obj_num', type=int, default=2)
 parser.add_argument('--search_pop_num', type=int, default=1000)
 # eval setting
+parser.add_argument('--device', type=str, default='cpu')
 parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
@@ -57,8 +58,8 @@ parser.add_argument('--controller_encoder_emb_size', type=int, default=32)
 parser.add_argument('--controller_mlp_layers', type=int, default=0)
 parser.add_argument('--controller_mlp_hidden_size', type=int, default=200)
 parser.add_argument('--controller_decoder_layers', type=int, default=1)
-parser.add_argument('--controller_decoder_hidden_size', type=int, default=64)
-parser.add_argument('--controller_source_length', type=int, default=60)
+parser.add_argument('--controller_decoder_hidden_size', type=int, default=80)
+parser.add_argument('--controller_source_length', type=int, default=80)
 parser.add_argument('--controller_encoder_length', type=int, default=30)
 parser.add_argument('--controller_decoder_length', type=int, default=60)
 parser.add_argument('--controller_encoder_dropout', type=float, default=0)
@@ -78,7 +79,7 @@ args = parser.parse_args()
 
 recoder.create_exp_dir(args.save_root)
 args.save_root = os.path.join(
-    args.save_root, 'GD_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H")))
+    args.save_root, 'GD_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H-%S")))
 recoder.create_exp_dir(args.save_root, scripts_to_save=glob.glob('*_GD.*'))
 
 # logging setting
@@ -99,14 +100,12 @@ logging.info("[Experiments Setting]\n"+"".join(
     ["[{0}]: {1}\n".format(name, value) for name, value in args.__dict__.items()]))
 
 # fix seed
+torch.cuda.set_device(args.device)
 random.seed(args.seed)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
 torch.cuda.manual_seed_all(args.seed)
-
-# use cuda
-device = "cuda" if torch.cuda.is_available() else "cpu"
 
 population = GD_population(ind_params=args,
                            ind_generator=build_ACE,
@@ -142,7 +141,7 @@ engine = NAO(
     args.controller_decoder_vocab_size,
     args.controller_decoder_hidden_size,
     args.controller_decoder_dropout,
-    args.controller_decoder_length).to(device=device)
+    args.controller_decoder_length).cuda()
 
 # Expelliarmus
 q = Quotes()

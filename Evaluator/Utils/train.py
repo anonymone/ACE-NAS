@@ -56,7 +56,7 @@ def build_train_utils(model,
         eval_criterion = nn.CrossEntropyLoss()
     return train_criterion, eval_criterion, optimizer, scheduler
 
-def train(trainset, model, optimizer, global_step:'recent epoch', criterion, device, rate_static=error_rate) -> 'loss, top1, top5,':
+def train(trainset, model, optimizer, global_step:'recent epoch', criterion, device='cpu', rate_static=error_rate) -> 'loss, top1, top5,':
     loss_rec = AvgrageMeter()
     top1_rec = AvgrageMeter()
     top5_rec = AvgrageMeter()
@@ -66,16 +66,16 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
     # stable parameters
     grad_bound = 5.0
     # load to device
-    model = model.to(device)
-    criterion = criterion.to(device)
+    model = model.cuda()
+    criterion = criterion.cuda()
 
     model.train()
 
     for step, (input, target) in enumerate(trainset):
         print('\r[Training {0:>2d}/{1:>2d}]'.format(step+1, total)+'['+'*'*np.floor(bar_length*((step+1)/total)).astype('int') +
                   '-'*(bar_length-np.floor(bar_length*((step+1)/total)).astype('int'))+']',end='')
-        input = input.to(device).requires_grad_()
-        target = target.to(device)
+        input = input.cuda().requires_grad_()
+        target = target.cuda()
     
         optimizer.zero_grad()
         logits, aux_logits = model(input, global_step)
@@ -96,19 +96,24 @@ def train(trainset, model, optimizer, global_step:'recent epoch', criterion, dev
 
     return loss_rec.avg, top1_rec.avg, top5_rec.avg, global_step
 
-def valid(evalset, model, criterion, device, rate_static=error_rate) -> 'loss, top1, top5,':
+def valid(evalset, model, criterion, device='cpu', rate_static=error_rate) -> 'loss, top1, top5,':
     loss_rec = AvgrageMeter()
     top1_rec = AvgrageMeter()
     top5_rec = AvgrageMeter()
+    # process bar
+    bar_length = 30
+    total = len(evalset)
 
-    model = model.to(device)
-    criterion = criterion.to(device)
+    model = model.cuda()
+    criterion = criterion.cuda()
 
     with torch.no_grad():
         model.eval()
         for step, (input, target) in enumerate(evalset):
-            input = input.to(device).requires_grad_()
-            target = target.to(device)
+            print('\r[Training {0:>2d}/{1:>2d}]'.format(step+1, total)+'['+'*'*np.floor(bar_length*((step+1)/total)).astype('int') +
+                  '-'*(bar_length-np.floor(bar_length*((step+1)/total)).astype('int'))+']',end='')
+            input = input.cuda().requires_grad_()
+            target = target.cuda()
         
             logits, _ = model(input)
             loss = criterion(logits, target)

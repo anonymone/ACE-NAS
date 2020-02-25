@@ -11,22 +11,18 @@ from copy import deepcopy
 from quotes import Quotes
 
 from Coder.ACE import build_ACE
-from SearchEngine.EA_Engine import NSGA2, EA_population
+from SearchEngine.EA_Engine import EA_population
 from SearchEngine.Utils import EA_tools
 from Evaluator.EA_evaluator import EA_eval
 from Evaluator.Utils import recoder
 
-from Evaluator.Utils.surrogate import EmbeddingModel as em
-from Evaluator.Utils.surrogate import RankNetDataset, Seq2Rank
-
 # Experiments parameter settings
 parser = argparse.ArgumentParser(
     "EA based Neural Architecture Search Experiments")
-parser.add_argument('--seed', type=int, default=0)
+parser.add_argument('--seed', type=int, default=5)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
-parser.add_argument('--generations', type=int, default=30)
 # encoding setting
-parser.add_argument('--unit_num', default=(15, 30))
+parser.add_argument('--unit_num', default=(15, 20))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
@@ -36,7 +32,7 @@ parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=False)
 parser.add_argument('--classes', type=int, default=10)
 # population setting
-parser.add_argument('--pop_size', type=int, default=30)
+parser.add_argument('--pop_size', type=int, default=1000)
 parser.add_argument('--obj_num', type=int, default=2)
 parser.add_argument('--mutate_rate', type=float, default=1)
 parser.add_argument('--crossover_rate', type=float, default=0.8)
@@ -55,21 +51,11 @@ parser.add_argument('--lr_min', type=float, default=0.001)
 parser.add_argument('--lr_max', type=float, default=0.025)
 parser.add_argument('--epochs', type=int, default=25)
 
-# surrogate
-parser.add_argument('--surrogate_allowed', type=bool, default=True)
-parser.add_argument('--surrogate_path', type=str,
-                    default='./Res/PretrainModel/')
-parser.add_argument('--surrogate_premodel', type=str,
-                    default='2019_12_28_06_03_12')
-parser.add_argument('--surrogate_step', type=int, default=5)
-parser.add_argument('--surrogate_search_times', type=int, default=10)
-parser.add_argument('--surrogate_preserve_topk', type=int, default=5)
-
 args = parser.parse_args()
 
 recoder.create_exp_dir(args.save_root)
 args.save_root = os.path.join(
-    args.save_root, 'EA_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H-%S")))
+    args.save_root, 'RD_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H-%S")))
 recoder.create_exp_dir(args.save_root, scripts_to_save=glob.glob('*_EA.*'))
 
 # logging setting
@@ -119,74 +105,11 @@ evaluator = EA_eval(save_root=args.save_root,
                     lr_min=args.lr_min,
                     lr_max=args.lr_max,
                     epochs=args.epochs)
-engine = NSGA2
-
-
-if args.surrogate_allowed:
-    # init surrogate
-    encoder = em(device=args.device,
-                 model_path=args.surrogate_path,
-                 model_file=args.surrogate_premodel)
-    recoder.create_exp_dir(os.path.join(args.save_root, 'seq2rank_checkpoint'))
-    seq2rank = Seq2Rank(encoder, model_save_path=os.path.join(args.save_root, 'seq2rank_checkpoint'),
-                        input_preprocess=lambda x: x.replace('-', ' ').replace('<   >', ' <---> '),
-                        device=args.device)
-    surrogate_schedule = [i for i in range(args.generations) if i not in [
-        x for x in range(0, args.generations, args.surrogate_step)]]
-    surrogate_schedule.remove(args.generations-1)
-else:
-    surrogate_schedule = []
 
 # Expelliarmus
 q = Quotes()
 
-total_time = 0
-for gen in range(args.generations):
-    # record time cost
-    s_time = time.time()
-    logging.info("[Generation{0:>2d}] {2} -- {1}".format(gen, *q.random()))
-
-    # search by surrogate
-    if gen in surrogate_schedule:
-        evaluator.set_mode('SURROGATE')
-        surrogate_pop = deepcopy(population)
-        topk_ind = surrogate_pop.get_topk(k=args.surrogate_preserve_topk)
-        surrogate_pop.remove_ind()
-        surrogate_pop.add_ind(topk_ind)
-        for _ in range(int(args.pop_size/5)):
-            surrogate_pop.new_pop()
-        for s_gen in range(args.surrogate_search_times):
-            surrogate_pop.new_pop()
-            evaluator.evaluate(surrogate_pop.get_ind(),
-                               surrogate_model=seq2rank)
-            _, rm_inds = engine.enviromentalSeleection(
-                surrogate_pop.to_matrix()[:, [0, -1]], args.pop_size)
-            surrogate_pop.remove_ind(rm_inds)
-            surrogate_pop.save(save_path=os.path.join(
-                args.save_root, 'sg_populations'), file_name='sg_population_gen{0}_s_gen{1}'.format(gen, s_gen), mode='SURROGATE')
-        population.add_ind(surrogate_pop.get_topk(
-            k=args.surrogate_preserve_topk, obj_select=2))
-        evaluator.set_mode(args.mode)
-    else:
-        population.new_pop()
-    evaluator.set_mode(args.mode)
-    evaluator.evaluate(population.get_ind())
-
-    if args.surrogate_allowed:
-        # train Seq2Rank
-        seq2rank.update_dataset([(seq2rank.input_preprocess(
-            ind.to_string()), ind.get_fitness()[0]) for ind in population.get_ind()])
-        seq2rank.train(run_time=gen)
-
-    _, rm_inds = engine.enviromentalSeleection(
-        population.to_matrix(), args.pop_size)
-    logging.info('[Removed Individuals]' +
-                 "".join(['\n'+str(i) for i in rm_inds]))
-    population.remove_ind(rm_inds)
-    population.save(save_path=os.path.join(
-        args.save_root, 'populations'), file_name='population_{0:_>2d}'.format(gen))
-
-    s_time = (time.time() - s_time)/3600.0
-    total_time += s_time
-    logging.info("[Generation{0:>2d} END] time cost {1:.2f}h total time cost {2:.2f}d time left {3:.2f}h\n".format(
-        gen, s_time, total_time/24.0, (total_time/(gen+1))*(args.generations-gen-1)))
+evaluator.set_mode(args.mode)
+evaluator.evaluate(population.get_ind())
+population.save(save_path=os.path.join(
+        args.save_root, 'populations'), file_name='population_all')

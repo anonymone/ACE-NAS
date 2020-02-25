@@ -39,12 +39,16 @@ class population:
             return inds
     
     def add_ind(self, ind):
+        # update the pop_size. there is a very tiny possibility that pop_size mismatch with self.individuals and I have not find the bugs yet. Orz.
+        # The bug ocuurs when the topk individuals still alive after surrogate search.
+        # self.pop_size= len(self.individuals)
         if type(ind) != list:
             ind = [ind]
         try:
             for i in ind:
+                if i.ID not in self.individuals.keys():
+                    self.pop_size = self.pop_size + 1
                 self.individuals[i.ID] = i
-                self.pop_size = self.pop_size + 1
         except:
             raise Exception('Individual add failed!')
     

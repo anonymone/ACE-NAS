@@ -28,3 +28,5 @@
 /Archive/SurrogateModel/.ipynb_checkpoints/data-checkpoint.txt
 /Archive/SurrogateModel/RankNetLambda.py
 /Archive/SurrogateModel/data.txt
+Res/nasbench_full.tfrecord.1
+Res/nasbench/*

@@ -50,6 +50,9 @@ parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--l2_reg', type=float, default=3e-5)
 parser.add_argument('--use_aux_head', action='store_true',default=True, help='use auxiliary tower')
 
+# You can train imagenet on N GPUs using the train_NAONet_V2_imagenet.sh script with --batch_size=128*$N and --lr=0.1*$N
+
+
 args = parser.parse_args()
 
 create_exp_dir(args.save_root)
@@ -104,6 +107,10 @@ sample.set_dec(ACE_parser_tool.string_to_numpy(args.encoding_str))
 model = sample.get_model(steps=steps, imagenet=True)
 
 n_params = count_parameters(model)
+
+if torch.cuda.device_count()>1:
+    logging.info("Use %d %s", torch.cuda.device_count(), "GPUs !")
+    model = nn.DataParallel(model)
 
 train_criterion, eval_criterion, optimizer, scheduler = build_train_utils(model=model,
                                                                           l2_reg=args.l2_reg,

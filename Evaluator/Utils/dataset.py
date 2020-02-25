@@ -166,9 +166,9 @@ def build_cifar100(data_path,
 
     train_transform, valid_transform = _data_transforms_cifar10(cutout_size)
     if split_train_for_valid is None:
-        train_data = dset.CIFAR10(
+        train_data = dset.CIFAR100(
             root=data_path, train=True, download=True, transform=train_transform)
-        valid_data = dset.CIFAR10(
+        valid_data = dset.CIFAR100(
             root=data_path, train=False, download=True, transform=valid_transform)
 
         train_queue = torch.utils.data.DataLoader(

@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 # encoding setting
-parser.add_argument('--unit_num', default=(12, 30))
+parser.add_argument('--unit_num', default=(15, 30))
 parser.add_argument('--value_boundary', default=(0, 10))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
@@ -31,6 +31,7 @@ parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=False)
 parser.add_argument('--classes', type=int, default=10)
 # eval setting
+parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
@@ -62,7 +63,7 @@ args = parser.parse_args()
 
 recoder.create_exp_dir(args.save_root)
 args.save_root = os.path.join(
-    args.save_root, 'RL_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H")))
+    args.save_root, 'RL_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H-%S")))
 recoder.create_exp_dir(args.save_root, scripts_to_save=glob.glob('*_RL.*'))
 
 # logging setting
@@ -113,7 +114,8 @@ evaluator = RL_eval(save_root=args.save_root,
                     momentum=args.momentum,
                     lr_min=args.lr_min,
                     lr_max=args.lr_max,
-                    epochs=args.epochs)
+                    epochs=args.epochs,
+                    device=args.device)
 
 # Expelliarmus
 q = Quotes()
