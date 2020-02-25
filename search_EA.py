@@ -38,8 +38,8 @@ parser.add_argument('--classes', type=int, default=10)
 # population setting
 parser.add_argument('--pop_size', type=int, default=30)
 parser.add_argument('--obj_num', type=int, default=2)
-parser.add_argument('--mutate_rate', type=float, default=1)
-parser.add_argument('--crossover_rate', type=float, default=0.8)
+parser.add_argument('--mutate_rate', type=float, default=0.5)
+parser.add_argument('--crossover_rate', type=float, default=1)
 # eval setting
 parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--mode', type=str, default='DEBUG')
@@ -101,7 +101,7 @@ population = EA_population(obj_number=args.obj_num,
                            pop_size=args.pop_size,
                            mutation_rate=args.mutate_rate,
                            crossover_rate=args.crossover_rate,
-                           mutation=EA_tools.ACE_Mutation_V2,
+                           mutation=EA_tools.ACE_Mutation_V3,
                            crossover=EA_tools.ACE_CrossoverV2,
                            ind_generator=build_ACE,
                            ind_params=args)

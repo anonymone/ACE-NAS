@@ -2,6 +2,7 @@
 :<<Experiment_NOTE
 [Experiment NOTE]
 -This area will not execute which only used to record the experiment description.
+EA with less mutation and more crossover. And mutation operator V3 will not change the first bit of each unit.
 Experiment_NOTE
 
 MODE=EXPERIMENT
@@ -17,8 +18,8 @@ python3 search_EA.py --seed=0 \
                     --classes=10 \
                     --pop_size=40 \
                     --obj_num=2 \
-                    --mutate_rate=1 \
-                    --crossover_rate=0.8 \
+                    --mutate_rate=0.5 \
+                    --crossover_rate=1 \
                     --mode=$MODE \
                     --data_path=./Res/Dataset/ \
                     --num_work=10 \
