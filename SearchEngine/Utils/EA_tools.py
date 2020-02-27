@@ -60,5 +60,5 @@ def ACE_CrossoverV2(code1, code2):
     ind2_code = np.vstack(code2)
     split_index1, split_index2 = int(ind1_code.shape[0]*random.randint(4,6)*0.1), int(ind2_code.shape[0]*random.randint(4,6)*0.1)
     ind1_code1, ind1_code2 = ind1_code[:split_index1,:],ind1_code[split_index1:,:]
-    ind2_code1, ind2_code2 = ind2_code[:split_index2,:],ind1_code[split_index2:,:]
+    ind2_code1, ind2_code2 = ind2_code[:split_index2,:],ind2_code[split_index2:,:]
     return ((ind2_code1, ind1_code2), (ind1_code1, ind2_code2))
