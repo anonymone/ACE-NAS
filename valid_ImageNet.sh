@@ -9,7 +9,7 @@ ENCODE=""
 
 python3 valid_CIFAR.py  --seed=0 \
                         --save_root=./Experiments/ \
-                        --data_path=./Res/Dataset/ \
+                        --data_path=./Res/Dataset/ImageNet/ \
                         --num_work=10 \
                         --train_batch_size=128 \
                         --eval_batch_size=256 \

@@ -238,8 +238,8 @@ def build_imagenet(data_path,
                 validdir, valid_transform, num_workers=load_num_work)
     else:
         logging.debug('Loading data from directory')
-        traindir = os.path.join(data_path, 'train')
-        validdir = os.path.join(data_path, 'valid')
+        traindir = os.path.join(data_path, 'ILSVRC2012_img_train')
+        validdir = os.path.join(data_path, 'ILSVRC2012_img_test')
         if lazy_load:
             train_data = dset.ImageFolder(traindir, train_transform)
             valid_data = dset.ImageFolder(validdir, valid_transform)
