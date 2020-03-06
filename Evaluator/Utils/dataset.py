@@ -115,6 +115,61 @@ class InMemoryDataset(data.Dataset):
                     del res, threads
                     gc.collect()
 
+class ZipDataset(data.Dataset):
+    def __init__(self, path, transform=None):
+        super(ZipDataset, self).__init__()
+        self.path = os.path.expanduser(path)
+        self.transform = transform
+        self.samples = []
+        with zipfile.ZipFile(self.path, 'r') as reader:
+            classes, class_to_idx = self.find_classes(reader)
+            fnames = sorted(reader.namelist())
+        for fname in fnames:
+            if self.is_directory(fname):
+                continue
+            target = self.get_target(fname)
+            item = (fname, class_to_idx[target])
+            self.samples.append(item)
+    
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, index):
+        sample, target = self.samples[index]
+        with zipfile.ZipFile(self.path, 'r') as reader:
+            sample = reader.read(sample)
+        sample = convert_to_pil(sample)
+        if self.transform is not None:
+            sample = self.transform(sample)
+        return sample, target
+    
+    def __repr__(self):
+        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
+        fmt_str += '    Number of datapoints: {}\n'.format(self.__len__())
+        fmt_str += '    Root Location: {}\n'.format(self.path)
+        tmp = '    Transforms (if any): '
+        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        tmp = '    Target Transforms (if any): '
+        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        return fmt_str
+    
+    @staticmethod
+    def is_directory(fname):
+        if fname.startswith('n') and fname.endswith('/'):
+            return True
+        return False
+    
+    @staticmethod
+    def get_target(fname):
+        assert fname.startswith('n')
+        return fname.split('/')[0]
+    
+    @staticmethod
+    def find_classes(reader):
+        classes = [ZipDataset.get_target(name) for name in reader.namelist() if ZipDataset.is_directory(name)]
+        classes.sort()
+        class_to_idx = {classes[i]: i for i in range(len(classes))}
+        return classes, class_to_idx
 
 def build_cifar10(data_path,
                   cutout_size=16,
@@ -238,8 +293,8 @@ def build_imagenet(data_path,
                 validdir, valid_transform, num_workers=load_num_work)
     else:
         logging.debug('Loading data from directory')
-        traindir = os.path.join(data_path, 'train')
-        validdir = os.path.join(data_path, 'valid')
+        traindir = os.path.join(data_path, 'ILSVRC2012_img_train')
+        validdir = os.path.join(data_path, 'ILSVRC2012_img_test')
         if lazy_load:
             train_data = dset.ImageFolder(traindir, train_transform)
             valid_data = dset.ImageFolder(validdir, valid_transform)

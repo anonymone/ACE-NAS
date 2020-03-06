@@ -5,19 +5,20 @@
 Experiment_NOTE
 
 DATASET=CIFAR10
+DEVICE=cuda:0
 ENCODE=""
 
-python3 valid_CIFAR.py  --seed=0 \
+python3 valid_ImageNet.py  --seed=0 \
                         --save_root=./Experiments/ \
-                        --data_path=./Res/Dataset/ \
-                        --num_work=10 \
+                        --data_path=./Res/Dataset/ImageNet/ \
+                        --feed_num_work=10 \
+                        --load_num_work=32 \
                         --train_batch_size=128 \
-                        --eval_batch_size=256 \
-                        --cutout_size=16 \
+                        --eval_batch_size=128 \
                         --layers=6 \
                         --channels=48 \
                         --epochs=600 \
-                        --device=cuda \
+                        --device=$DEVICE \
                         --grad_clip=5.0 \
                         --label_smooth=0.1 \
                         --gamma=0.97 \
