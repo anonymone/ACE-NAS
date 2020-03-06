@@ -42,7 +42,11 @@ ACTION = {
     # 0: 'change_connection_A_B',
     0: 'add_edge_C',
     1: 'add_node_C',
-    2: 'clone_node_A',
+    2: 'clone_node_a_parallel',
+    3: 'clone_node_a_squeue',
+    4: 'clone_nodes_A_parallel',
+    5: 'clone_nodes_A_squeue',
+    6: 'dense_path'
     # 3: 'substitute_node_B_for_type',  # A will be changed to type
     # 4: 'deldete_connection_A_B'
 }
@@ -338,7 +342,7 @@ class ACE_Cell(nn.Module):
                 node_graph[len(node_graph)] = [pre_node]
                 node_type_tokens[len(node_type_tokens)
                                  ] = self.__parser.get_op_token(node_type)
-            elif action == 'clone_node_A':
+            elif action == 'clone_node_a_parallel':
                 # 3 is used to control the ratio of remain_edges
                 node_id, remain_edges = param1 % (
                     len(node_graph)-1)+1, True if param2 >= 3 else False
@@ -354,6 +358,55 @@ class ACE_Cell(nn.Module):
                     node_graph[len(node_graph)] = [0]
                     node_type_tokens[len(node_type_tokens)
                                      ] = node_type_tokens[node_id]
+            elif action == 'clone_node_a_squeue':
+                node_id, node_type = param1%(len(node_graph)-1)+1, param2
+                new_node_id = len(node_graph)
+                for i in node_graph:
+                    if node_id in node_graph[i]:
+                        node_graph[i].remove(node_id)
+                        node_graph[i].append(new_node_id)
+                node_graph[new_node_id] = [node_id]
+                node_type_tokens[len(node_type_tokens)] = self.__parser.get_op_token(node_type)
+            elif action == 'clone_nodes_A_parallel':
+                node_id, path_depth = param1%(len(node_graph)-1)+1, param2%5+1
+                # node_set includes node_id
+                node_set = self.get_node_path(node_graph, node_id, path_depth)
+                if len(node_set) <= 1:
+                    continue
+                for n in range(len(node_set)):
+                    node_graph[len(node_graph)] = node_graph[node_id].copy() if n == 0 else [len(node_graph)-1]
+                    node_type_tokens[len(node_type_tokens)] = node_type_tokens[node_set[n]]
+                for i in node_graph:
+                    if node_set[-1] in node_graph[i]:
+                        node_graph[i].append(len(node_graph)-1)
+            elif action == 'clone_nodes_A_squeue':
+                node_id, path_depth = param1%(len(node_graph)-1)+1, param2%5+1
+                # node_set includes node_id
+                node_set = self.get_node_path(node_graph, node_id, path_depth)
+                if len(node_set) <= 1:
+                    continue
+                head = 0
+                for n in range(len(node_set)):
+                    node_graph[len(node_graph)] = [node_set[-1] if n == 0 else len(node_graph)-1]
+                    node_type_tokens[len(node_type_tokens)] = node_type_tokens[node_set[n]]
+                    if n == 0:
+                        head = len(node_graph)-1
+                for i in node_graph:
+                    if node_set[-1] in node_graph[i] and i != head:
+                        node_graph[i].remove(node_set[-1])
+                        node_graph[i].append(len(node_graph)-1)
+            elif action == 'dense_path':
+                node_id, path_depth = param1%(len(node_graph)-1)+1, param2%5+1
+                # node_set includes node_id
+                node_set = self.get_node_path(node_graph, node_id, path_depth)
+                if len(node_set) <= 1:
+                    continue
+                r_node_set = node_set.copy()
+                r_node_set.reverse()
+                for i, n in enumerate(r_node_set[:-1]):
+                    for m in node_set[:-i-1]:
+                        if m not in node_graph[n]:
+                            node_graph[n].append(m)
             else:
                 raise Exception(
                     'Encountered the unknown action token: {0}'.format(action))
@@ -401,6 +454,23 @@ class ACE_Cell(nn.Module):
                           self.channels * len(self.concat_nodes)]
         self.multi_adds += self.final_combine.multi_adds
         return node_graph
+
+    def get_node_path(self, graph, start_node, depth):
+        node_set = [start_node]
+        found_node = -1
+        branch = 0
+        for i in range(depth):
+            for i, i_set in graph.items():
+                if node_set[-1] in i_set:
+                    found_node = i
+                    branch += 1
+            if branch == 1:
+                node_set.append(found_node)
+                branch = 0
+                found_node = -1
+            else:
+                break
+        return node_set
 
     def to_dot(self):
         node_temp = "node_#id[shape=circle, color=pink, fontcolor=red, fontsize=10,label=#node_type];\n"
