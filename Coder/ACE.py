@@ -102,10 +102,12 @@ class ACE(code):
         self.fitness = np.zeros(fitness_size)
         self.vb = value_boundary
         self.unr = unit_number_range
-        self.normal_dec = np.random.randint(low=self.vb[0], high=self.vb[1], size=(
-            random.randint(self.unr[0], self.unr[1]), 3))
-        self.reduct_dec = np.random.randint(low=self.vb[0], high=self.vb[1], size=(
-            random.randint(self.unr[0], self.unr[1]), 3))
+        # self.normal_dec = np.random.randint(low=self.vb[0], high=self.vb[1], size=(
+        #     random.randint(self.unr[0], self.unr[1]), 3))
+        # self.reduct_dec = np.random.randint(low=self.vb[0], high=self.vb[1], size=(
+        #     random.randint(self.unr[0], self.unr[1]), 3))
+        self.normal_dec = self.code_init()
+        self.reduct_dec = self.code_init()
         self.shape = (self.normal_dec.shape, self.reduct_dec.shape)
         # surrogate fitness
         self.fitness_SG = np.zeros(1)
@@ -119,6 +121,11 @@ class ACE(code):
 
         for name in kwargs.keys():
             exec("self.{0} = kwargs['{0}']".format(str(name)))
+
+    def code_init(self):
+        dec = np.array([[np.random.randint(0, 4) if random.random() < 0.8 else np.random.randint(0, 7), np.random.randint(
+            low=self.vb[0], high=self.vb[1]), np.random.randint(low=self.vb[0], high=self.vb[1])] for i in range(random.randint(self.unr[0], self.unr[1]))])
+        return dec
 
     def to_string(self, callback=None) -> str:
         normal_string = "-".join([".".join([str(t) for t in unit])
@@ -147,7 +154,7 @@ class ACE(code):
     def set_fitnessSG(self, sg_fitness):
         self.fitness_SG = np.array(sg_fitness).reshape(-1)
 
-    def get_model(self, steps, imagenet=False,**kwargs):
+    def get_model(self, steps, imagenet=False, **kwargs):
         if len(kwargs) != 0:
             classes = kwargs.pop('classes')
             layers = kwargs.pop('layers')
@@ -338,57 +345,67 @@ class ACE_Cell(nn.Module):
                         node_graph[node_id2].remove(0)
                     node_graph[node_id2].append(node_id1)
             elif action == 'add_node_C':
-                node_type, pre_node = param1, param2 % len(node_graph)
+                # node_type, pre_node = param1, param2 % len(node_graph)
+                pre_node, node_type = param1%len(node_graph), param2
                 node_graph[len(node_graph)] = [pre_node]
                 node_type_tokens[len(node_type_tokens)
                                  ] = self.__parser.get_op_token(node_type)
             elif action == 'clone_node_a_parallel':
-                # 3 is used to control the ratio of remain_edges
-                node_id, remain_edges = param1 % (
-                    len(node_graph)-1)+1, True if param2 >= 3 else False
-                if remain_edges:
-                    new_node_id = len(node_graph)
-                    node_graph[new_node_id] = node_graph[node_id].copy()
-                    for i, v in node_graph.items():
-                        if node_id in v:
-                            node_graph[i].append(new_node_id)
-                    node_type_tokens[len(node_type_tokens)
-                                     ] = node_type_tokens[node_id]
-                else:
-                    node_graph[len(node_graph)] = [0]
-                    node_type_tokens[len(node_type_tokens)
-                                     ] = node_type_tokens[node_id]
+                # node_id, node_type = param1 % (
+                #     len(node_graph)-1)+1, param2
+                node_type, node_id = param1, param2%(
+                    len(node_graph)-1)+1
+                # if remain_edges:
+                new_node_id = len(node_graph)
+                node_graph[new_node_id] = node_graph[node_id].copy()
+                for i, v in node_graph.items():
+                    if node_id in v:
+                        node_graph[i].append(new_node_id)
+                node_type_tokens[len(node_type_tokens)
+                                    ] = self.__parser.get_op_token(node_type)
+                # else:
+                #     node_graph[len(node_graph)] = [0]
+                #     node_type_tokens[len(node_type_tokens)
+                #                      ] = node_type_tokens[node_id]
             elif action == 'clone_node_a_squeue':
-                node_id, node_type = param1%(len(node_graph)-1)+1, param2
+                # node_id, node_type = param1 % (len(node_graph)-1)+1, param2
+                node_type, node_id = param1, param2% (len(node_graph)-1)+1
                 new_node_id = len(node_graph)
                 for i in node_graph:
                     if node_id in node_graph[i]:
                         node_graph[i].remove(node_id)
                         node_graph[i].append(new_node_id)
                 node_graph[new_node_id] = [node_id]
-                node_type_tokens[len(node_type_tokens)] = self.__parser.get_op_token(node_type)
+                node_type_tokens[len(node_type_tokens)
+                                 ] = self.__parser.get_op_token(node_type)
             elif action == 'clone_nodes_A_parallel':
-                node_id, path_depth = param1%(len(node_graph)-1)+1, param2%5+1
+                node_id, path_depth = param1 % (
+                    len(node_graph)-1)+1, param2 % 5+1
                 # node_set includes node_id
                 node_set = self.get_node_path(node_graph, node_id, path_depth)
                 if len(node_set) <= 1:
                     continue
                 for n in range(len(node_set)):
-                    node_graph[len(node_graph)] = node_graph[node_id].copy() if n == 0 else [len(node_graph)-1]
-                    node_type_tokens[len(node_type_tokens)] = node_type_tokens[node_set[n]]
+                    node_graph[len(node_graph)] = node_graph[node_id].copy(
+                    ) if n == 0 else [len(node_graph)-1]
+                    node_type_tokens[len(node_type_tokens)
+                                     ] = node_type_tokens[node_set[n]]
                 for i in node_graph:
                     if node_set[-1] in node_graph[i]:
                         node_graph[i].append(len(node_graph)-1)
             elif action == 'clone_nodes_A_squeue':
-                node_id, path_depth = param1%(len(node_graph)-1)+1, param2%5+1
+                node_id, path_depth = param1 % (
+                    len(node_graph)-1)+1, param2 % 5+1
                 # node_set includes node_id
                 node_set = self.get_node_path(node_graph, node_id, path_depth)
                 if len(node_set) <= 1:
                     continue
                 head = 0
                 for n in range(len(node_set)):
-                    node_graph[len(node_graph)] = [node_set[-1] if n == 0 else len(node_graph)-1]
-                    node_type_tokens[len(node_type_tokens)] = node_type_tokens[node_set[n]]
+                    node_graph[len(node_graph)] = [node_set[-1]
+                                                   if n == 0 else len(node_graph)-1]
+                    node_type_tokens[len(node_type_tokens)
+                                     ] = node_type_tokens[node_set[n]]
                     if n == 0:
                         head = len(node_graph)-1
                 for i in node_graph:
@@ -396,7 +413,8 @@ class ACE_Cell(nn.Module):
                         node_graph[i].remove(node_set[-1])
                         node_graph[i].append(len(node_graph)-1)
             elif action == 'dense_path':
-                node_id, path_depth = param1%(len(node_graph)-1)+1, param2%5+1
+                node_id, path_depth = param1 % (
+                    len(node_graph)-1)+1, param2 % 5+1
                 # node_set includes node_id
                 node_set = self.get_node_path(node_graph, node_id, path_depth)
                 if len(node_set) <= 1:
