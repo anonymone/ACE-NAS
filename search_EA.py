@@ -42,13 +42,14 @@ parser.add_argument('--mutate_rate', type=float, default=0.5)
 parser.add_argument('--crossover_rate', type=float, default=1)
 # eval setting
 parser.add_argument('--device', type=str, default='cuda:0')
-parser.add_argument('--mode', type=str, default='DEBUG')
+parser.add_argument('--mode', type=str, default='EXPERIMENT')
 parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
 parser.add_argument('--num_work', type=int, default=0)
 parser.add_argument('--train_batch_size', type=int, default=196)
 parser.add_argument('--eval_batch_size', type=int, default=196)
-parser.add_argument('--split_train_for_valid', type=float, default=None)
+parser.add_argument('--split_train_for_valid', type=float, default=0.9)
+parser.add_argument('--small_set', type=float, default=0.2)
 parser.add_argument('--l2_reg', type=float, default=3e-4)
 parser.add_argument('--momentum', type=float, default=0.9)
 parser.add_argument('--lr_min', type=float, default=0.001)
@@ -56,11 +57,11 @@ parser.add_argument('--lr_max', type=float, default=0.025)
 parser.add_argument('--epochs', type=int, default=25)
 
 # surrogate
-parser.add_argument('--surrogate_allowed', type=recoder.args_bool, default='False')
+parser.add_argument('--surrogate_allowed', type=recoder.args_bool, default='True')
 parser.add_argument('--surrogate_path', type=str,
                     default='./Res/PretrainModel/')
 parser.add_argument('--surrogate_premodel', type=str,
-                    default='2019_12_28_06_03_12')
+                    default='2020_03_10_09_29_34')
 parser.add_argument('--surrogate_step', type=int, default=5)
 parser.add_argument('--surrogate_search_times', type=int, default=10)
 parser.add_argument('--surrogate_preserve_topk', type=int, default=5)
@@ -114,6 +115,7 @@ evaluator = EA_eval(save_root=args.save_root,
                     train_batch_size=args.train_batch_size,
                     eval_batch_size=args.eval_batch_size,
                     split_train_for_valid=args.split_train_for_valid,
+                    small_set=args.small_set,
                     l2_reg=args.l2_reg,
                     momentum=args.momentum,
                     lr_min=args.lr_min,

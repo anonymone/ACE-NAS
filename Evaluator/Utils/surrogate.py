@@ -215,7 +215,7 @@ class Seq2Rank:
                  encoder,
                  model_save_path,
                  input_preprocess: 'used to format the encoding string' = lambda x: x,
-                 model_size=[(128, 64), (64, 32), (32, 1)],
+                 model_size=[(64, 64), (64, 32), (32, 1)],
                  device='cpu'):
         self.save_model_path = model_save_path
         self.model_size = model_size

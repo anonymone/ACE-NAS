@@ -176,7 +176,8 @@ def build_cifar10(data_path,
                   num_worker=10,
                   train_batch_size=32,
                   eval_batch_size=32,
-                  split_train_for_valid: float = None, **kwargs):
+                  split_train_for_valid: float = None,
+                  small_set=1, **kwargs):
 
     train_transform, valid_transform = _data_transforms_cifar10(cutout_size)
     if split_train_for_valid is None:
@@ -194,7 +195,7 @@ def build_cifar10(data_path,
             root=data_path, train=True, download=True, transform=train_transform)
         valid_data = dset.CIFAR10(
             root=data_path, train=True, download=True, transform=valid_transform)
-        n = len(train_data)
+        n = int(len(train_data)*small_set)
         indices = list(range(n))
         split = int(np.floor(split_train_for_valid * n))
         np.random.shuffle(indices)

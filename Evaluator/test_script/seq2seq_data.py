@@ -4,6 +4,8 @@ from SearchEngine.EA_Engine import EA_population
 from SearchEngine.Utils.EA_tools import ACE_Mutation_V3,ACE_CrossoverV2
 from Coder.ACE import build_ACE
 
+import random 
+import numpy as np
 import argparse
 
 # Experiments parameter settings
@@ -44,35 +46,35 @@ parser.add_argument('--epochs', type=int, default=25)
 
 args = parser.parse_args()
 
+def code_init():
+    dec = np.array([[np.random.randint(0, 4) if random.random() < 0.8 else np.random.randint(0, 7), np.random.randint(
+        low=args.value_boundary[0], high=args.value_boundary[1]), np.random.randint(low=args.value_boundary[0], high=args.value_boundary[1])] for i in range(random.randint(args.unit_num[0], args.unit_num[1]))])
+    return dec
 
-population = EA_population(obj_number=2,
-                           pop_size=3000000,
-                           mutation_rate=1,
-                           crossover_rate=1,
-                           mutation=ACE_Mutation_V3,
-                           crossover=ACE_CrossoverV2,
-                           ind_generator=build_ACE,
-                           ind_params=args)
+def to_string(normal_dec, reduct_dec,callback=None) -> str:
+    normal_string = "-".join([".".join([str(t) for t in unit])
+                                for unit in normal_dec])
+    reduct_string = "-".join([".".join([str(t) for t in unit])
+                                for unit in reduct_dec])
+    if callback is None:
+        return "<--->".join([normal_string, reduct_string])
+    else:
+        return callback("<--->".join([normal_string, reduct_string]))
 
 file_train = open('./Res/PretrainModel/train','w')
-for i, d in enumerate(population.to_string(callback=lambda x: x.replace('-',' ').replace('<   >', ' <---> '))):
+for i, d in enumerate([to_string(code_init(), code_init(), callback=lambda x: x.replace('-',' ').replace('<   >', ' <---> ')) for i in range(4000000)]):
     file_train.writelines('{0}\t{0}\n'.format(d))
-    if i %999==0:
+    if i%1000==0:
+        print(i)
+    if i %99999==0:
         file_train.flush()
 file_train.flush
 
-population = EA_population(obj_number=2,
-                           pop_size=2000000,
-                           mutation_rate=1,
-                           crossover_rate=1,
-                           mutation=ACE_Mutation_V3,
-                           crossover=ACE_CrossoverV2,
-                           ind_generator=build_ACE,
-                           ind_params=args)
-
 file_train = open('./Res/PretrainModel/eval','w')
-for i, d in enumerate(population.to_string(callback=lambda x: x.replace('-',' ').replace('<   >', ' <---> '))):
-    file_train.writelines('{0}\t{0}'.format(d))
-    if i %999==0:
+for i, d in enumerate([to_string(code_init(), code_init(), callback=lambda x: x.replace('-',' ').replace('<   >', ' <---> ')) for i in range(1000000)]):
+    file_train.writelines('{0}\t{0}\n'.format(d))
+    if i%1000==0:
+        print(i)
+    if i %99999==0:
         file_train.flush()
 file_train.flush

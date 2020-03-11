@@ -31,6 +31,7 @@ python3 search_EA.py --seed=0 \
                     --lr_max=0.1 \
                     --epochs=25 \
                     --split_train_for_valid=0.8 \
+                    --small_set=0.2 \
                     --surrogate_allowed=False \
                     --surrogate_path=./Res/PretrainModel/ \
                     --surrogate_premodel=2019_12_28_06_03_12 \
