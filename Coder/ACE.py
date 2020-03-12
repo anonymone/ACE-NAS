@@ -34,6 +34,8 @@ OPERATIONS_large = {
     11: nn.AvgPool2d,  # 2x2
     12: nn.AvgPool2d,  # 3x3
     13: nn.AvgPool2d,  # 5x5
+    14: SepConv,  # 3x3
+    15: SepConv,  # 5x5
     # 14: Identity
 }
 
@@ -262,8 +264,24 @@ class Node(nn.Module):
             self.node_name = "AVGPOOL5x5"
             input_shape = [input_shape[0] // stride,
                            input_shape[1] // stride, channels]
+        elif node_type == 14:
+            self.op = OPERATIONS_large[node_type](
+                self.channels, self.channels, 3, stride, 1)
+            self.node_name = "SepCONV3x3"
+            input_shape = [input_shape[0] // stride,
+                           input_shape[1] // stride, channels]
+            self.multi_adds += 3 * 3 * channels * channels * \
+                (input_shape[0] // stride) * (input_shape[1] // stride)
+        elif node_type == 15:
+            self.op = OPERATIONS_large[node_type](
+                self.channels, self.channels, 3, stride, 1)
+            self.node_name = "SepCONV3x3"
+            input_shape = [input_shape[0] // stride,
+                           input_shape[1] // stride, channels]
+            self.multi_adds += 3 * 3 * channels * channels * \
+                (input_shape[0] // stride) * (input_shape[1] // stride)
         self.out_shape = list(input_shape)
-
+        
     def forward(self, x, step):
         if self.node_type in [8, 11]:
             x = F.pad(x, [0, 1, 0, 1])
