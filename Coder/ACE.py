@@ -274,11 +274,11 @@ class Node(nn.Module):
                 (input_shape[0] // stride) * (input_shape[1] // stride)
         elif node_type == 15:
             self.op = OPERATIONS_large[node_type](
-                self.channels, self.channels, 3, stride, 1)
-            self.node_name = "SepCONV3x3"
+                self.channels, self.channels, 5, stride, 2)
+            self.node_name = "SepCONV5x5"
             input_shape = [input_shape[0] // stride,
                            input_shape[1] // stride, channels]
-            self.multi_adds += 3 * 3 * channels * channels * \
+            self.multi_adds += 5 * 5 * channels * channels * \
                 (input_shape[0] // stride) * (input_shape[1] // stride)
         self.out_shape = list(input_shape)
         
