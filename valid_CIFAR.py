@@ -13,7 +13,7 @@ import argparse
 import numpy as np
 import random
 import time
-from quotes import Quotes
+#from quotes import Quotes
 
 from Coder.ACE import ACE
 from Coder.Network.utils import ACE_parser_tool
@@ -85,6 +85,7 @@ logging.info("[Experiments Setting]\n"+"".join(
     ["[{0}]: {1}\n".format(name, value) for name, value in args.__dict__.items()]))
 
 # fix seed
+torch.cuda.set_device(args.device)
 random.seed(args.seed)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
@@ -129,8 +130,8 @@ train_criterion, eval_criterion, optimizer, scheduler = build_train_utils(
     model, epochs=args.epochs, l2_reg=args.l2_reg, momentum=args.momentum, lr_min=args.lr_min, lr_max=args.lr_max)
 
 # Expelliarmus
-q = Quotes()
-logging.info("[Initialize Model] Model size{1:.2f}M Model Encoding string {0}\n{3} -- {2}".format(sample.to_string(), n_params, *q.random()))
+#q = Quotes()
+logging.info("[Initialize Model] Model size{1:.2f}M Model Encoding string {0}\n".format(sample.to_string(), n_params))
 
 # train procedure
 step = 0

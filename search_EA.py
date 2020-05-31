@@ -8,7 +8,7 @@ import sys
 import os
 import glob
 from copy import deepcopy
-from quotes import Quotes
+#from quotes import Quotes
 
 from Coder.ACE import build_ACE
 from SearchEngine.EA_Engine import NSGA2, EA_population
@@ -26,7 +26,7 @@ parser.add_argument('--seed', type=int, default=1)
 parser.add_argument('--save_root', type=str, default='./Experiments/')
 parser.add_argument('--generations', type=int, default=30)
 # encoding setting
-parser.add_argument('--unit_num', default=(15, 25))
+parser.add_argument('--unit_num', default=(10, 20))
 parser.add_argument('--value_boundary', default=(0, 15))
 # model setting
 parser.add_argument('--layers', type=int, default=1)
@@ -140,13 +140,13 @@ else:
     surrogate_schedule = []
 
 # Expelliarmus
-q = Quotes()
+#q = Quotes()
 
 total_time = 0
 for gen in range(args.generations):
     # record time cost
     s_time = time.time()
-    logging.info("[Generation{0:>2d}] {2} -- {1}".format(gen, *q.random()))
+    logging.info("[Generation{0:>2d}]".format(gen))
 
     # search by surrogate
     if gen in surrogate_schedule:

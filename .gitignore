@@ -30,3 +30,4 @@
 /Archive/SurrogateModel/data.txt
 Res/nasbench_full.tfrecord.1
 Res/nasbench/*
+.vscode/settings.json
