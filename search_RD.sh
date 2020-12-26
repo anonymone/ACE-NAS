@@ -5,7 +5,7 @@
 Experiment_NOTE
 
 MODE=EXPERIMENT
-DEVICE=cuda:0
+DEVICE=cuda:3
 
 python3 search_RD.py --seed=5 \
                     --save_root=./Experiments/ \

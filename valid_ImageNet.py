@@ -13,7 +13,7 @@ import argparse
 import numpy as np
 import random
 import time
-from quotes import Quotes
+#from quotes import Quotes
 
 from Coder.ACE import ACE
 from Coder.Network.utils import ACE_parser_tool
@@ -122,8 +122,8 @@ train_criterion, eval_criterion, optimizer, scheduler = build_train_utils(model=
                                                                           epochs=args.epochs)
 
 # Expelliarmus
-q = Quotes()
-logging.info("[Initialize Model] Model size{1:.2f}M Model Encoding string {0}\n{3} -- {2}".format(sample.to_string(), n_params, *q.random()))
+#q = Quotes()
+logging.info("[Initialize Model] Model size{1:.2f}M Model Encoding string {0}\n".format(sample.to_string()))
 
 # train procedure
 step = 0

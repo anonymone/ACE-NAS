@@ -8,7 +8,7 @@ import sys
 import os
 import glob
 from copy import deepcopy
-from quotes import Quotes
+#from quotes import Quotes
 
 from Coder.ACE import build_ACE
 from SearchEngine.EA_Engine import EA_population
@@ -107,7 +107,7 @@ evaluator = EA_eval(save_root=args.save_root,
                     epochs=args.epochs)
 
 # Expelliarmus
-q = Quotes()
+#q = Quotes()
 
 evaluator.set_mode(args.mode)
 evaluator.evaluate(population.get_ind())

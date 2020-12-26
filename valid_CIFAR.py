@@ -64,7 +64,7 @@ args = parser.parse_args()
 
 create_exp_dir(args.save_root)
 args.save_root = os.path.join(
-    args.save_root, 'FINAL_{0}_{1}'.format(args.dataset, time.strftime("%Y%m%d-%H")))
+    args.save_root, 'FINAL_{0}_{1}'.format(args.dataset, time.strftime("%Y%m%d-%H%M")))
 create_exp_dir(args.save_root, scripts_to_save=glob.glob('*_CIFAR.*'))
 
 # logging setting
