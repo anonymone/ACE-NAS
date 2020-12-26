@@ -1,3 +1,4 @@
+import random
 import torch
 import torch.nn as nn
 import torch.utils
@@ -10,7 +11,11 @@ import numpy as np
 import threading
 import logging
 import os
-
+import gc
+import shutil
+from io import BytesIO
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class Cutout(object):
     def __init__(self, length):
@@ -33,6 +38,18 @@ class Cutout(object):
         img *= mask
         return img
 
+IMG_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm', '.tif']
+
+def has_file_allowed_extension(filename, extensions):
+    filename_lower = filename.lower()
+    return any(filename_lower.endswith(ext) for ext in extensions)
+
+
+def convert_to_pil(bytes_obj):
+    img = Image.open(BytesIO(bytes_obj))
+    #img = Image.open(bytes_obj)
+    #img = bytes_obj 
+    return img.convert('RGB')
 
 def _data_transforms_cifar10(cutout_size):
     CIFAR_MEAN = [0.49139968, 0.48215827, 0.44653124]
@@ -66,6 +83,14 @@ class ReadImageThread(threading.Thread):
         for fname in self.fnames:
             if has_file_allowed_extension(fname, IMG_EXTENSIONS):
                 path = os.path.join(self.root, fname)
+                try:
+                    image = Image.open(path)
+                except(OSError, NameError):
+                    os.remove(path)
+                    continue
+                image.close()
+                if(random.random()<0.1):
+                    continue
                 with open(path, 'rb') as f:
                     image = f.read()
                 item = (image, self.class_id)
@@ -89,8 +114,14 @@ class InMemoryDataset(data.Dataset):
                     for fname in sorted(fnames):
                         if has_file_allowed_extension(fname, IMG_EXTENSIONS):
                             path = os.path.join(root, fname)
+                            try: 
+                               image = Image.open(path)
+                            except(OSError, NameError):
+                               os.remove(path)
+                               continue
+                            image.close()
                             with open(path, 'rb') as f:
-                                image = f.read()
+                               image = f.read()
                             item = (image, class_to_idx[target])
                             self.samples.append(item)
                 else:
@@ -114,14 +145,96 @@ class InMemoryDataset(data.Dataset):
                         self.samples += item
                     del res, threads
                     gc.collect()
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, index):
+        sample, target = self.samples[index]
+        sample = convert_to_pil(sample)
+        if self.transform is not None:
+            sample = self.transform(sample)
+        return sample, target
+    
+    def __repr__(self):
+        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
+        fmt_str += '    Number of datapoints: {}\n'.format(self.__len__())
+        fmt_str += '    Root Location: {}\n'.format(self.path)
+        tmp = '    Transforms (if any): '
+        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        tmp = '    Target Transforms (if any): '
+        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        return fmt_str
 
+    @staticmethod
+    def find_classes(root):
+        classes = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+        classes.sort()
+        class_to_idx = {classes[i]: i for i in range(len(classes))}
+        return classes, class_to_idx
+
+class ZipDataset(data.Dataset):
+    def __init__(self, path, transform=None):
+        super(ZipDataset, self).__init__()
+        self.path = os.path.expanduser(path)
+        self.transform = transform
+        self.samples = []
+        with zipfile.ZipFile(self.path, 'r') as reader:
+            classes, class_to_idx = self.find_classes(reader)
+            fnames = sorted(reader.namelist())
+        for fname in fnames:
+            if self.is_directory(fname):
+                continue
+            target = self.get_target(fname)
+            item = (fname, class_to_idx[target])
+            self.samples.append(item)
+    
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, index):
+        sample, target = self.samples[index]
+        with zipfile.ZipFile(self.path, 'r') as reader:
+            sample = reader.read(sample)
+        sample = convert_to_pil(sample)
+        if self.transform is not None:
+            sample = self.transform(sample)
+        return sample, target
+    
+    def __repr__(self):
+        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
+        fmt_str += '    Number of datapoints: {}\n'.format(self.__len__())
+        fmt_str += '    Root Location: {}\n'.format(self.path)
+        tmp = '    Transforms (if any): '
+        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        tmp = '    Target Transforms (if any): '
+        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        return fmt_str
+    
+    @staticmethod
+    def is_directory(fname):
+        if fname.startswith('n') and fname.endswith('/'):
+            return True
+        return False
+    
+    @staticmethod
+    def get_target(fname):
+        assert fname.startswith('n')
+        return fname.split('/')[0]
+    
+    @staticmethod
+    def find_classes(reader):
+        classes = [ZipDataset.get_target(name) for name in reader.namelist() if ZipDataset.is_directory(name)]
+        classes.sort()
+        class_to_idx = {classes[i]: i for i in range(len(classes))}
+        return classes, class_to_idx
 
 def build_cifar10(data_path,
                   cutout_size=16,
                   num_worker=10,
                   train_batch_size=32,
                   eval_batch_size=32,
-                  split_train_for_valid: float = None, **kwargs):
+                  split_train_for_valid: float = None,
+                  small_set=1, **kwargs):
 
     train_transform, valid_transform = _data_transforms_cifar10(cutout_size)
     if split_train_for_valid is None:
@@ -139,7 +252,7 @@ def build_cifar10(data_path,
             root=data_path, train=True, download=True, transform=train_transform)
         valid_data = dset.CIFAR10(
             root=data_path, train=True, download=True, transform=valid_transform)
-        n = len(train_data)
+        n = int(len(train_data)*small_set)
         indices = list(range(n))
         split = int(np.floor(split_train_for_valid * n))
         np.random.shuffle(indices)
@@ -238,8 +351,8 @@ def build_imagenet(data_path,
                 validdir, valid_transform, num_workers=load_num_work)
     else:
         logging.debug('Loading data from directory')
-        traindir = os.path.join(data_path, 'train')
-        validdir = os.path.join(data_path, 'valid')
+        traindir = os.path.join(data_path, 'ILSVRC2012_img_train/')
+        validdir = os.path.join(data_path, 'ILSVRC2012_img_val/')
         if lazy_load:
             train_data = dset.ImageFolder(traindir, train_transform)
             valid_data = dset.ImageFolder(validdir, valid_transform)

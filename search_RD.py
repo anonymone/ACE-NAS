@@ -8,7 +8,7 @@ import sys
 import os
 import glob
 from copy import deepcopy
-from quotes import Quotes
+#from quotes import Quotes
 
 from Coder.ACE import build_ACE
 from SearchEngine.EA_Engine import EA_population
@@ -32,12 +32,12 @@ parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--use_aux_head', type=bool, default=False)
 parser.add_argument('--classes', type=int, default=10)
 # population setting
-parser.add_argument('--pop_size', type=int, default=1000)
+parser.add_argument('--pop_size', type=int, default=1200)
 parser.add_argument('--obj_num', type=int, default=2)
 parser.add_argument('--mutate_rate', type=float, default=1)
 parser.add_argument('--crossover_rate', type=float, default=0.8)
 # eval setting
-parser.add_argument('--device', type=str, default='cpu')
+parser.add_argument('--device', type=str, default='cuda:0')
 parser.add_argument('--mode', type=str, default='DEBUG')
 parser.add_argument('--data_path', type=str, default='./Res/Dataset/')
 parser.add_argument('--cutout_size', type=int, default=None)
@@ -107,7 +107,7 @@ evaluator = EA_eval(save_root=args.save_root,
                     epochs=args.epochs)
 
 # Expelliarmus
-q = Quotes()
+#q = Quotes()
 
 evaluator.set_mode(args.mode)
 evaluator.evaluate(population.get_ind())

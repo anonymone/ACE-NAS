@@ -1,32 +1,7 @@
 # files
 *.pyc
-*-checkpoint.ipynb
-*.log
-*.dat
-*.bak
-*.csv
-*.dot
-*.zip
 
 # folder 
-/Res/PretrainModel/
 /Experiments/
-/Dataset/*-py
-/Dataset/*.gz
-/Dataset/*/*-py
-/Dataset/*/*.gz
-/Dataset/cifar*
-/Dataset/encodeData/
-/*/Dataset/*-py
-/*/Dataset/*.gz
-/*/Dataset/*/*-py
-/*/Dataset/*/*.gz
-/*/Dataset/cifar*
-/*/Dataset/encodeData/
-/Archive/Experiments/*/
-/Archive/SurrogateModel/data/.ipynb_checkpoints/eng-fra-checkpoint.txt
-/Archive/SurrogateModel/.ipynb_checkpoints/data-checkpoint.txt
-/Archive/SurrogateModel/RankNetLambda.py
-/Archive/SurrogateModel/data.txt
-Res/nasbench_full.tfrecord.1
-Res/nasbench/*
+/Res/Dataset/
+.vscode/settings.json

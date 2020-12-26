@@ -23,6 +23,7 @@ class EA_eval(evaluator):
                  train_batch_size=36,
                  eval_batch_size=36,
                  split_train_for_valid=None,
+                 small_set=1,
                  l2_reg=3e-4,
                  momentum=0.9,
                  lr_min=0.0,
@@ -38,6 +39,7 @@ class EA_eval(evaluator):
                                       train_batch_size=train_batch_size,
                                       eval_batch_size=eval_batch_size,
                                       split_train_for_valid=split_train_for_valid,  # dataset parameters
+                                      small_set=small_set,
                                       l2_reg=l2_reg,
                                       momentum=momentum,
                                       lr_min=lr_min,
@@ -75,7 +77,7 @@ class EA_eval(evaluator):
             cudnn.deterministic = True
 
             trainset, validset = dataset.build_cifar10(
-                self.data_path, self.cutout_size, self.num_work, self.train_batch_size, self.eval_batch_size, self.split_train_for_valid)
+                self.data_path, self.cutout_size, self.num_work, self.train_batch_size, self.eval_batch_size, self.split_train_for_valid, small_set=self.small_set)
             steps = int(len(trainset)) * self.epochs
             model = individual.get_model(steps=steps)
 

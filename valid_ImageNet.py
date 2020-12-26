@@ -13,7 +13,7 @@ import argparse
 import numpy as np
 import random
 import time
-from quotes import Quotes
+#from quotes import Quotes
 
 from Coder.ACE import ACE
 from Coder.Network.utils import ACE_parser_tool
@@ -48,6 +48,7 @@ parser.add_argument('--lr_max', type=float, default=0.025,help='init learning ra
 parser.add_argument('--keep_prob', type=float, default=0.6)
 parser.add_argument('--drop_path_keep_prob', type=float, default=0.8)
 parser.add_argument('--l2_reg', type=float, default=3e-5)
+parser.add_argument('--decay_period', type=int, default=1, help='epochs between two learning rate decays')
 parser.add_argument('--use_aux_head', action='store_true',default=True, help='use auxiliary tower')
 
 # You can train imagenet on N GPUs using the train_NAONet_V2_imagenet.sh script with --batch_size=128*$N and --lr=0.1*$N
@@ -85,17 +86,16 @@ torch.cuda.manual_seed(args.seed)
 torch.cuda.manual_seed_all(args.seed)
 
 cudnn.enabled = True
-cudnn.benchmark = False
-cudnn.deterministic = True
+cudnn.benchmark = True
 
 trainset, validset = build_imagenet(data_path=args.data_path,
                                     load_num_work=args.load_num_work,
                                     feed_num_work=args.feed_num_work,
                                     zip_file=args.zip_file, lazy_load=args.lazy_load,
                                     train_batch_size=args.train_batch_size,
-                                    valid_batch_size=args.valid_batch_size)
+                                    valid_batch_size=args.eval_batch_size)
 
-steps = int(len(trainset)) * args.steps
+steps = int(len(trainset)) * args.epochs
 sample = ACE(fitness_size=2,
              classes=1000,
              layers=args.layers,
@@ -118,12 +118,12 @@ train_criterion, eval_criterion, optimizer, scheduler = build_train_utils(model=
                                                                           lr_max=args.lr_max,
                                                                           decay_period=args.decay_period,
                                                                           gamma=args.gamma,
-                                                                          label_smooth=args.label_smooth
+                                                                          label_smooth=args.label_smooth,
                                                                           epochs=args.epochs)
 
 # Expelliarmus
-q = Quotes()
-logging.info("[Initialize Model] Model size{1:.2f}M Model Encoding string {0}\n{3} -- {2}".format(sample.to_string(), n_params, *q.random()))
+#q = Quotes()
+logging.info("[Initialize Model] Model size{1:.2f}M Model Encoding string {0}\n".format(sample.to_string()))
 
 # train procedure
 step = 0
