@@ -18,7 +18,7 @@ import time
 from Coder.ACE import ACE
 from Coder.Network.utils import ACE_parser_tool
 from Evaluator.Utils.train import train, valid, build_train_utils
-from Evaluator.Utils.dataset import build_cifar10, build_cifar100
+from Evaluator.Utils.dataset import build_cifar10, build_cifar100, build_mnist
 from Evaluator.Utils.recoder import create_exp_dir, model_save, count_parameters, count_parameters
 
 parser = argparse.ArgumentParser(
@@ -103,9 +103,16 @@ if args.dataset == 'CIFAR10':
                                        num_worker=args.num_work,
                                        train_batch_size=args.train_batch_size,
                                        eval_batch_size=args.eval_batch_size)
-else:
+elif args.dataset == 'CIFAR100':
     args.classes = 100
     trainset, validset = build_cifar100(data_path=args.data_path,
+                                        cutout_size=args.cutout_size,
+                                        num_worker=args.num_work,
+                                        train_batch_size=args.train_batch_size,
+                                        eval_batch_size=args.eval_batch_size)
+else:
+    args.classes = 10
+    trainset, validset = build_mnist(data_path=args.data_path,
                                         cutout_size=args.cutout_size,
                                         num_worker=args.num_work,
                                         train_batch_size=args.train_batch_size,
@@ -122,7 +129,7 @@ sample = ACE(fitness_size=2,
              use_aux_head=args.use_aux_head)
 
 sample.set_dec(ACE_parser_tool.string_to_numpy(args.encoding_str))
-model = sample.get_model(steps=steps)
+model = sample.get_model(steps=steps, dataType=args.dataset)
 
 n_params = count_parameters(model)
 

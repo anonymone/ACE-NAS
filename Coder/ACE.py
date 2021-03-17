@@ -156,7 +156,7 @@ class ACE(code):
     def set_fitnessSG(self, sg_fitness):
         self.fitness_SG = np.array(sg_fitness).reshape(-1)
 
-    def get_model(self, steps, imagenet=False, **kwargs):
+    def get_model(self, steps, dataType="CIFAR10", **kwargs):
         if len(kwargs) != 0:
             classes = kwargs.pop('classes')
             layers = kwargs.pop('layers')
@@ -171,10 +171,12 @@ class ACE(code):
             keep_prob = self.keep_prob
             drop_path_keep_prob = self.drop_path_keep_prob
             use_aux_head = self.use_aux_head
-        if imagenet:
+        if dataType == "IMAGENET":
             return Network_IMAGENET(ACE_Cell, self.get_dec(), classes, layers, channels, keep_prob, drop_path_keep_prob, use_aux_head, steps)
-        else:
+        elif dataType == "CIFAR10" or dataType == "CIFAR100":
             return Network_CIFAR(ACE_Cell, self.get_dec(), classes, layers, channels, keep_prob, drop_path_keep_prob, use_aux_head, steps)
+        else:
+            return Network_CIFAR(ACE_Cell, self.get_dec(), classes, layers, channels, keep_prob, drop_path_keep_prob, use_aux_head, steps, input_demension=1)
 
 
 class Node(nn.Module):

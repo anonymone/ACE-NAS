@@ -51,6 +51,25 @@ def convert_to_pil(bytes_obj):
     #img = bytes_obj 
     return img.convert('RGB')
 
+def _data_transforms_mnist(cutout_size):
+    CIFAR_MEAN = [0.49139968]
+    CIFAR_STD = [0.24703233]
+
+    train_transform = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(CIFAR_MEAN, CIFAR_STD),
+    ])
+    if cutout_size is not None:
+        train_transform.transforms.append(Cutout(cutout_size))
+
+    valid_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(CIFAR_MEAN, CIFAR_STD),
+    ])
+    return train_transform, valid_transform
+
 def _data_transforms_cifar10(cutout_size):
     CIFAR_MEAN = [0.49139968, 0.48215827, 0.44653124]
     CIFAR_STD = [0.24703233, 0.24348505, 0.26158768]
@@ -227,6 +246,47 @@ class ZipDataset(data.Dataset):
         classes.sort()
         class_to_idx = {classes[i]: i for i in range(len(classes))}
         return classes, class_to_idx
+
+def build_mnist(data_path,
+                  cutout_size=16,
+                  num_worker=10,
+                  train_batch_size=32,
+                  eval_batch_size=32,
+                  split_train_for_valid: float = None,
+                  small_set=1, **kwargs):
+
+    train_transform, valid_transform = _data_transforms_mnist(cutout_size)
+    if split_train_for_valid is None:
+        train_data = dset.CIFAR10(
+            root=data_path, train=True, download=True, transform=train_transform)
+        valid_data = dset.CIFAR10(
+            root=data_path, train=False, download=True, transform=valid_transform)
+
+        train_queue = torch.utils.data.DataLoader(
+            train_data, batch_size=train_batch_size, shuffle=True, pin_memory=True, num_workers=num_worker)
+        valid_queue = torch.utils.data.DataLoader(
+            valid_data, batch_size=eval_batch_size, shuffle=False, pin_memory=True, num_workers=num_worker)
+    else:
+        train_data = dset.CIFAR10(
+            root=data_path, train=True, download=True, transform=train_transform)
+        valid_data = dset.CIFAR10(
+            root=data_path, train=True, download=True, transform=valid_transform)
+        n = int(len(train_data)*small_set)
+        indices = list(range(n))
+        split = int(np.floor(split_train_for_valid * n))
+        np.random.shuffle(indices)
+        train_queue = torch.utils.data.DataLoader(
+            train_data, batch_size=train_batch_size,
+            sampler=torch.utils.data.sampler.SubsetRandomSampler(
+                indices[:split]),
+            pin_memory=True, num_workers=num_worker)
+        valid_queue = torch.utils.data.DataLoader(
+            valid_data, batch_size=eval_batch_size,
+            sampler=torch.utils.data.sampler.SubsetRandomSampler(
+                indices[split:n]),
+            pin_memory=True, num_workers=num_worker)
+
+    return train_queue, valid_queue
 
 def build_cifar10(data_path,
                   cutout_size=16,
