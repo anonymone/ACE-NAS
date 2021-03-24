@@ -312,7 +312,8 @@ class Network_CIFAR(nn.Module):
                 keep_prob,
                 drop_path_keep_prob,
                 use_aux_head,
-                steps:'the total training steps equs to (trainset_size / batchsize) * epochs'):
+                steps:'the total training steps equs to (trainset_size / batchsize) * epochs',
+                input_demension=3):
         super(Network_CIFAR, self).__init__()
         self.classes = classes
         self.layers = layers
@@ -334,7 +335,7 @@ class Network_CIFAR(nn.Module):
         stem_multiplier = 3
         channels = stem_multiplier * self.channels
         self.stem = nn.Sequential(
-            nn.Conv2d(3, channels, 3, padding=1, bias=False),
+            nn.Conv2d(input_demension, channels, 3, padding=1, bias=False),
             nn.BatchNorm2d(channels)
         )
         outs = [[32, 32, channels],[32, 32, channels]]

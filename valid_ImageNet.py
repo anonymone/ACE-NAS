@@ -104,7 +104,7 @@ sample = ACE(fitness_size=2,
              drop_path_keep_prob=args.drop_path_keep_prob,
              use_aux_head=args.use_aux_head)
 sample.set_dec(ACE_parser_tool.string_to_numpy(args.encoding_str))
-model = sample.get_model(steps=steps, imagenet=True)
+model = sample.get_model(steps=steps, dataType="IMAGENET")
 
 n_params = count_parameters(model)
 
