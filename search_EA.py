@@ -73,7 +73,7 @@ args.save_root = os.path.join(
     args.save_root, 'EA_SEARCH_{0}'.format(time.strftime("%Y%m%d-%H-%S")))
 recoder.create_exp_dir(args.save_root, scripts_to_save=glob.glob('*_EA.*'))
 
-# logging setting
+# logging settings
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s %(message)s")
