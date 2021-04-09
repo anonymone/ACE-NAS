@@ -43,13 +43,28 @@ sh valid_CIFAR.sh
 sh valid_ImageNet.sh
 ```
 
-If your server has more than one GPU. You can choose the GPU by changing `$DEVICE = cuda:$X`. `$X` is the ID of GPUs.
+If your GPU server has more than one GPU. You can choose the GPU by changing `$DEVICE = cuda:$ID`. `$ID` is the ID of GPUs.
 
 ## Visualization
 In our framework, each neural architecture is saved as a visual DOT file.
+### Install Graphviz
 ```
-#TODO
-add description of DOT。
+# CentOS
+sudo yum install graphviz
+
+# Ubuntu
+sudo apt install graphviz
+
+# MacOS
+brew install graphviz
+```
+### Usage
+```
+# Command Line
+dot -Tpng YOUR_DOT_FILE.dot -o OUTPUT.png
+
+# We highly recommand to use VScode extension Graphviz Preview.
+# And then, you can check your DOT file in a convenience way.
 ```
 
 ## Acknowledgement
