@@ -3,6 +3,7 @@ Code accompanying the paper
 >*Action Command Encoding for Surrogate Assisted Neural Architecture Search*
 
 ACEncoding is an encoding strategy of NAS. The proposed ACEncoding is inspired by the process of gene expression, where each architecture is constructed by a series of action commands and each action command is encoded by three integers.  
+![ACE](./Res/Figure/ACEncoding.jpg)
 
 ## Requirements
 ```
