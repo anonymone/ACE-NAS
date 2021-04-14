@@ -2,13 +2,12 @@
 :<<Experiment_NOTE
 [Experiment NOTE]
 -This area will not execute which only used to record the experiment description.
-EA with less mutation and more crossover. And mutation operator V3 will not change the first bit of each unit.
 Experiment_NOTE
 
 MODE=EXPERIMENT
-DEVICE=cuda:3
+DEVICE=cuda:0
 
-python3 search_EA.py --seed=0 \
+python3 ./Search/search_EA.py --seed=0 \
                     --save_root=./Experiments/ \
                     --generations=25 \
                     --layers=1 \

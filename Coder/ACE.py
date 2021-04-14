@@ -104,10 +104,6 @@ class ACE(code):
         self.fitness = np.zeros(fitness_size)
         self.vb = value_boundary
         self.unr = unit_number_range
-        # self.normal_dec = np.random.randint(low=self.vb[0], high=self.vb[1], size=(
-        #     random.randint(self.unr[0], self.unr[1]), 3))
-        # self.reduct_dec = np.random.randint(low=self.vb[0], high=self.vb[1], size=(
-        #     random.randint(self.unr[0], self.unr[1]), 3))
         self.normal_dec = self.code_init()
         self.reduct_dec = self.code_init()
         self.shape = (self.normal_dec.shape, self.reduct_dec.shape)
