@@ -7,7 +7,8 @@ import random
 import sys
 import os
 import glob
-from quotes import Quotes
+# from quotes import Quotes
+sys.path.insert(0, './')
 
 from Coder.ACE import build_ACE
 from Evaluator.Utils import recoder
@@ -118,11 +119,11 @@ evaluator = RL_eval(save_root=args.save_root,
                     device=args.device)
 
 # Expelliarmus
-q = Quotes()
+# q = Quotes()
 
 total_time = 0
 for epsilon, samples_num in args.epsilon_list.items():
-    logging.info('[Epsilon {0:.1f}] {2} -- {1}'.format(epsilon, *q.random()))
+    logging.info('[Epsilon {0:.1f}]'.format(epsilon))
     epsilon_total_time = 0
     for s in range(samples_num):
         # record time cost

@@ -7,7 +7,7 @@ Experiment_NOTE
 MODE=EXPERIMENT
 DEVICE=cuda:0
 
-python3 search_RL.py --seed=0 \
+python3 ./Search/search_RL.py --seed=0 \
                     --save_root=./Experiments/ \
                     --layers=1 \
                     --channels=16 \

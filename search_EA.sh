@@ -7,7 +7,7 @@ Experiment_NOTE
 MODE=EXPERIMENT
 DEVICE=cuda:0
 
-python3 search_EA.py --seed=0 \
+python3 ./Search/search_EA.py --seed=0 \
                     --save_root=./Experiments/ \
                     --generations=25 \
                     --layers=1 \

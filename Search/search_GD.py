@@ -7,7 +7,8 @@ import random
 import sys
 import os
 import glob
-from quotes import Quotes
+#from quotes import Quotes
+sys.path.insert(0, './')
 
 from Coder.ACE import build_ACE
 from SearchEngine.GD_Engine import NAO, GD_population
@@ -144,7 +145,7 @@ engine = NAO(
     args.controller_decoder_length).cuda()
 
 # Expelliarmus
-q = Quotes()
+# q = Quotes()
 
 total_time = []
 total_run_time = 0
@@ -152,7 +153,7 @@ while total_run_time < 100:
     # time cost record
     s_time = time.time()
 
-    logging.info("[Search Epoch {0:>2d}] {2} -- {1}".format(total_run_time, *q.random()))
+    logging.info("[Search Epoch {0:>2d}]".format(total_run_time))
     evaluator.evaluate(population.get_ind())
     population.save(save_path=os.path.join(
         args.save_root, 'archs'), file_name='arch_{0:_>2d}'.format(total_run_time))

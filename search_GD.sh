@@ -7,7 +7,7 @@ Experiment_NOTE
 MODE=EXPERIMENT
 DEVICE=cuda:0
 
-python3 search_GD.py --seed=0 \
+python3 ./Search/search_GD.py --seed=0 \
                     --search_pop_num=1000 \
                     --save_root=./Experiments/ \
                     --data_path=./Res/Dataset/ \

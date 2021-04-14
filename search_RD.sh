@@ -7,7 +7,7 @@ Experiment_NOTE
 MODE=EXPERIMENT
 DEVICE=cuda:3
 
-python3 search_RD.py --seed=5 \
+python3 ./Search/search_RD.py --seed=5 \
                     --save_root=./Experiments/ \
                     --pop_size=1200 \
                     --layers=1 \

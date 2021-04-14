@@ -9,6 +9,7 @@ import os
 import glob
 from copy import deepcopy
 #from quotes import Quotes
+sys.path.insert(0, './')
 
 from Coder.ACE import build_ACE
 from SearchEngine.EA_Engine import EA_population

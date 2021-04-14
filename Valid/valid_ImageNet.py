@@ -14,6 +14,7 @@ import numpy as np
 import random
 import time
 #from quotes import Quotes
+sys.path.insert(0, './')
 
 from Coder.ACE import ACE
 from Coder.Network.utils import ACE_parser_tool
