@@ -3,4 +3,4 @@ torchtext==0.7.0
 torchvision==0.9.0
 pandas==1.1.5 
 dill==0.3.3
-tqdm==4.59.0
+tqdm==4.66.3
